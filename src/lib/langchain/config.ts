@@ -16,7 +16,7 @@ export function getEmbeddings() {
  */
 export function getChatModel() {
   return new ChatGoogleGenerativeAI({
-    model: "gemini-2.5-flash",
+    model: "gemini-1.5-flash",
     temperature: 0.1, // Low temperature for factual responses
     apiKey: process.env.GOOGLE_API_KEY,
   });

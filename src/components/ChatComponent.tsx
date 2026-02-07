@@ -27,13 +27,14 @@ interface Message {
 }
 
 export default function ChatComponent() {
+    const [mounted, setMounted] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
         {
             id: "welcome",
             role: "assistant",
             content:
                 "Hello! I'm your Kidney Health Education Assistant. I provide accurate information about kidney diseases, treatments, diet recommendations, and preventive care—all based on verified medical resources.\n\nHow can I help you today?",
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            timestamp: "", // Will be set on mount
         },
     ]);
     const [input, setInput] = useState("");
@@ -44,6 +45,11 @@ export default function ChatComponent() {
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
+
+    useEffect(() => {
+        setMounted(true);
+        setMessages(prev => prev.map(m => m.id === "welcome" ? { ...m, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) } : m));
+    }, []);
 
     useEffect(() => {
         scrollToBottom();
@@ -187,7 +193,7 @@ export default function ChatComponent() {
 
                                     <div className="flex items-center justify-end gap-1 mt-1 h-3">
                                         <span className="text-[11px] text-[#667781] uppercase font-medium mr-1 tracking-tighter">
-                                            {message.timestamp}
+                                            {message.timestamp || "..."}
                                         </span>
                                         {message.role === "user" && (
                                             <CheckCheck className="w-3.5 h-3.5 text-[#53bdeb]" />

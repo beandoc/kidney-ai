@@ -3,7 +3,12 @@ import { getChatModel, STRICT_SYSTEM_PROMPT } from "@/lib/langchain/config";
 import { searchDocuments, formatContext } from "@/lib/langchain/vectorStore";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
+export async function GET() {
+    return NextResponse.json({ status: "Chat API is active and ready for POST requests." });
+}
+
 export async function POST(request: NextRequest) {
+    console.log("POST /api/chat received");
     try {
         const { message } = await request.json();
 
