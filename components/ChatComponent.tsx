@@ -22,6 +22,7 @@ interface Message {
     id: string;
     role: "user" | "assistant";
     content: string;
+    image?: string; // Base64 image
     sources?: string[];
     timestamp: string;
 }
@@ -40,7 +41,9 @@ export default function ChatComponent() {
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [selectedImage, setSelectedImage] = useState<{ file: File; preview: string } | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -53,21 +56,41 @@ export default function ChatComponent() {
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages]);
+    }, [messages, selectedImage]);
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 10 * 1024 * 1024) {
+                setError("Image size must be less than 10MB");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setSelectedImage({ file, preview: reader.result as string });
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!input.trim() || isLoading) return;
+        if ((!input.trim() && !selectedImage) || isLoading) return;
+
+        const currentInput = input.trim();
+        const currentImage = selectedImage?.preview;
 
         const userMessage: Message = {
             id: Date.now().toString(),
             role: "user",
-            content: input.trim(),
+            content: currentInput || (currentImage ? "[Image]" : ""),
+            image: currentImage,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
 
         setMessages((prev) => [...prev, userMessage]);
         setInput("");
+        setSelectedImage(null);
         setIsLoading(true);
         setError(null);
 
@@ -75,7 +98,10 @@ export default function ChatComponent() {
             const response = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message: userMessage.content }),
+                body: JSON.stringify({
+                    message: currentInput,
+                    image: currentImage?.split(',')[1] // Send only base64 data
+                }),
             });
 
             if (!response.ok) {
@@ -220,6 +246,11 @@ export default function ChatComponent() {
                                         : "bg-white rounded-tl-none bubble-assistant"
                                         }`}
                                 >
+                                    {message.image && (
+                                        <div className="mb-2 rounded-md overflow-hidden border border-[#E9EDEF]">
+                                            <img src={message.image} alt="User upload" className="max-w-full h-auto object-cover" />
+                                        </div>
+                                    )}
                                     <div className="text-[14.2px] text-[#111B21] leading-[1.45] whitespace-pre-wrap pr-10">
                                         {message.content}
                                     </div>
@@ -271,36 +302,60 @@ export default function ChatComponent() {
                 </div>
 
                 {/* Input Bar */}
-                <footer className="relative z-10 bg-[#F0F2F5] px-3 py-3 flex items-center gap-2 border-t border-[#D1D7DB]">
-                    <div className="flex items-center gap-3 text-[#54656F] px-1">
-                        <Plus className="w-6 h-6 cursor-pointer hover:text-slate-800 transition-colors" />
+                <footer className="relative z-10 bg-[#F0F2F5] px-3 py-3 flex flex-col gap-2 border-t border-[#D1D7DB]">
+                    {selectedImage && (
+                        <div className="mx-4 mb-2 relative inline-block w-20 h-20 group">
+                            <img src={selectedImage.preview} className="w-full h-full object-cover rounded-lg border-2 border-[#128C7E]" alt="Preview" />
+                            <div
+                                onClick={() => setSelectedImage(null)}
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center cursor-pointer shadow-md hover:bg-red-600 transition-colors"
+                            >
+                                <Plus className="w-3 h-3 rotate-45" />
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3 text-[#54656F] px-1">
+                            <Plus className="w-6 h-6 cursor-pointer hover:text-slate-800 transition-colors" />
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="flex-1 flex items-center gap-2">
+                            <div className="flex-1 bg-white rounded-full px-5 py-2.5 flex items-center shadow-sm border border-[#F0F2F5]">
+                                <input
+                                    type="text"
+                                    value={input}
+                                    onChange={(e) => setInput(e.target.value)}
+                                    placeholder="Message"
+                                    className="flex-1 bg-transparent border-none outline-none text-[#111B21] text-[15.5px] placeholder-[#667781]"
+                                    disabled={isLoading}
+                                />
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    className="hidden"
+                                    accept="image/*"
+                                    onChange={handleFileSelect}
+                                />
+                                <Paperclip
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="w-5 h-5 text-[#54656F] cursor-pointer hover:text-slate-800 ml-2"
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-center w-[48px] h-[48px] rounded-full bg-[#128C7E] cursor-pointer hover:bg-[#075E54] transition-all duration-200 shadow-md transform active:scale-90">
+                                {input.trim() ? (
+                                    <button type="submit" disabled={isLoading} className="flex items-center justify-center w-full h-full">
+                                        <Send className="w-5 h-5 text-white ml-0.5" />
+                                    </button>
+                                ) : (
+                                    <div className="flex items-center justify-center w-full h-full">
+                                        <Mic className="w-5 h-5 text-white" />
+                                    </div>
+                                )}
+                            </div>
+                        </form>
                     </div>
-
-                    <form onSubmit={handleSubmit} className="flex-1 flex items-center gap-2">
-                        <div className="flex-1 bg-white rounded-full px-5 py-2.5 flex items-center shadow-sm border border-[#F0F2F5]">
-                            <input
-                                type="text"
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                placeholder="Message"
-                                className="flex-1 bg-transparent border-none outline-none text-[#111B21] text-[15.5px] placeholder-[#667781]"
-                                disabled={isLoading}
-                            />
-                            <Paperclip className="w-5 h-5 text-[#54656F] cursor-pointer hover:text-slate-800 ml-2" />
-                        </div>
-
-                        <div className="flex items-center justify-center w-[48px] h-[48px] rounded-full bg-[#128C7E] cursor-pointer hover:bg-[#075E54] transition-all duration-200 shadow-md transform active:scale-90">
-                            {input.trim() ? (
-                                <button type="submit" disabled={isLoading} className="flex items-center justify-center w-full h-full">
-                                    <Send className="w-5 h-5 text-white ml-0.5" />
-                                </button>
-                            ) : (
-                                <div className="flex items-center justify-center w-full h-full">
-                                    <Mic className="w-5 h-5 text-white" />
-                                </div>
-                            )}
-                        </div>
-                    </form>
                 </footer>
             </div>
         </div>

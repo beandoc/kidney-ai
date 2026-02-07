@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getChatModel, STRICT_SYSTEM_PROMPT } from "@/lib/langchain/config";
+import { getChatModel, STRICT_SYSTEM_PROMPT, VISION_SYSTEM_PROMPT } from "@/lib/langchain/config";
 import { searchDocuments, formatContext } from "@/lib/langchain/vectorStore";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
@@ -10,11 +10,11 @@ export async function GET() {
 export async function POST(request: NextRequest) {
     console.log("POST /api/chat received");
     try {
-        const { message } = await request.json();
+        const { message, image } = await request.json();
 
-        if (!message || typeof message !== "string") {
+        if ((!message || typeof message !== "string") && !image) {
             return NextResponse.json(
-                { error: "Message is required" },
+                { error: "Message or image is required" },
                 { status: 400 }
             );
         }
@@ -27,23 +27,46 @@ export async function POST(request: NextRequest) {
         }
 
         // Step 1: Search for relevant documents
-        const relevantDocs = await searchDocuments(message, 4);
+        // If image only, use a generic query
+        const searchQuery = message || "kidney health and diet";
+        const relevantDocs = await searchDocuments(searchQuery, 4);
 
         // Step 2: Format context from retrieved documents
         const context = formatContext(relevantDocs);
 
-        // Step 3: Build the prompt with strict instructions
-        const filledPrompt = STRICT_SYSTEM_PROMPT.replace("{context}", context).replace(
+        // Step 3: Build the prompt
+        const systemPromptBase = image ? VISION_SYSTEM_PROMPT : STRICT_SYSTEM_PROMPT;
+        const filledPrompt = systemPromptBase.replace("{context}", context).replace(
             "{question}",
-            message
+            message || "Analyze this image."
         );
 
         // Step 4: Stream response from LLM
         const chatModel = getChatModel();
-        const stream = await chatModel.stream([
-            new SystemMessage(filledPrompt),
-            new HumanMessage(message),
-        ]);
+
+        let messages;
+        if (image) {
+            // Multimodal message format
+            messages = [
+                new SystemMessage(filledPrompt),
+                new HumanMessage({
+                    content: [
+                        { type: "text", text: message || "Please analyze this image." },
+                        {
+                            type: "image_url",
+                            image_url: `data:image/jpeg;base64,${image}`,
+                        },
+                    ],
+                }),
+            ];
+        } else {
+            messages = [
+                new SystemMessage(filledPrompt),
+                new HumanMessage(message),
+            ];
+        }
+
+        const stream = await chatModel.stream(messages);
 
         // Step 5: Setup streaming response
         const encoder = new TextEncoder();
