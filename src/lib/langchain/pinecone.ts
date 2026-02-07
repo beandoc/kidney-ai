@@ -8,10 +8,55 @@ import * as path from "path";
 import { PDFParse } from "pdf-parse";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
+import mammoth from "mammoth";
+
 const KNOWLEDGE_BASE_PATH = path.join(process.cwd(), "knowledge_base");
 
-
 const indexName = process.env.PINECONE_INDEX_NAME || "kidney-rag-chatbot";
+
+/**
+ * Process a file buffer based on its extension
+ */
+export async function processFileBuffer(buffer: Buffer, filename: string): Promise<Document[]> {
+    const ext = path.extname(filename).toLowerCase();
+    const documents: Document[] = [];
+
+    if ([".txt", ".md"].includes(ext)) {
+        const content = buffer.toString("utf-8");
+        documents.push(
+            new Document({
+                pageContent: content,
+                metadata: { source: filename, type: ext.replace(".", "") },
+            })
+        );
+    } else if (ext === ".pdf") {
+        const parser = new PDFParse({ data: buffer });
+        const result = await parser.getText();
+        documents.push(
+            new Document({
+                pageContent: result.text,
+                metadata: { source: filename, type: "pdf" },
+            })
+        );
+    } else if (ext === ".docx") {
+        const result = await mammoth.extractRawText({ buffer });
+        documents.push(
+            new Document({
+                pageContent: result.value,
+                metadata: { source: filename, type: "docx" },
+            })
+        );
+    }
+
+    if (documents.length === 0) return [];
+
+    const splitter = new RecursiveCharacterTextSplitter({
+        chunkSize: 1000,
+        chunkOverlap: 200,
+    });
+
+    return await splitter.splitDocuments(documents);
+}
 
 /**
  * Load documents from the file system
@@ -32,31 +77,28 @@ async function loadDocuments(): Promise<Document[]> {
 
         if (stat.isFile()) {
             const ext = path.extname(file).toLowerCase();
+            const buffer = fs.readFileSync(filePath);
 
-            if ([".txt", ".md"].includes(ext)) {
-                const content = fs.readFileSync(filePath, "utf-8");
-                documents.push(
-                    new Document({
-                        pageContent: content,
-                        metadata: { source: file, type: ext.replace(".", "") },
-                    })
-                );
-                console.log(`Loaded text file: ${file}`);
-            } else if (ext === ".pdf") {
-                try {
-                    const dataBuffer = fs.readFileSync(filePath);
-                    const parser = new PDFParse({ data: dataBuffer });
-                    const result = await parser.getText();
-                    documents.push(
-                        new Document({
-                            pageContent: result.text,
-                            metadata: { source: file, type: "pdf" },
-                        })
-                    );
-                    console.log(`Loaded PDF file: ${file}`);
-                } catch (err) {
-                    console.error(`Failed to load PDF ${file}:`, err);
+            try {
+                if ([".txt", ".md", ".pdf", ".docx"].includes(ext)) {
+                    // We use a simplified version for initial load since we want to return full docs before splitting
+                    // but the logic is similar
+                    if (ext === ".docx") {
+                        const result = await mammoth.extractRawText({ buffer });
+                        documents.push(new Document({ pageContent: result.value, metadata: { source: file, type: "docx" } }));
+                        console.log(`Loaded Word file: ${file}`);
+                    } else if (ext === ".pdf") {
+                        const parser = new PDFParse({ data: buffer });
+                        const result = await parser.getText();
+                        documents.push(new Document({ pageContent: result.text, metadata: { source: file, type: "pdf" } }));
+                        console.log(`Loaded PDF file: ${file}`);
+                    } else {
+                        documents.push(new Document({ pageContent: buffer.toString("utf-8"), metadata: { source: file, type: ext.replace(".", "") } }));
+                        console.log(`Loaded text file: ${file}`);
+                    }
                 }
+            } catch (err) {
+                console.error(`Failed to load ${file}:`, err);
             }
         }
     }
