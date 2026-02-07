@@ -1,9 +1,21 @@
-import { NextRequest, NextResponse } from "next/server";
-import { processFileBuffer, getPineconeStore } from "@/lib/langchain/pinecone";
+import { NextResponse } from "next/server";
+import { getEmbeddings } from "../../../../lib/langchain/config";
+import { getPineconeStore, processFileBuffer } from "../../../../lib/langchain/pinecone";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(request: NextRequest) {
+export async function OPTIONS() {
+    return new Response(null, {
+        status: 204,
+        headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, x-admin-password",
+        },
+    });
+}
+
+export async function POST(request: Request) {
     try {
         const formData = await request.formData();
         const file = formData.get("file") as File;

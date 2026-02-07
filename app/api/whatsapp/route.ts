@@ -1,13 +1,24 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import twilio from "twilio";
-import { getChatModel, STRICT_SYSTEM_PROMPT } from "@/lib/langchain/config";
-import { searchDocuments, formatContext } from "@/lib/langchain/vectorStore";
+import { getChatModel, STRICT_SYSTEM_PROMPT } from "../../../lib/langchain/config";
+import { searchDocuments, formatContext } from "../../../lib/langchain/vectorStore";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
 export const dynamic = "force-dynamic";
 
+export async function OPTIONS() {
+    return new Response(null, {
+        status: 204,
+        headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, x-admin-password",
+        },
+    });
+}
+
 // Note: WhatsApp messages via Twilio are sent as URL-encoded form data (application/x-www-form-urlencoded)
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
     try {
         const formData = await request.formData();
         const incomingMsg = formData.get("Body") as string;
