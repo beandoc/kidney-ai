@@ -83,17 +83,60 @@ export default function ChatComponent() {
                 throw new Error(errorData.error || `Failed to get response: ${response.status}`);
             }
 
-            const data = await response.json();
-
+            // Create placeholder assistant message
+            const assistantId = (Date.now() + 1).toString();
             const assistantMessage: Message = {
-                id: (Date.now() + 1).toString(),
+                id: assistantId,
                 role: "assistant",
-                content: data.answer,
-                sources: data.sources,
+                content: "",
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             };
-
             setMessages((prev) => [...prev, assistantMessage]);
+
+            const reader = response.body?.getReader();
+            const decoder = new TextDecoder();
+            let fullContent = "";
+
+            if (reader) {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+
+                    // Check for sources metadata
+                    if (chunk.startsWith("__SOURCES__:")) {
+                        const lineEnd = chunk.indexOf("\n");
+                        const sourcesJson = chunk.substring(12, lineEnd);
+                        const sources = JSON.parse(sourcesJson);
+
+                        setMessages((prev) =>
+                            prev.map((m) =>
+                                m.id === assistantId ? { ...m, sources } : m
+                            )
+                        );
+
+                        const remaining = chunk.substring(lineEnd + 1);
+                        if (remaining) {
+                            fullContent += remaining;
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.id === assistantId ? { ...m, content: fullContent } : m
+                                )
+                            );
+                        }
+                    } else {
+                        fullContent += chunk;
+                        setMessages((prev) =>
+                            prev.map((m) =>
+                                m.id === assistantId ? { ...m, content: fullContent } : m
+                            )
+                        );
+                    }
+                    setIsLoading(false); // Stop "typing" animation as soon as first content arrives
+                }
+            }
+
         } catch (err) {
             setError("Sorry, I encountered an error. Please try again.");
             console.error(err);
@@ -205,10 +248,11 @@ export default function ChatComponent() {
 
                         {isLoading && (
                             <div className="flex justify-start mb-2">
-                                <div className="bg-white rounded-lg rounded-tl-none px-4 py-2.5 shadow-sm relative bubble-assistant">
-                                    <div className="flex items-center gap-3">
-                                        <Loader2 className="w-4 h-4 animate-spin text-[#128C7E]" />
-                                        <span className="text-[13px] text-[#667781] font-medium italic">AI is typing...</span>
+                                <div className="bg-white rounded-lg rounded-tl-none px-4 py-3 shadow-sm relative bubble-assistant">
+                                    <div className="typing-dots">
+                                        <div className="typing-dot"></div>
+                                        <div className="typing-dot"></div>
+                                        <div className="typing-dot"></div>
                                     </div>
                                 </div>
                             </div>

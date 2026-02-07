@@ -205,13 +205,26 @@ export async function initializePinecone() {
     }
 }
 
+// Flag and cached store to prevent redundant initialization
+let isInitialized = false;
+let cachedStore: PineconeStore | null = null;
+
 export async function getPineconeStore() {
+    // Only initialize once during application lifecycle
+    if (isInitialized && cachedStore) {
+        return cachedStore;
+    }
+
     // Ensure index is created and initialized with correct settings
     await initializePinecone();
 
     const pinecone = getPineconeClient();
     const index = pinecone.Index(indexName);
-    return await PineconeStore.fromExistingIndex(getEmbeddings(), {
+
+    cachedStore = await PineconeStore.fromExistingIndex(getEmbeddings(), {
         pineconeIndex: index,
     });
+
+    isInitialized = true;
+    return cachedStore;
 }

@@ -38,21 +38,37 @@ export async function POST(request: NextRequest) {
             message
         );
 
-        // Step 4: Get response from LLM
+        // Step 4: Stream response from LLM
         const chatModel = getChatModel();
-        const response = await chatModel.invoke([
+        const stream = await chatModel.stream([
             new SystemMessage(filledPrompt),
             new HumanMessage(message),
         ]);
 
-        // Step 5: Extract sources for citation
-        const sources = relevantDocs.map((doc) => doc.metadata.source).filter(Boolean);
-        const uniqueSources = [...new Set(sources)];
+        // Step 5: Setup streaming response
+        const encoder = new TextEncoder();
+        const customStream = new ReadableStream({
+            async start(controller) {
+                // First event: unique sources
+                const sources = relevantDocs.map((doc) => doc.metadata.source).filter(Boolean);
+                const uniqueSources = [...new Set(sources)];
+                controller.enqueue(encoder.encode(`__SOURCES__:${JSON.stringify(uniqueSources)}\n`));
 
-        return NextResponse.json({
-            answer: response.content,
-            sources: uniqueSources,
-            documentsFound: relevantDocs.length,
+                for await (const chunk of stream) {
+                    if (chunk.content) {
+                        controller.enqueue(encoder.encode(chunk.content as string));
+                    }
+                }
+                controller.close();
+            },
+        });
+
+        return new Response(customStream, {
+            headers: {
+                "Content-Type": "text/event-stream",
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+            },
         });
     } catch (error) {
         console.error("Chat API Error:", error);
