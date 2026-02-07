@@ -51,8 +51,9 @@ export async function processFileBuffer(buffer: Buffer, filename: string): Promi
     if (documents.length === 0) return [];
 
     const splitter = new RecursiveCharacterTextSplitter({
-        chunkSize: 1000,
-        chunkOverlap: 200,
+        chunkSize: 500, // Reduced from 1000 for sentence-level granularity
+        chunkOverlap: 100, // Reduced overlap
+        separators: ["\n\n", "\n", ". ", "? ", "! ", " ", ""], // Explicitly prioritize sentence endings
     });
 
     return await splitter.splitDocuments(documents);
@@ -172,8 +173,9 @@ export async function initializePinecone() {
             const rawDocs = await loadDocuments();
             if (rawDocs.length > 0) {
                 const splitter = new RecursiveCharacterTextSplitter({
-                    chunkSize: 1000,
-                    chunkOverlap: 200,
+                    chunkSize: 500,
+                    chunkOverlap: 100,
+                    separators: ["\n\n", "\n", ". ", "? ", "! ", " ", ""],
                 });
                 const docs = await splitter.splitDocuments(rawDocs);
 
