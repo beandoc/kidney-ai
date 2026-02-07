@@ -131,7 +131,7 @@ export async function initializePinecone() {
             console.log(`Creating index ${indexName}...`);
             await pinecone.createIndex({
                 name: indexName,
-                dimension: 768, // Gemini embedding dimension
+                dimension: 3072, // Updated to match text-embedding-004
                 metric: "cosine",
                 spec: {
                     serverless: {
@@ -141,15 +141,22 @@ export async function initializePinecone() {
                 }
             });
             console.log("Index created. Waiting for initialization...");
-            await new Promise(resolve => setTimeout(resolve, 60000)); // Wait for index to be ready
-        }
-
-        // Wait for index to be ready (more robust check)
-        let status = await pinecone.describeIndex(indexName);
-        while (status.status?.ready === false) {
-            console.log("Waiting for index to be ready...");
-            await new Promise(resolve => setTimeout(resolve, 5000));
-            status = await pinecone.describeIndex(indexName);
+            // Wait for index to be ready
+            let status = await pinecone.describeIndex(indexName);
+            while (status.status?.ready === false) {
+                console.log("Waiting for index to be ready...");
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                status = await pinecone.describeIndex(indexName);
+            }
+        } else {
+            // Check if existing index has correct dimension
+            const status = await pinecone.describeIndex(indexName);
+            if (status.dimension !== 3072) {
+                console.log(`Dimension mismatch: expected 3072, found ${status.dimension}. Recreating index...`);
+                await pinecone.deleteIndex(indexName);
+                await initializePinecone(); // Restart initialization
+                return;
+            }
         }
         console.log("Index is ready!");
 
@@ -199,6 +206,9 @@ export async function initializePinecone() {
 }
 
 export async function getPineconeStore() {
+    // Ensure index is created and initialized with correct settings
+    await initializePinecone();
+
     const pinecone = getPineconeClient();
     const index = pinecone.Index(indexName);
     return await PineconeStore.fromExistingIndex(getEmbeddings(), {
