@@ -6,6 +6,11 @@ export async function POST(request: NextRequest) {
     try {
         const formData = await request.formData();
         const file = formData.get("file") as File;
+        const password = request.headers.get("x-admin-password");
+
+        if (password !== process.env.ADMIN_PASSWORD) {
+            return NextResponse.json({ error: "Unauthorized: Invalid admin password" }, { status: 401 });
+        }
 
         if (!file) {
             return NextResponse.json({ error: "No file provided" }, { status: 400 });

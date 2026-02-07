@@ -6,6 +6,7 @@ import Link from "next/link";
 
 export default function AdminDashboard() {
     const [file, setFile] = useState<File | null>(null);
+    const [password, setPassword] = useState("");
     const [isUploading, setIsUploading] = useState(false);
     const [status, setStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
@@ -30,6 +31,9 @@ export default function AdminDashboard() {
             const response = await fetch("/api/admin/upload", {
                 method: "POST",
                 body: formData,
+                headers: {
+                    "x-admin-password": password
+                }
             });
 
             const data = await response.json();
@@ -77,6 +81,18 @@ export default function AdminDashboard() {
 
                     <div className="p-8">
                         <form onSubmit={handleUpload} className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-slate-700">Admin Password</label>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="Enter your security password"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                                    required
+                                />
+                            </div>
+
                             <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:border-blue-400 transition-colors group">
                                 <input
                                     type="file"
@@ -115,8 +131,8 @@ export default function AdminDashboard() {
                                 type="submit"
                                 disabled={!file || isUploading}
                                 className={`w-full py-4 rounded-xl font-bold text-white shadow-lg transition-all flex items-center justify-center gap-2 ${!file || isUploading
-                                        ? 'bg-slate-300 cursor-not-allowed shadow-none'
-                                        : 'bg-blue-600 hover:bg-blue-700 active:scale-[0.98]'
+                                    ? 'bg-slate-300 cursor-not-allowed shadow-none'
+                                    : 'bg-blue-600 hover:bg-blue-700 active:scale-[0.98]'
                                     }`}
                             >
                                 {isUploading ? (
