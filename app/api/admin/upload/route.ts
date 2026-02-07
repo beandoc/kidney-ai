@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { processFileBuffer, getPineconeStore } from "@/lib/langchain/pinecone";
-import { getEmbeddings } from "@/lib/langchain/config";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
     try {

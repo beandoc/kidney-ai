@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getChatModel, STRICT_SYSTEM_PROMPT, VISION_SYSTEM_PROMPT } from "@/lib/langchain/config";
-import { searchDocuments, formatContext } from "@/lib/langchain/vectorStore";
 import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { searchDocuments, formatContext } from "@/lib/langchain/vectorStore";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function GET() {
     return NextResponse.json({ status: "Chat API is active and ready for POST requests." });

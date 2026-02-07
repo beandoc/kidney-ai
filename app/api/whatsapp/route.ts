@@ -1,9 +1,10 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import twilio from "twilio";
 import { getChatModel, STRICT_SYSTEM_PROMPT } from "@/lib/langchain/config";
 import { searchDocuments, formatContext } from "@/lib/langchain/vectorStore";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+
+export const dynamic = "force-dynamic";
 
 // Note: WhatsApp messages via Twilio are sent as URL-encoded form data (application/x-www-form-urlencoded)
 export async function POST(request: NextRequest) {
