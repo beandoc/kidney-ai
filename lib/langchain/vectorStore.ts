@@ -12,6 +12,10 @@ const VECTOR_STORE_PATH = path.join(process.cwd(), ".vectorstore");
 // In-memory store for runtime (will be populated from files)
 let vectorStore: MemoryVectorStore | null = null;
 
+// Simple Query Cache
+const queryCache = new Map<string, { docs: Document[], timestamp: number }>();
+const CACHE_TTL = 1000 * 60 * 60; // 1 hour
+
 /**
  * Load all documents from the knowledge_base directory
  */
@@ -123,23 +127,54 @@ import { getPineconeStore, initializePinecone } from "./pinecone";
  */
 export async function searchDocuments(
     query: string,
-    topK: number = 4
+    topK: number = 6
 ): Promise<Document[]> {
+    const normalizedQuery = query.toLowerCase().trim();
+
+    // Check Cache first
+    const cached = queryCache.get(normalizedQuery);
+    if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+        console.log(`Cache hit for query: "${normalizedQuery}"`);
+        return cached.docs;
+    }
+
+    let results: Document[] = [];
+
     // Try Pinecone first if configured
     if (process.env.PINECONE_API_KEY && process.env.PINECONE_API_KEY !== "YOUR_API_KEY_HERE") {
         try {
             console.log("Searching in Pinecone...");
             const pineconeStore = await getPineconeStore();
-            return await pineconeStore.similaritySearch(query, topK);
+            results = await pineconeStore.similaritySearch(query, topK);
         } catch (error) {
             console.error("Pinecone search failed, falling back to Memory store:", error);
         }
     }
 
-    // Fallback to Memory Store
-    console.log("Searching in Memory store...");
-    const store = await getVectorStore();
-    const results = await store.similaritySearch(query, topK);
+    // Fallback to Memory Store if Pinecone failed or returned nothing
+    if (results.length === 0) {
+        console.log("Searching in Memory store...");
+        const store = await getVectorStore();
+        results = await store.similaritySearch(query, topK);
+    }
+
+    // Hybrid Search Logic: If specific keywords (creatinine, egfr, etc) are in query,
+    // ensure those documents are prioritized or pinned.
+    const keywords = ["creatinine", "egfr", "gfr", "potassium", "hemodialysis", "dialysis"];
+    const hasKeyword = keywords.some(k => normalizedQuery.includes(k));
+
+    if (hasKeyword) {
+        // Boost documents that contain the exact keywords
+        results.sort((a, b) => {
+            const aHas = keywords.some(k => a.pageContent.toLowerCase().includes(k)) ? 1 : 0;
+            const bHas = keywords.some(k => b.pageContent.toLowerCase().includes(k)) ? 1 : 0;
+            return bHas - aHas;
+        });
+    }
+
+    // Save to cache
+    queryCache.set(normalizedQuery, { docs: results, timestamp: Date.now() });
+
     return results;
 }
 
