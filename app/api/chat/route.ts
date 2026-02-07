@@ -1,27 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getChatModel, STRICT_SYSTEM_PROMPT, VISION_SYSTEM_PROMPT } from "../../../lib/langchain/config";
 import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { searchDocuments, formatContext } from "../../../lib/langchain/vectorStore";
 
 export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
 
-export async function GET() {
-    return NextResponse.json({ status: "Chat API is active and ready for POST requests." });
-}
-
-export async function OPTIONS() {
-    return new Response(null, {
-        status: 204,
-        headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, x-admin-password",
-        },
-    });
-}
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     console.log("POST /api/chat received");
     try {
         const { message, image, history } = await request.json();
