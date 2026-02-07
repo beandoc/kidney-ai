@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
         // Step 1: Search for relevant documents
         // If image only, use a generic query
         const searchQuery = message || "kidney health and diet";
-        const relevantDocs = await searchDocuments(searchQuery, 4);
+        const relevantDocs = await searchDocuments(searchQuery, 6);
 
         // Step 2: Format context from retrieved documents
         const context = formatContext(relevantDocs);

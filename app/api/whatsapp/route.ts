@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
         }
 
         // 1. Search Knowledge Base (Pinecone or Memory)
-        const relevantDocs = await searchDocuments(incomingMsg, 3);
+        const relevantDocs = await searchDocuments(incomingMsg, 6);
         const context = formatContext(relevantDocs);
 
         // 2. Prepare AI Prompt
