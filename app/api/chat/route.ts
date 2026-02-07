@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getChatModel, STRICT_SYSTEM_PROMPT, VISION_SYSTEM_PROMPT } from "@/lib/langchain/config";
 import { searchDocuments, formatContext } from "@/lib/langchain/vectorStore";
-import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages";
 
 export async function GET() {
     return NextResponse.json({ status: "Chat API is active and ready for POST requests." });
@@ -10,7 +10,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
     console.log("POST /api/chat received");
     try {
-        const { message, image } = await request.json();
+        const { message, image, history } = await request.json();
 
         if ((!message || typeof message !== "string") && !image) {
             return NextResponse.json(
@@ -44,11 +44,20 @@ export async function POST(request: NextRequest) {
         // Step 4: Stream response from LLM
         const chatModel = getChatModel();
 
+        let historyMessages: (HumanMessage | AIMessage)[] = [];
+        if (history && Array.isArray(history)) {
+            historyMessages = history.map((msg: { role: string; content: string }) => {
+                if (msg.role === "assistant") return new AIMessage(msg.content);
+                return new HumanMessage(msg.content);
+            });
+        }
+
         let messages;
         if (image) {
             // Multimodal message format
             messages = [
                 new SystemMessage(filledPrompt),
+                ...historyMessages,
                 new HumanMessage({
                     content: [
                         { type: "text", text: message || "Please analyze this image." },
@@ -62,6 +71,7 @@ export async function POST(request: NextRequest) {
         } else {
             messages = [
                 new SystemMessage(filledPrompt),
+                ...historyMessages,
                 new HumanMessage(message),
             ];
         }

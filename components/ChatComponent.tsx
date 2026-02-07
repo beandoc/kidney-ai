@@ -51,8 +51,36 @@ export default function ChatComponent() {
 
     useEffect(() => {
         setMounted(true);
-        setMessages(prev => prev.map(m => m.id === "welcome" ? { ...m, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) } : m));
+        // Load messages from localStorage
+        const savedMessages = localStorage.getItem("kidney_chat_messages");
+        if (savedMessages) {
+            try {
+                setMessages(JSON.parse(savedMessages));
+            } catch (e) {
+                console.error("Failed to parse saved messages", e);
+            }
+        } else {
+            // Set initial welcome timestamp if no history
+            setMessages(prev => prev.map(m => m.id === "welcome" ? { ...m, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) } : m));
+        }
     }, []);
+
+    useEffect(() => {
+        if (mounted) {
+            localStorage.setItem("kidney_chat_messages", JSON.stringify(messages));
+        }
+    }, [messages, mounted]);
+
+    const clearChat = () => {
+        const welcomeMessage: Message = {
+            id: "welcome",
+            role: "assistant",
+            content: "Hello! I'm your Kidney Health Education Assistant. I provide accurate information about kidney diseases, treatments, diet recommendations, and preventive care—all based on verified medical resources.\n\nHow can I help you today?",
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages([welcomeMessage]);
+        localStorage.removeItem("kidney_chat_messages");
+    };
 
     useEffect(() => {
         scrollToBottom();
@@ -95,12 +123,19 @@ export default function ChatComponent() {
         setError(null);
 
         try {
+            // Get last 6 messages for context (excluding images for text-search and current message)
+            const chatHistory = messages
+                .filter(m => m.id !== "welcome")
+                .slice(-6)
+                .map(m => ({ role: m.role, content: m.content }));
+
             const response = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     message: currentInput,
-                    image: currentImage?.split(',')[1] // Send only base64 data
+                    image: currentImage?.split(',')[1], // Send only base64 data
+                    history: chatHistory
                 }),
             });
 
@@ -221,6 +256,10 @@ export default function ChatComponent() {
                         <Video className="w-5 h-5 cursor-pointer hover:text-slate-800" />
                         <Phone className="w-5 h-5 cursor-pointer hover:text-slate-800" />
                         <div className="w-[1px] h-6 bg-[#D1D7DB] mx-1"></div>
+                        <Plus
+                            onClick={clearChat}
+                            className="w-5 h-5 cursor-pointer hover:text-red-500 transition-colors rotate-45"
+                        />
                         <MoreVertical className="w-5 h-5 cursor-pointer hover:text-slate-800" />
                     </div>
                 </header>
