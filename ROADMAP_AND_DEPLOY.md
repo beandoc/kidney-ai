@@ -31,25 +31,30 @@ Your app will be live at `https://your-project-name.vercel.app`!
 Here is a roadmap to transform this prototype into a production-grade application.
 
 ### Phase 1: Knowledge & Data (The "Brain")
--   [x] **Expanded File Support**: Enable **PDF**, **TXT**, and **MD** ingestion. **(Done)**
--   [~] **Permanent Memory**: Integrated **Pinecone** for persistent, scalable document storage. **(In Progress: Verification pending)**
--   [ ] **Admin Upload Interface**: Build a hidden `/admin` page for web-based document uploads.
+-   [x] **Expanded File Support**: Enable **Word (.docx)**, **PDF**, **TXT**, and **MD** ingestion. **(Done)**
+-   [x] **Permanent Memory**: Integrated **Pinecone (3072 dim)** for high-precision vector search. **(Done)**
+-   [x] **Admin Upload Interface**: Secure web-based dashboard for instant knowledge updates. **(Done)**
 
 ### Phase 2: User Experience (The "Feel")
--   [ ] **Streaming Responses**: Real-time typing effect for AI answers.
--   [ ] **Chat History**: Save and recall past conversations using a database.
+-   [x] **Streaming Responses**: Lightning-fast, character-by-character typing effect. **(Done)**
+-   [x] **WhatsApp UI**: Refactored the web UI to match the familiar mobile WhatsApp experience. **(Done)**
+-   [ ] **Chat History**: Save and recall past conversations using a database (e.g., Supabase/PostgreSQL).
 
-### Phase 3: Advanced Intelligence (The "Eyes")
+### Phase 3: Advanced Intelligence (The "Smartness")
+-   [x] **Support Multi-language**: Medical facts can now be answered in Hindi, Spanish, etc. **(Done)**
 -   [ ] **Multi-Modal Analysis**: Use Gemini Vision to analyze **photos of food or lab reports**.
--   [ ] **Hybrid Search**: Combine keyword and semantic search for 100% medical accuracy.
 
 ### Phase 4: WhatsApp Integration (The "Mobile Reach")
--   [x] **Backend Webhook**: Created `/api/whatsapp` to handle mobile messages. **(Done)**
--   [ ] **Live Twilio Number**: Connect the app to a real WhatsApp Business number.
+-   [x] **Backend Webhook**: Created `/api/whatsapp` to handle incoming mobile messages. **(Done)**
+-   [ ] **Live Mobile Connection**: Connect to a real WhatsApp Business number using Twilio.
 
 ---
 
-### Recommended Next Step
-1.  **Deploy to Vercel**: Follow the steps in Section 1 to get your public URL.
-2.  **Twilio Sandbox**: Point your Twilio Sandbox webhook to your new Vercel URL to start chatting on WhatsApp!
+### Recommended Next Steps
+1.  **Continuous Knowledge Ingestion**: Use your `/admin` dashboard to upload the remaining medical guides and research papers to build a world-class kidney knowledge base.
+2.  **Live WhatsApp Testing**:
+    - Log into your [Twilio Console](https://console.twilio.com/).
+    - Go to **Messaging > Try it Out > Send a WhatsApp Message**.
+    - Configure your **Sandbox Webhook URL** to your Vercel URL: `https://your-app.vercel.app/api/whatsapp`.
+3.  **Vision Integration**: We can next add the ability for patients to upload photos of their medications or meal plates for AI analysis.
 
