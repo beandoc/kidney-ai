@@ -16,6 +16,8 @@ import {
     CheckCheck,
     Paperclip,
     Sparkles,
+    Menu,
+    X,
 } from "lucide-react";
 
 interface Message {
@@ -42,6 +44,7 @@ export default function ChatComponent() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [selectedImage, setSelectedImage] = useState<{ file: File; preview: string } | null>(null);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -208,15 +211,23 @@ export default function ChatComponent() {
 
     return (
         <div className="flex h-screen bg-[#E5DDD5] overflow-hidden">
-            {/* Sidebar (Desktop only) */}
-            <aside className="hidden md:flex w-96 flex-col bg-white border-r border-[#D1D7DB]">
+            {/* Sidebar */}
+            <aside className={`
+                ${isSidebarOpen ? "flex" : "hidden"} 
+                md:flex w-full md:w-96 flex-col bg-white border-r border-[#D1D7DB] 
+                absolute md:relative z-50 h-full transition-all duration-300
+            `}>
                 <header className="h-[60px] bg-[#F0F2F5] px-4 flex items-center justify-between border-b border-[#D1D7DB]">
                     <div className="w-10 h-10 rounded-full bg-slate-300 overflow-hidden flex items-center justify-center">
                         <User className="text-white w-6 h-6" />
                     </div>
-                    <div className="flex gap-4 text-[#54656F]">
+                    <div className="flex gap-4 text-[#54656F] items-center">
                         <Heart className="w-5 h-5 cursor-pointer" />
                         <Sparkles className="w-5 h-5 cursor-pointer" />
+                        <X
+                            className="w-6 h-6 md:hidden cursor-pointer"
+                            onClick={() => setIsSidebarOpen(false)}
+                        />
                         <MoreVertical className="w-5 h-5 cursor-pointer" />
                     </div>
                 </header>
@@ -244,6 +255,10 @@ export default function ChatComponent() {
                 {/* Chat Header */}
                 <header className="relative z-10 h-[60px] bg-[#F0F2F5] px-4 flex items-center justify-between shadow-sm border-b border-[#D1D7DB]">
                     <div className="flex items-center gap-3">
+                        <Menu
+                            className="w-6 h-6 md:hidden text-[#54656F] cursor-pointer"
+                            onClick={() => setIsSidebarOpen(true)}
+                        />
                         <div className="w-10 h-10 rounded-full bg-[#128C7E] flex items-center justify-center">
                             <Bot className="text-white w-6 h-6" />
                         </div>
