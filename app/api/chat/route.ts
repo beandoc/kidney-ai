@@ -40,8 +40,10 @@ export async function POST(request: NextRequest) {
         }
 
         // Step 1: Search for relevant documents
+        console.time("Vector Search");
         const searchQuery = message || "kidney health and diet";
         const relevantDocs = await searchDocuments(searchQuery, 6);
+        console.timeEnd("Vector Search");
 
         // Step 2: Format context from retrieved documents
         const context = formatContext(relevantDocs);
@@ -88,7 +90,9 @@ export async function POST(request: NextRequest) {
             ];
         }
 
+        console.time("LLM Stream Start");
         const stream = await chatModel.stream(messages);
+        console.timeEnd("LLM Stream Start");
 
         // Step 5: Setup streaming response
         const encoder = new TextEncoder();
@@ -99,7 +103,14 @@ export async function POST(request: NextRequest) {
                 const uniqueSources = [...new Set(sources)];
                 controller.enqueue(encoder.encode(`__SOURCES__:${JSON.stringify(uniqueSources)}\n`));
 
+                console.time("LLM First Token");
+                let isFirst = true;
+
                 for await (const chunk of stream) {
+                    if (isFirst) {
+                        console.timeEnd("LLM First Token");
+                        isFirst = false;
+                    }
                     if (chunk.content) {
                         controller.enqueue(encoder.encode(chunk.content as string));
                     }

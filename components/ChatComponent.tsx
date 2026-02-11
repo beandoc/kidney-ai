@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import {
     Send,
     Bot,
@@ -285,7 +286,7 @@ export default function ChatComponent() {
                     </div>
 
                     {/* Admin Link */}
-                    <a href="/admin" className="p-4 flex items-center gap-4 cursor-pointer hover:bg-slate-50 transition-colors group">
+                    <Link href="/admin" className="p-4 flex items-center gap-4 cursor-pointer hover:bg-slate-50 transition-colors group">
                         <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center shadow-sm group-hover:bg-[#128C7E]/10 transition-colors">
                             <Database className="text-slate-500 w-6 h-6 group-hover:text-[#128C7E]" />
                         </div>
@@ -295,7 +296,7 @@ export default function ChatComponent() {
                             </div>
                             <p className="text-sm text-[#667781] truncate">Upload & Manage Medical Data</p>
                         </div>
-                    </a>
+                    </Link>
                 </div>
             </aside>
 

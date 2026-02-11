@@ -157,12 +157,15 @@ export async function searchDocuments(
     topK: number = 6
 ): Promise<Document[]> {
     // Skip refinement for very short/simple queries to save time and quota
+    // OPTIMIZATION: Disabling query refinement to reduce latency
     let refinedQuery = query;
+    /* 
     if (query.length > 40) {
         refinedQuery = await refineQuery(query);
     } else {
         console.log(`Skipping refinement for clear/short query: "${query}"`);
     }
+    */
 
     const normalizedQuery = refinedQuery.toLowerCase().trim();
 
@@ -184,11 +187,17 @@ export async function searchDocuments(
             const pineconeStore = await getPineconeStore();
             results = await pineconeStore.similaritySearch(query, topK);
         } catch (error) {
-            console.error("Pinecone search failed:", error);
-            // We don't fallback to Memory Store here because it's too slow to initialize in serverless
+            console.error("Pinecone search failed, falling back to Local Memory Store:", error);
+            // Optimization: Fallback to local store instead of failing
+            try {
+                const store = await getVectorStore();
+                results = await store.similaritySearch(query, topK);
+            } catch (localError) {
+                console.error("Local Memory store fallback also failed:", localError);
+            }
         }
     } else {
-        console.log("Searching in Local Memory store...");
+        console.log("Searching in Local Memory store (Pinecone not configured)...");
         try {
             const store = await getVectorStore();
             results = await store.similaritySearch(query, topK);
