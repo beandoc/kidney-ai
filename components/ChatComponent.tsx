@@ -5,7 +5,6 @@ import {
     Send,
     Bot,
     User,
-    Loader2,
     Heart,
     AlertCircle,
     Phone,
@@ -18,6 +17,7 @@ import {
     Sparkles,
     Menu,
     X,
+    Database,
 } from "lucide-react";
 
 interface Message {
@@ -132,19 +132,53 @@ export default function ChatComponent() {
                 .slice(-6)
                 .map(m => ({ role: m.role, content: m.content }));
 
-            const response = await fetch("/api/chat", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    message: currentInput,
-                    image: currentImage?.split(',')[1], // Send only base64 data
-                    history: chatHistory
-                }),
-            });
+            let response;
+            let retries = 0;
+            const maxRetries = 1;
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error || `Failed to get response: ${response.status}`);
+            while (retries <= maxRetries) {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
+                try {
+                    response = await fetch("/api/chat", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            message: currentInput,
+                            image: currentImage?.split(',')[1],
+                            history: chatHistory
+                        }),
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+                    if (response.ok) break;
+
+                    // If not ok and we have retries left
+                    if (retries < maxRetries) {
+                        retries++;
+                        console.log(`Retrying chat request... attempt ${retries}`);
+                        await new Promise(r => setTimeout(r, 1000 * retries)); // Exponential backoff
+                        continue;
+                    }
+                    break;
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    if (retries < maxRetries) {
+                        retries++;
+                        await new Promise(r => setTimeout(r, 1000 * retries));
+                        continue;
+                    }
+                    throw err;
+                }
+            }
+
+            if (!response || !response.ok) {
+                if (response?.status === 429) {
+                    throw new Error("QUOTA_EXCEEDED");
+                }
+                const errorData = await response?.json().catch(() => ({}));
+                throw new Error(errorData?.error || `Failed to get response: ${response?.status}`);
             }
 
             // Create placeholder assistant message
@@ -201,8 +235,13 @@ export default function ChatComponent() {
                 }
             }
 
-        } catch (err) {
-            setError("Sorry, I encountered an error. Please try again.");
+        } catch (error: unknown) {
+            const err = error as Error;
+            if (err.message === "QUOTA_EXCEEDED") {
+                setError("The Medical Brain is currently very busy (API Quota Exceeded). If you've already enabled the Pro Plan, please wait a few minutes for the status to synchronize. Otherwise, check your Gemini API Billing in Google AI Studio.");
+            } else {
+                setError("Sorry, I encountered an error. Please try again.");
+            }
             console.error(err);
         } finally {
             setIsLoading(false);
@@ -244,6 +283,19 @@ export default function ChatComponent() {
                             <p className="text-sm text-[#667781] truncate">Professional Healthcare Assistant</p>
                         </div>
                     </div>
+
+                    {/* Admin Link */}
+                    <a href="/admin" className="p-4 flex items-center gap-4 cursor-pointer hover:bg-slate-50 transition-colors group">
+                        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center shadow-sm group-hover:bg-[#128C7E]/10 transition-colors">
+                            <Database className="text-slate-500 w-6 h-6 group-hover:text-[#128C7E]" />
+                        </div>
+                        <div className="flex-1 border-b border-[#F0F2F5] pb-3">
+                            <div className="flex justify-between items-center mb-1">
+                                <span className="font-semibold text-[#111B21]">Knowledge Base</span>
+                            </div>
+                            <p className="text-sm text-[#667781] truncate">Upload & Manage Medical Data</p>
+                        </div>
+                    </a>
                 </div>
             </aside>
 
@@ -253,7 +305,7 @@ export default function ChatComponent() {
                 <div className="wa-wallpaper"></div>
 
                 {/* Chat Header */}
-                <header className="relative z-10 h-[60px] bg-[#F0F2F5] px-4 flex items-center justify-between shadow-sm border-b border-[#D1D7DB]">
+                <header className="relative z-20 h-[60px] wa-header-glass px-4 flex items-center justify-between shadow-sm border-b border-[#D1D7DB]">
                     <div className="flex items-center gap-3">
                         <Menu
                             className="w-6 h-6 md:hidden text-[#54656F] cursor-pointer"
@@ -280,7 +332,7 @@ export default function ChatComponent() {
                 </header>
 
                 {/* Messages Container */}
-                <div className="flex-1 overflow-y-auto relative z-10 px-4 sm:px-[10%] py-4">
+                <div className="flex-1 overflow-y-auto relative z-10 px-4 sm:px-[10%] py-4 chat-scroll-area">
                     <div className="max-w-[800px] mx-auto space-y-3">
                         {/* System Message / Disclaimer */}
                         <div className="flex justify-center mb-6">
@@ -295,8 +347,8 @@ export default function ChatComponent() {
                                 className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} mb-2 transition-all duration-300`}
                             >
                                 <div
-                                    className={`relative max-w-[85%] sm:max-w-[70%] px-3 py-1.5 shadow-sm rounded-lg ${message.role === "user"
-                                        ? "bg-[#DCF8C6] rounded-tr-none bubble-user"
+                                    className={`relative max-w-[88%] sm:max-w-[75%] px-3 py-1.5 shadow-sm rounded-lg ${message.role === "user"
+                                        ? "bg-[#e7fce3] rounded-tr-none bubble-user"
                                         : "bg-white rounded-tl-none bubble-assistant"
                                         }`}
                                 >
@@ -356,32 +408,32 @@ export default function ChatComponent() {
                 </div>
 
                 {/* Input Bar */}
-                <footer className="relative z-10 bg-[#F0F2F5] px-3 py-3 flex flex-col gap-2 border-t border-[#D1D7DB]">
+                <footer className="relative z-20 bg-[#f0f2f5] px-3 py-3 flex flex-col gap-2 border-t border-[#D1D7DB]">
                     {selectedImage && (
-                        <div className="mx-4 mb-2 relative inline-block w-20 h-20 group">
-                            <img src={selectedImage.preview} className="w-full h-full object-cover rounded-lg border-2 border-[#128C7E]" alt="Preview" />
+                        <div className="mx-4 mb-2 relative inline-block w-24 h-24 group">
+                            <img src={selectedImage.preview} className="w-full h-full object-cover rounded-xl border-2 border-[#128C7E] shadow-lg" alt="Preview" />
                             <div
                                 onClick={() => setSelectedImage(null)}
-                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center cursor-pointer shadow-md hover:bg-red-600 transition-colors"
+                                className="absolute -top-3 -right-3 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center cursor-pointer shadow-xl hover:bg-red-600 transition-all hover:scale-110"
                             >
-                                <Plus className="w-3 h-3 rotate-45" />
+                                <X className="w-4 h-4" />
                             </div>
                         </div>
                     )}
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 max-w-[1000px] mx-auto w-full">
                         <div className="flex items-center gap-3 text-[#54656F] px-1">
-                            <Plus className="w-6 h-6 cursor-pointer hover:text-slate-800 transition-colors" />
+                            <Plus className="w-6 h-6 cursor-pointer hover:text-[#128C7E] transition-colors" />
                         </div>
 
                         <form onSubmit={handleSubmit} className="flex-1 flex items-center gap-2">
-                            <div className="flex-1 bg-white rounded-full px-5 py-2.5 flex items-center shadow-sm border border-[#F0F2F5]">
+                            <div className="flex-1 bg-white rounded-[24px] px-5 py-2.5 flex items-center shadow-sm border border-transparent focus-within:border-[#128C7E]/20 transition-all">
                                 <input
                                     type="text"
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
                                     placeholder="Message"
-                                    className="flex-1 bg-transparent border-none outline-none text-[#111B21] text-[15.5px] placeholder-[#667781]"
+                                    className="flex-1 bg-transparent border-none outline-none text-[#111B21] text-[16px] placeholder-[#667781]"
                                     disabled={isLoading}
                                 />
                                 <input
@@ -393,21 +445,21 @@ export default function ChatComponent() {
                                 />
                                 <Paperclip
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="w-5 h-5 text-[#54656F] cursor-pointer hover:text-slate-800 ml-2"
+                                    className="w-5 h-5 text-[#54656F] cursor-pointer hover:text-[#128C7E] ml-2 transition-colors"
                                 />
                             </div>
 
-                            <div className="flex items-center justify-center w-[48px] h-[48px] rounded-full bg-[#128C7E] cursor-pointer hover:bg-[#075E54] transition-all duration-200 shadow-md transform active:scale-90">
+                            <button
+                                type={input.trim() ? "submit" : "button"}
+                                disabled={isLoading}
+                                className="flex items-center justify-center w-[48px] h-[48px] min-w-[48px] rounded-full bg-[#128C7E] cursor-pointer hover:bg-[#075E54] transition-all duration-200 shadow-lg transform active:scale-95"
+                            >
                                 {input.trim() ? (
-                                    <button type="submit" disabled={isLoading} className="flex items-center justify-center w-full h-full">
-                                        <Send className="w-5 h-5 text-white ml-0.5" />
-                                    </button>
+                                    <Send className="w-5 h-5 text-white ml-0.5" />
                                 ) : (
-                                    <div className="flex items-center justify-center w-full h-full">
-                                        <Mic className="w-5 h-5 text-white" />
-                                    </div>
+                                    <Mic className="w-5 h-5 text-white" />
                                 )}
-                            </div>
+                            </button>
                         </form>
                     </div>
                 </footer>

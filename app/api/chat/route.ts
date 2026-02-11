@@ -5,6 +5,21 @@ import { searchDocuments, formatContext } from "../../../lib/langchain/vectorSto
 
 export const dynamic = "force-dynamic";
 
+export async function GET() {
+    return NextResponse.json({ message: "Chat API is active" });
+}
+
+export async function OPTIONS() {
+    return new Response(null, {
+        status: 204,
+        headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        },
+    });
+}
+
 export async function POST(request: NextRequest) {
     console.log("POST /api/chat received");
     try {
@@ -25,7 +40,6 @@ export async function POST(request: NextRequest) {
         }
 
         // Step 1: Search for relevant documents
-        // If image only, use a generic query
         const searchQuery = message || "kidney health and diet";
         const relevantDocs = await searchDocuments(searchQuery, 6);
 
@@ -40,7 +54,7 @@ export async function POST(request: NextRequest) {
         );
 
         // Step 4: Stream response from LLM
-        const chatModel = getChatModel();
+        const chatModel = getChatModel(1); // Limit retries to 1 to avoid hanging on 429 errors
 
         let historyMessages: (HumanMessage | AIMessage)[] = [];
         if (history && Array.isArray(history)) {
@@ -101,13 +115,17 @@ export async function POST(request: NextRequest) {
                 "Connection": "keep-alive",
             },
         });
-    } catch (error) {
-        console.error("Chat API Error:", error);
+    } catch (error: unknown) {
+        const err = error as Error;
+        console.error("Chat API Error Detailed:", {
+            message: err?.message,
+            stack: err?.stack,
+            error: error
+        });
         return NextResponse.json(
             {
-                error: error instanceof Error ? error.message : "An error occurred",
-                details: error,
-                stack: error instanceof Error ? error.stack : undefined
+                error: err instanceof Error ? err.message : "An error occurred",
+                details: err?.message || String(error),
             },
             { status: 500 }
         );

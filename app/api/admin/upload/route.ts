@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getEmbeddings } from "../../../../lib/langchain/config";
-import { getPineconeStore, processFileBuffer } from "../../../../lib/langchain/pinecone";
+import { getPineconeStore, processFileBuffer, processRawText } from "../../../../lib/langchain/pinecone";
 
 export const dynamic = "force-dynamic";
 
@@ -17,39 +16,53 @@ export async function OPTIONS() {
 
 export async function POST(request: Request) {
     try {
-        const formData = await request.formData();
-        const file = formData.get("file") as File;
         const password = request.headers.get("x-admin-password");
-
-        if (password !== process.env.ADMIN_PASSWORD) {
+        if (!password || password !== process.env.ADMIN_PASSWORD) {
             return NextResponse.json({ error: "Unauthorized: Invalid admin password" }, { status: 401 });
         }
 
-        if (!file) {
-            return NextResponse.json({ error: "No file provided" }, { status: 400 });
+        const contentType = request.headers.get("content-type") || "";
+        let docs = [];
+        let label = "Unknown Source";
+
+        if (contentType.includes("application/json")) {
+            // Handle Raw Text
+            const { text, sourceLabel } = await request.json();
+            if (!text || !sourceLabel) {
+                return NextResponse.json({ error: "Text and Source Label are required" }, { status: 400 });
+            }
+            label = sourceLabel;
+            console.log(`Processing raw text from: ${label}`);
+            docs = await processRawText(text, label);
+        } else {
+            // Handle File Upload
+            const formData = await request.formData();
+            const file = formData.get("file") as File;
+            if (!file) {
+                return NextResponse.json({ error: "No file provided" }, { status: 400 });
+            }
+            // Limit file size to 10MB
+            if (file.size > 10 * 1024 * 1024) {
+                return NextResponse.json({ error: "File size exceeds 10MB limit" }, { status: 400 });
+            }
+            const buffer = Buffer.from(await file.arrayBuffer());
+            label = file.name;
+            console.log(`Processing uploaded file: ${label}`);
+            docs = await processFileBuffer(buffer, label);
         }
-
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const filename = file.name;
-
-        console.log(`Processing uploaded file: ${filename}`);
-
-        // 1. Convert file to split documents
-        const docs = await processFileBuffer(buffer, filename);
 
         if (docs.length === 0) {
-            return NextResponse.json({ error: "Unsupported file type or empty file" }, { status: 400 });
+            return NextResponse.json({ error: "Unsupported content or empty submission" }, { status: 400 });
         }
 
-        // 2. Upload to Pinecone
+        // Upload to Pinecone
         const vectorStore = await getPineconeStore();
-
-        console.log(`Uploading ${docs.length} chunks from ${filename} to Pinecone...`);
+        console.log(`Uploading ${docs.length} chunks from ${label} to Pinecone...`);
         await vectorStore.addDocuments(docs);
 
         return NextResponse.json({
             success: true,
-            message: `Successfully indexed ${filename}`,
+            message: `Successfully indexed ${label}`,
             chunks: docs.length
         });
 

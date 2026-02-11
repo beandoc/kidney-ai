@@ -6,7 +6,7 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
  */
 export function getEmbeddings() {
   return new GoogleGenerativeAIEmbeddings({
-    modelName: "gemini-embedding-001",
+    modelName: "text-embedding-004",
     apiKey: process.env.GOOGLE_API_KEY,
   });
 }
@@ -14,11 +14,13 @@ export function getEmbeddings() {
 /**
  * Get configured ChatGoogleGenerativeAI instance with strict mode
  */
-export function getChatModel() {
+export function getChatModel(maxRetries?: number) {
   return new ChatGoogleGenerativeAI({
-    model: "gemini-2.5-flash",
+    model: "gemini-1.5-flash",
+    apiVersion: "v1beta",
     temperature: 0.1, // Low temperature for factual responses
     apiKey: process.env.GOOGLE_API_KEY,
+    maxRetries: maxRetries, // Optional override for fail-fast behavior
   });
 }
 
@@ -30,12 +32,13 @@ export const STRICT_SYSTEM_PROMPT = `You are a trusted Kidney Education Assistan
 
 GOAL: Answer the user's question using ONLY the factual information found in the Context.
 
-MULTILINGUAL STANDARDS (Hindi & Marathi):
-- You MUST answer in the user's language (Hindi/Marathi/English/etc.).
+LANGUAGE STANDARDS:
+- DEFAULT: Always respond in English.
+- MULTILINGUAL: If the user's question is in Hindi or Marathi, you MUST respond in that language.
 - Use high-quality medical terminology. For example:
-  - Hindi: 'वृक्क' (Kidney), 'अपोहन' (Dialysis), 'वृक्क विफलता' (Kidney Failure).
-  - Marathi: 'मूत्रपिंड' (Kidney), 'रक्तसंवाहन' (Dialysis), 'मूत्रपिंड निकामी होणे' (Kidney Failure).
-- Maintain a professional, empathetic, and formal tone in all regional languages.
+  - Hindi: 'वृक्क' (Kidney), 'अपोहन' (Dialysis).
+  - Marathi: 'मूत्रपिंड' (Kidney), 'रक्तसंवाहन' (Dialysis).
+- Maintain a professional, empathetic tone in all languages.
 
 MISSION & RULES:
 1. ONLY use the provided Context. If the information is not there, say: "Sorry i dont know the answer to this. Please ask another questions."
@@ -68,3 +71,19 @@ Context:
 {context}
 
 Question: {question}`;
+
+/**
+ * Prompt for correcting typos and normalizing queries before vector search
+ */
+export const QUERY_REFINER_PROMPT = `You are a medical query normalization assistant.
+Your task is to take a user question containing potential typos (especially in medical terms) and rewrite it into a clear, correctly spelled search query.
+
+RULES:
+1. Fix spelling of medical terms (e.g., "cretinine" -> "creatinine", "dialysis" -> "dialysis").
+2. Keep the core intent of the question.
+3. If the query is already clear, return it as is.
+4. Return ONLY the corrected query text. No explanations.
+
+User Question: {question}
+
+Corrected Query:`;

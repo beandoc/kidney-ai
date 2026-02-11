@@ -1,13 +1,13 @@
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { MemoryVectorStore } from "@langchain/classic/vectorstores/memory";
 import { Document } from "@langchain/core/documents";
-import { getEmbeddings } from "./config";
+import { getEmbeddings, getChatModel, QUERY_REFINER_PROMPT } from "./config";
 import * as fs from "fs";
 import * as path from "path";
-import { PDFParse } from "pdf-parse";
+import { getPineconeStore } from "./pinecone";
+import { HumanMessage } from "@langchain/core/messages";
 
 const KNOWLEDGE_BASE_PATH = path.join(process.cwd(), "knowledge_base");
-const VECTOR_STORE_PATH = path.join(process.cwd(), ".vectorstore");
 
 // In-memory store for runtime (will be populated from files)
 let vectorStore: MemoryVectorStore | null = null;
@@ -52,8 +52,10 @@ async function loadDocuments(): Promise<Document[]> {
                 console.log(`Loaded text file: ${file}`);
             } else if (ext === ".pdf") {
                 try {
+                    const { PDFParse } = await import("pdf-parse");
                     const dataBuffer = fs.readFileSync(filePath);
-                    const parser = new PDFParse({ data: dataBuffer });
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const parser = new (PDFParse as any)({ data: dataBuffer });
                     const result = await parser.getText();
                     documents.push(
                         new Document({
@@ -120,7 +122,32 @@ export async function getVectorStore(): Promise<MemoryVectorStore> {
     return vectorStore;
 }
 
-import { getPineconeStore, initializePinecone } from "./pinecone";
+
+/**
+ * Refine the user query to fix typos and normalize medical terms
+ */
+async function refineQuery(query: string): Promise<string> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second fail-fast
+
+    try {
+        const chatModel = getChatModel(0); // 0 retries for refinement to fail fast
+
+        const response = await chatModel.invoke([
+            new HumanMessage(QUERY_REFINER_PROMPT.replace("{question}", query))
+        ], { signal: controller.signal });
+
+        const refined = response.content.toString().trim();
+        console.log(`Query refined: "${query}" -> "${refined}"`);
+        return refined;
+    } catch (error: unknown) {
+        console.error("Query refinement failed, using original query:", error);
+        return query;
+    }
+    finally {
+        clearTimeout(timeoutId);
+    }
+}
 
 /**
  * Search for relevant documents based on a query
@@ -129,7 +156,15 @@ export async function searchDocuments(
     query: string,
     topK: number = 6
 ): Promise<Document[]> {
-    const normalizedQuery = query.toLowerCase().trim();
+    // Skip refinement for very short/simple queries to save time and quota
+    let refinedQuery = query;
+    if (query.length > 40) {
+        refinedQuery = await refineQuery(query);
+    } else {
+        console.log(`Skipping refinement for clear/short query: "${query}"`);
+    }
+
+    const normalizedQuery = refinedQuery.toLowerCase().trim();
 
     // Check Cache first
     const cached = queryCache.get(normalizedQuery);
@@ -141,21 +176,25 @@ export async function searchDocuments(
     let results: Document[] = [];
 
     // Try Pinecone first if configured
-    if (process.env.PINECONE_API_KEY && process.env.PINECONE_API_KEY !== "YOUR_API_KEY_HERE") {
+    const isPineconeConfigured = process.env.PINECONE_API_KEY && process.env.PINECONE_API_KEY !== "YOUR_API_KEY_HERE";
+
+    if (isPineconeConfigured) {
         try {
             console.log("Searching in Pinecone...");
             const pineconeStore = await getPineconeStore();
             results = await pineconeStore.similaritySearch(query, topK);
         } catch (error) {
-            console.error("Pinecone search failed, falling back to Memory store:", error);
+            console.error("Pinecone search failed:", error);
+            // We don't fallback to Memory Store here because it's too slow to initialize in serverless
         }
-    }
-
-    // Fallback to Memory Store if Pinecone failed or returned nothing
-    if (results.length === 0) {
-        console.log("Searching in Memory store...");
-        const store = await getVectorStore();
-        results = await store.similaritySearch(query, topK);
+    } else {
+        console.log("Searching in Local Memory store...");
+        try {
+            const store = await getVectorStore();
+            results = await store.similaritySearch(query, topK);
+        } catch (error) {
+            console.error("Local Memory store search failed:", error);
+        }
     }
 
     // Hybrid Search Logic: If specific keywords (creatinine, egfr, etc) are in query,
@@ -187,7 +226,7 @@ export function formatContext(documents: Document[]): string {
     }
 
     return documents
-        .map((doc, index) => {
+        .map((doc) => {
             const source = doc.metadata.source || "Unknown";
             return `[Source: ${source}]\n${doc.pageContent}`;
         })
