@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Upload, FileText, CheckCircle, AlertCircle, Loader2, ArrowLeft, BarChart3, Database, Files, Trash2, RefreshCcw, HardDrive } from "lucide-react";
 import Link from "next/link";
+import { preprocessPDFInBrowser, sectionsToJsonBlob } from "@/lib/pdfPreprocessor";
 
 interface KnowledgeFile {
     name: string;
@@ -17,6 +18,62 @@ interface IndexStats {
     namespaces?: Record<string, unknown>;
 }
 
+interface ProgressInfo {
+    batch: number;
+    totalBatches: number;
+    chunksIndexed: number;
+    totalChunks: number;
+    percent: number;
+    status?: string;
+    startTime?: number;
+}
+
+/** Parse a streaming newline-delimited JSON response */
+async function parseStreamResponse(
+    response: Response,
+    onProgress: (data: ProgressInfo) => void,
+    onDone: (data: { chunks?: number; totalChunks?: number; message?: string }) => void,
+    onError: (error: string) => void
+) {
+    const reader = response.body!.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    const startTime = Date.now();
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop()!;
+
+        for (const line of lines) {
+            if (!line.trim()) continue;
+            try {
+                const event = JSON.parse(line);
+                if (event.type === 'progress' || event.type === 'start') {
+                    onProgress({ ...event, startTime });
+                } else if (event.type === 'done') {
+                    onDone(event);
+                } else if (event.type === 'error') {
+                    onError(event.error);
+                } else if (event.type === 'retry') {
+                    onProgress({
+                        batch: event.batch,
+                        totalBatches: event.totalBatches || 0,
+                        chunksIndexed: 0,
+                        totalChunks: 0,
+                        percent: 0,
+                        status: `Retrying batch ${event.batch} (attempt ${event.retry})...`,
+                        startTime
+                    });
+                }
+            } catch { /* skip invalid JSON */ }
+        }
+    }
+}
+
 export default function AdminDashboard() {
     const [files, setFiles] = useState<File[]>([]);
     const [password, setPassword] = useState("");
@@ -25,6 +82,7 @@ export default function AdminDashboard() {
     const [status, setStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
     const [stats, setStats] = useState<IndexStats | null>(null);
     const [isLoadingStats, setIsLoadingStats] = useState(false);
+    const [progress, setProgress] = useState<ProgressInfo | null>(null);
 
     // New states for Pasted Text
     const [uploadMode, setUploadMode] = useState<'file' | 'text'>('file');
@@ -72,25 +130,92 @@ export default function AdminDashboard() {
         }
     }, [password]);
 
+    const syncSingleFile = async (name: string) => {
+        if (!password) {
+            setStatus({ type: 'error', message: "Please enter Admin Password first" });
+            return;
+        }
+        setIsSyncing(true);
+        setStatus(null);
+        setProgress(null);
+        setCurrentlyProcessing(`🔄 Syncing ${name}...`);
+
+        try {
+            const response = await fetch("/api/admin/sync", {
+                method: "POST",
+                headers: {
+                    "x-admin-password": password,
+                    "x-sync-file": name
+                }
+            });
+
+            if (response.status === 401) {
+                throw new Error("Invalid Admin Password");
+            }
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || "Sync failed");
+            }
+
+            await parseStreamResponse(
+                response,
+                (p) => setProgress(p),
+                (data) => {
+                    setStatus({ type: 'success', message: `Successfully synced ${name}` });
+                    setProgress(null);
+                    fetchStats();
+                },
+                (error) => {
+                    setStatus({ type: 'error', message: error });
+                    setProgress(null);
+                }
+            );
+        } catch (error: any) {
+            setStatus({ type: 'error', message: error.message });
+        } finally {
+            setIsSyncing(false);
+            setCurrentlyProcessing(null);
+        }
+    };
+
     const handleSync = async () => {
         if (!password) return;
         setIsSyncing(true);
         setStatus(null);
+        setProgress(null);
         try {
             const response = await fetch("/api/admin/sync", {
                 method: "POST",
                 headers: { "x-admin-password": password }
             });
-            const data = await response.json();
-            if (response.ok) {
-                setStatus({ type: 'success', message: data.message });
-                fetchStats();
-            } else {
+
+            if (response.status === 401) {
+                throw new Error("Invalid Admin Password");
+            }
+
+            if (!response.ok) {
+                const data = await response.json();
                 throw new Error(data.error);
             }
+
+            await parseStreamResponse(
+                response,
+                (p) => setProgress(p),
+                (data) => {
+                    setStatus({ type: 'success', message: data.message || 'Sync complete!' });
+                    setProgress(null);
+                    fetchStats();
+                },
+                (error) => {
+                    setStatus({ type: 'error', message: error });
+                    setProgress(null);
+                }
+            );
         } catch (error: unknown) {
             const err = error as Error;
             setStatus({ type: 'error', message: err.message });
+            setProgress(null);
         } finally {
             setIsSyncing(false);
         }
@@ -144,76 +269,110 @@ export default function AdminDashboard() {
 
         setIsUploading(true);
         setStatus(null);
+        setProgress(null);
         let successCount = 0;
         let totalChunks = 0;
+
+        // Yield to let the browser paint the loading state before heavy processing
+        await new Promise(r => setTimeout(r, 50));
 
         try {
             if (uploadMode === 'file') {
                 for (const file of files) {
-                    setCurrentlyProcessing(file.name);
-                    const formData = new FormData();
-                    formData.append("file", file);
+                    if (file.size > 4 * 1024 * 1024) {
+                        setStatus({ type: 'error', message: `Skipped ${file.name}: File too large (Max 4MB).` });
+                        continue;
+                    }
 
-                    const response = await fetch("/api/admin/upload", {
-                        method: "POST",
-                        body: formData,
-                        headers: {
-                            "x-admin-password": password
+                    try {
+                        let uploadFile: File | Blob = file;
+                        let uploadName = file.name;
+
+                        // Browser-side PDF preprocessing
+                        if (file.name.toLowerCase().endsWith('.pdf')) {
+                            setCurrentlyProcessing(`📄 Preprocessing ${file.name}...`);
+                            const sections = await preprocessPDFInBrowser(file, (page, total) => {
+                                setCurrentlyProcessing(`📄 Parsing ${file.name} — page ${page}/${total}`);
+                            });
+                            if (sections.length === 0) {
+                                setStatus({ type: 'error', message: `No content extracted from ${file.name}` });
+                                continue;
+                            }
+                            uploadFile = sectionsToJsonBlob(sections);
+                            uploadName = file.name.replace(/\.pdf$/i, '.json');
                         }
-                    });
 
-                    const data = await response.json();
+                        setCurrentlyProcessing(`⬆️ Indexing ${uploadName}...`);
+                        const formData = new FormData();
+                        formData.append("file", uploadFile, uploadName);
 
-                    if (response.ok) {
-                        successCount++;
-                        totalChunks += data.chunks;
-                    } else {
-                        throw new Error(`Failed to upload ${file.name}: ${data.error}`);
+                        const response = await fetch("/api/admin/upload", {
+                            method: "POST",
+                            body: formData,
+                            headers: { "x-admin-password": password }
+                        });
+
+                        if (!response.ok && !response.body) {
+                            const data = await response.json();
+                            throw new Error(data.error || response.statusText);
+                        }
+
+                        // Parse streaming progress
+                        await parseStreamResponse(
+                            response,
+                            (p) => setProgress(p),
+                            (data) => {
+                                successCount++;
+                                totalChunks += data.chunks || 0;
+                                setProgress(null);
+                            },
+                            (error) => {
+                                setStatus({ type: 'error', message: `${file.name}: ${error}` });
+                                setProgress(null);
+                            }
+                        );
+                    } catch (err) {
+                        console.error(`Upload error for ${file.name}:`, err);
+                        setStatus({ type: 'error', message: err instanceof Error ? err.message : `Failed to upload ${file.name}` });
                     }
                 }
-                setStatus({
-                    type: 'success',
-                    message: `Bulk success! Processed ${successCount} files and generated ${totalChunks} high-precision chunks.`
-                });
+                if (successCount > 0) {
+                    setStatus({ type: 'success', message: `Processed ${successCount}/${files.length} files. ${totalChunks} chunks indexed.` });
+                } else if (files.length > 0) {
+                    setStatus(prev => prev || { type: 'error', message: "All uploads failed." });
+                }
                 setFiles([]);
             } else {
-                // handle text upload
                 setCurrentlyProcessing(sourceLabel);
                 const response = await fetch("/api/admin/upload", {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "x-admin-password": password
-                    },
-                    body: JSON.stringify({
-                        text: pastedText,
-                        sourceLabel: sourceLabel
-                    })
+                    headers: { "Content-Type": "application/json", "x-admin-password": password },
+                    body: JSON.stringify({ text: pastedText, sourceLabel })
                 });
 
-                const data = await response.json();
-
-                if (response.ok) {
-                    setStatus({
-                        type: 'success',
-                        message: `Successfully indexed ${sourceLabel} (${data.chunks} chunks).`
-                    });
-                    setPastedText("");
-                    setSourceLabel("");
-                } else {
-                    throw new Error(data.error);
-                }
+                await parseStreamResponse(
+                    response,
+                    (p) => setProgress(p),
+                    (data) => {
+                        setStatus({ type: 'success', message: data.message || `Indexed ${sourceLabel}` });
+                        setProgress(null);
+                        setPastedText("");
+                        setSourceLabel("");
+                    },
+                    (error) => {
+                        setStatus({ type: 'error', message: error });
+                        setProgress(null);
+                    }
+                );
             }
             fetchStats();
             fetchInventory();
         } catch (error) {
-            setStatus({
-                type: 'error',
-                message: error instanceof Error ? error.message : "An unexpected error occurred"
-            });
+            setStatus({ type: 'error', message: error instanceof Error ? error.message : "An unexpected error occurred" });
         } finally {
             setIsUploading(false);
             setCurrentlyProcessing(null);
+            setProgress(null);
         }
     };
 
@@ -345,7 +504,7 @@ export default function AdminDashboard() {
                                                 id="file-upload"
                                                 multiple
                                                 onChange={handleFileChange}
-                                                accept=".pdf,.docx,.txt,.md"
+                                                accept=".pdf,.docx,.txt,.md,.json"
                                                 className="hidden"
                                             />
                                             <label
@@ -360,7 +519,10 @@ export default function AdminDashboard() {
                                                         Click to Select Multiple Files
                                                     </p>
                                                     <p className="text-slate-500 text-sm mt-1">
-                                                        PDF, DOCX, TXT, MD up to 10MB each
+                                                        PDF, DOCX, TXT, MD, JSON up to 4MB each
+                                                    </p>
+                                                    <p className="text-xs text-emerald-600 mt-0.5">
+                                                        ✨ PDFs are auto-preprocessed for optimal RAG quality
                                                     </p>
                                                 </div>
                                             </label>
@@ -450,6 +612,51 @@ export default function AdminDashboard() {
                                             </p>
                                         )}
                                     </button>
+
+                                    {/* Progress Bar */}
+                                    {progress && (isUploading || isSyncing) && (
+                                        <div className="mt-4 bg-slate-50 rounded-xl p-4 border border-slate-200">
+                                            {/* Progress Bar */}
+                                            <div className="relative w-full h-4 bg-slate-200 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full rounded-full transition-all duration-500 ease-out"
+                                                    style={{
+                                                        width: `${progress.percent || 0}%`,
+                                                        background: 'linear-gradient(90deg, #128C7E, #25D366)',
+                                                    }}
+                                                />
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <span className="text-[10px] font-bold text-slate-700 drop-shadow-sm">
+                                                        {progress.percent || 0}%
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Stats Row */}
+                                            <div className="flex items-center justify-between mt-2 text-xs text-slate-600">
+                                                <span>
+                                                    Batch {progress.batch}/{progress.totalBatches}
+                                                </span>
+                                                <span>
+                                                    {progress.chunksIndexed}/{progress.totalChunks} chunks
+                                                </span>
+                                                {progress.startTime && progress.percent > 0 && (
+                                                    <span>
+                                                        ~{Math.max(1, Math.round(
+                                                            ((Date.now() - progress.startTime) / progress.percent) * (100 - progress.percent) / 1000
+                                                        ))}s left
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Status message */}
+                                            {progress.status && (
+                                                <p className="text-[10px] text-amber-600 mt-1 animate-pulse">
+                                                    {progress.status}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
                                 </form>
                             </div>
                         </div>
@@ -511,14 +718,26 @@ export default function AdminDashboard() {
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => deleteFile(file.name)}
-                                                    className="p-2 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-lg"
-                                                    title="Delete File"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => syncSingleFile(file.name)}
+                                                        disabled={isSyncing || !password}
+                                                        className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold transition-all border border-emerald-100 disabled:opacity-30 disabled:grayscale"
+                                                        title="Load this file into the AI"
+                                                    >
+                                                        {isSyncing && currentlyProcessing?.includes(file.name) ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCcw className="w-3.5 h-3.5" />}
+                                                        Index File
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => deleteFile(file.name)}
+                                                        className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-lg transition-colors"
+                                                        title="Delete from disk"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
@@ -534,6 +753,6 @@ export default function AdminDashboard() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

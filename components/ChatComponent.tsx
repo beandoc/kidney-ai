@@ -93,8 +93,8 @@ export default function ChatComponent() {
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            if (file.size > 10 * 1024 * 1024) {
-                setError("Image size must be less than 10MB");
+            if (file.size > 4 * 1024 * 1024) {
+                setError("Image size must be less than 4MB");
                 return;
             }
             const reader = new FileReader();
