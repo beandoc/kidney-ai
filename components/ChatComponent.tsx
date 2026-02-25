@@ -45,6 +45,7 @@ export default function ChatComponent() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [selectedImage, setSelectedImage] = useState<{ file: File; preview: string } | null>(null);
+    const [agentStatus, setAgentStatus] = useState<string | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -124,6 +125,7 @@ export default function ChatComponent() {
         setInput("");
         setSelectedImage(null);
         setIsLoading(true);
+        setAgentStatus(null);
         setError(null);
 
         try {
@@ -195,47 +197,74 @@ export default function ChatComponent() {
             const reader = response.body?.getReader();
             const decoder = new TextDecoder();
             let fullContent = "";
+            let streamBuffer = ""; // Buffer to handle partial lines
 
             if (reader) {
                 while (true) {
                     const { done, value } = await reader.read();
-                    if (done) break;
+                    if (done) {
+                        // Process any remaining text in buffer
+                        if (streamBuffer.trim()) {
+                            processLine(streamBuffer, assistantId);
+                        }
+                        break;
+                    }
 
-                    const chunk = decoder.decode(value);
+                    const chunk = decoder.decode(value, { stream: true });
+                    streamBuffer += chunk;
 
-                    // Check for sources metadata
-                    if (chunk.startsWith("__SOURCES__:")) {
-                        const lineEnd = chunk.indexOf("\n");
-                        const sourcesJson = chunk.substring(12, lineEnd);
-                        const sources = JSON.parse(sourcesJson);
+                    // Split by newline and process complete lines
+                    const lines = streamBuffer.split("\n");
+                    streamBuffer = lines.pop() || ""; // Keep the last (possibly incomplete) line
 
+                    for (const line of lines) {
+                        processLine(line, assistantId);
+                    }
+                }
+            }
+
+            // Inner helper to process individual lines/commands
+            function processLine(line: string, assistantId: string) {
+                if (!line.trim()) return;
+
+                if (line.startsWith("__SOURCES__:")) {
+                    try {
+                        const jsonPart = line.substring(12);
+                        const sources = JSON.parse(jsonPart);
                         setMessages((prev) =>
                             prev.map((m) =>
                                 m.id === assistantId ? { ...m, sources } : m
                             )
                         );
-
-                        const remaining = chunk.substring(lineEnd + 1);
-                        if (remaining) {
-                            fullContent += remaining;
-                            setMessages((prev) =>
-                                prev.map((m) =>
-                                    m.id === assistantId ? { ...m, content: fullContent } : m
-                                )
-                            );
-                        }
-                    } else {
-                        fullContent += chunk;
-                        setMessages((prev) =>
-                            prev.map((m) =>
-                                m.id === assistantId ? { ...m, content: fullContent } : m
-                            )
-                        );
+                    } catch (e) {
+                        console.error("Failed to parse sources", e);
                     }
-                    setIsLoading(false); // Stop "typing" animation as soon as first content arrives
+                }
+                else if (line.startsWith("__STATUS__:")) {
+                    const status = line.substring(11).trim();
+                    setAgentStatus(status);
+                }
+                else if (line.startsWith("__CLEAR_STATUS__")) {
+                    setAgentStatus(null);
+                    // Reset content only if we are at the initialization phase
+                    if (fullContent.length < 10) fullContent = "";
+                }
+                else if (line.startsWith("__ERROR__:")) {
+                    const errorMsg = line.substring(10).trim();
+                    setError(`Medical Brain Error: ${errorMsg}`);
+                    setAgentStatus(null);
+                }
+                else {
+                    // This is real message content
+                    fullContent += line + "\n";
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.id === assistantId ? { ...m, content: fullContent.trim() } : m
+                        )
+                    );
+                    setIsLoading(false);
                 }
             }
-
         } catch (error: unknown) {
             const err = error as Error;
             if (err.message === "QUOTA_EXCEEDED") {
@@ -246,6 +275,7 @@ export default function ChatComponent() {
             console.error(err);
         } finally {
             setIsLoading(false);
+            setAgentStatus(null);
         }
     };
 
@@ -285,18 +315,22 @@ export default function ChatComponent() {
                         </div>
                     </div>
 
-                    {/* Admin Link */}
-                    <Link href="/admin" className="p-4 flex items-center gap-4 cursor-pointer hover:bg-slate-50 transition-colors group">
-                        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center shadow-sm group-hover:bg-[#128C7E]/10 transition-colors">
-                            <Database className="text-slate-500 w-6 h-6 group-hover:text-[#128C7E]" />
-                        </div>
-                        <div className="flex-1 border-b border-[#F0F2F5] pb-3">
-                            <div className="flex justify-between items-center mb-1">
-                                <span className="font-semibold text-[#111B21]">Knowledge Base</span>
+                    {/* Admin Link - AI Training Center */}
+                    <div className="px-4 mt-6 mb-2">
+                        <p className="text-[10px] text-slate-400 uppercase font-black tracking-[0.2em] mb-3">Clinician Control Panel</p>
+                        <Link href="/admin" className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 flex items-center gap-4 cursor-pointer hover:shadow-md hover:border-[#128C7E]/30 transition-all group">
+                            <div className="w-12 h-12 rounded-xl bg-[#128C7E] flex items-center justify-center shadow-sm text-white transition-transform group-hover:scale-105">
+                                <Plus className="w-6 h-6" />
                             </div>
-                            <p className="text-sm text-[#667781] truncate">Upload & Manage Medical Data</p>
-                        </div>
-                    </Link>
+                            <div className="flex-1">
+                                <div className="flex justify-between items-center mb-0.5">
+                                    <span className="font-bold text-[#111B21] text-sm">Train Medical Brain</span>
+                                    <Sparkles className="w-3.5 h-3.5 text-[#128C7E] animate-pulse" />
+                                </div>
+                                <p className="text-[11px] text-[#128C7E] font-semibold leading-tight opacity-80">Upload PDFs & Guidelines</p>
+                            </div>
+                        </Link>
+                    </div>
                 </div>
             </aside>
 
@@ -359,7 +393,32 @@ export default function ChatComponent() {
                                         </div>
                                     )}
                                     <div className="text-[14.2px] text-[#111B21] leading-[1.45] whitespace-pre-wrap pr-10">
-                                        {message.content}
+                                        {message.content.includes("<thought>") ? (
+                                            (() => {
+                                                const parts = message.content.split(/<\/?thought>/);
+                                                return (
+                                                    <div className="space-y-3">
+                                                        {parts.map((part, i) => {
+                                                            if (i % 2 === 1) { // Inside <thought>
+                                                                return (
+                                                                    <div key={i} className="text-xs bg-[#F7F9FA] p-3 rounded-lg border-l-4 border-[#128C7E]/30 italic text-slate-500 font-serif leading-relaxed my-2">
+                                                                        <div className="font-bold uppercase tracking-wider text-[9px] mb-1 opacity-60 flex items-center gap-1.5">
+                                                                            <Sparkles className="w-3 h-3" />
+                                                                            Clinical Reasoning Trace
+                                                                        </div>
+                                                                        {part.trim()}
+                                                                    </div>
+                                                                );
+                                                            }
+                                                            if (!part.trim()) return null;
+                                                            return <div key={i}>{part}</div>;
+                                                        })}
+                                                    </div>
+                                                );
+                                            })()
+                                        ) : (
+                                            message.content
+                                        )}
                                     </div>
 
                                     {message.sources && message.sources.length > 0 && (
@@ -384,14 +443,27 @@ export default function ChatComponent() {
                             </div>
                         ))}
 
-                        {isLoading && (
-                            <div className="flex justify-start mb-2">
-                                <div className="bg-white rounded-lg rounded-tl-none px-4 py-3 shadow-sm relative bubble-assistant">
-                                    <div className="typing-dots">
-                                        <div className="typing-dot"></div>
-                                        <div className="typing-dot"></div>
-                                        <div className="typing-dot"></div>
-                                    </div>
+                        {/* Agent Status & Loading */}
+                        {(isLoading || agentStatus) && (
+                            <div className="flex justify-start mb-2 animate-in fade-in slide-in-from-left-2 duration-300">
+                                <div className="bg-white rounded-lg rounded-tl-none px-4 py-3 shadow-sm relative bubble-assistant flex flex-col gap-2 min-w-[200px]">
+                                    {agentStatus ? (
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex-1 text-[13px] text-[#128C7E] font-medium flex items-center gap-2">
+                                                <div className="relative flex h-2 w-2">
+                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#128C7E]"></span>
+                                                </div>
+                                                {agentStatus}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="typing-dots">
+                                            <div className="typing-dot"></div>
+                                            <div className="typing-dot"></div>
+                                            <div className="typing-dot"></div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}

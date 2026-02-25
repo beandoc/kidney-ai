@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { getPineconeStore, processFileBuffer, processRawText } from "../../../../lib/langchain/pinecone";
+import * as fs from "fs";
+import * as path from "path";
+import { pageIndexClient } from "../../../../lib/pageindex/client";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // Allow up to 5 minutes for large files
@@ -25,6 +28,7 @@ export async function POST(request: Request) {
     // Parse the file/text before starting the stream
     let docs: Awaited<ReturnType<typeof processFileBuffer>>;
     let label = "Unknown Source";
+    let fileBuffer: Buffer | null = null;
 
     try {
         const contentType = request.headers.get("content-type") || "";
@@ -45,9 +49,9 @@ export async function POST(request: Request) {
             if (file.size > 4 * 1024 * 1024) {
                 return NextResponse.json({ error: "File size exceeds 4MB limit" }, { status: 400 });
             }
-            const buffer = Buffer.from(await file.arrayBuffer());
+            fileBuffer = Buffer.from(await file.arrayBuffer());
             label = file.name;
-            docs = await processFileBuffer(buffer, label);
+            docs = await processFileBuffer(fileBuffer, label);
         }
 
         if (!docs || docs.length === 0) {
@@ -69,56 +73,58 @@ export async function POST(request: Request) {
             };
 
             try {
-                const vectorStore = await getPineconeStore();
-                const BATCH_SIZE = 5;
-                const DELAY_MS = 2000;
-                const MAX_RETRIES = 3;
-                const totalBatches = Math.ceil(docs.length / BATCH_SIZE);
+                const isPdf = label.toLowerCase().endsWith('.pdf');
 
-                send({ type: 'start', totalChunks: docs.length, totalBatches, label });
+                if (isPdf && fileBuffer) {
+                    send({ type: 'progress', status: 'Generating Deep Reasoning Tree...', percent: 10 });
+                    const result = await pageIndexClient.indexPdf(fileBuffer, label);
 
-                for (let i = 0; i < docs.length; i += BATCH_SIZE) {
-                    const batch = docs.slice(i, i + BATCH_SIZE);
-                    const batchNum = Math.floor(i / BATCH_SIZE) + 1;
+                    // Save to knowledge_base/pageindex
+                    const kbPath = path.join(process.cwd(), 'knowledge_base', 'pageindex');
+                    if (!fs.existsSync(kbPath)) fs.mkdirSync(kbPath, { recursive: true });
 
-                    let retries = 0;
-                    while (retries <= MAX_RETRIES) {
-                        try {
-                            await vectorStore.addDocuments(batch);
-                            send({
-                                type: 'progress',
-                                batch: batchNum,
-                                totalBatches,
-                                chunksIndexed: i + batch.length,
-                                totalChunks: docs.length,
-                                percent: Math.round(((i + batch.length) / docs.length) * 100)
-                            });
-                            break;
-                        } catch (batchError) {
-                            retries++;
-                            if (retries > MAX_RETRIES) {
-                                send({ type: 'error', error: `Batch ${batchNum} failed after ${MAX_RETRIES} retries` });
-                                controller.close();
-                                return;
+                    const outputPath = path.join(kbPath, `${label}.json`);
+                    fs.writeFileSync(outputPath, JSON.stringify(result, null, 2));
+
+                    send({
+                        type: 'done',
+                        message: `Successfully indexed ${label} using PageIndex Deep Architecture (Gemini).`
+                    });
+                } else {
+                    // Simple Tree for non-PDFs or text
+                    send({ type: 'progress', status: 'Creating Knowledge Node...', percent: 30 });
+
+                    const fullText = docs.map(d => d.pageContent).join('\n\n');
+
+                    const simpleResult = {
+                        doc_name: label,
+                        structure: [
+                            {
+                                title: "Document Overview",
+                                node_id: "0000",
+                                start_index: 1,
+                                end_index: 1, // Text docs are treated as 1 page
+                                summary: `Comprehensive content of ${label}`,
+                                text: fullText
                             }
-                            const backoff = DELAY_MS * Math.pow(2, retries - 1);
-                            send({ type: 'retry', batch: batchNum, retry: retries, backoffMs: backoff });
-                            await new Promise(r => setTimeout(r, backoff));
-                        }
-                    }
+                        ]
+                    };
 
-                    if (i + BATCH_SIZE < docs.length) {
-                        await new Promise(r => setTimeout(r, DELAY_MS));
-                    }
+                    const kbPath = path.join(process.cwd(), 'knowledge_base', 'pageindex');
+                    if (!fs.existsSync(kbPath)) fs.mkdirSync(kbPath, { recursive: true });
+
+                    const fileName = label.endsWith('.json') ? label : `${label}.json`;
+                    const outputPath = path.join(kbPath, fileName);
+                    fs.writeFileSync(outputPath, JSON.stringify(simpleResult, null, 2));
+
+                    send({
+                        type: 'done',
+                        message: `Successfully added ${label} to Agentic Brain (Simple Tree Mode).`
+                    });
                 }
-
-                send({
-                    type: 'done',
-                    chunks: docs.length,
-                    message: `Successfully indexed ${label} (${docs.length} chunks)`
-                });
             } catch (error) {
-                send({ type: 'error', error: error instanceof Error ? error.message : "Internal error" });
+                console.error("Worker process error:", error);
+                send({ type: 'error', error: error instanceof Error ? error.message : "Internal processing error" });
             }
             controller.close();
         }

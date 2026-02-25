@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getChatModel, STRICT_SYSTEM_PROMPT, VISION_SYSTEM_PROMPT } from "../../../lib/langchain/config";
-import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages";
-import { searchDocuments, formatContext } from "../../../lib/langchain/vectorStore";
+import { AIMessage, HumanMessage } from "@langchain/core/messages";
+import { runAgent } from "../../../lib/agent";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +20,7 @@ export async function OPTIONS() {
 }
 
 export async function POST(request: NextRequest) {
-    console.log("POST /api/chat received");
+    console.log("POST /api/chat received via PageIndex");
     try {
         const { message, image, history } = await request.json();
 
@@ -32,31 +31,8 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        if (!process.env.GOOGLE_API_KEY) {
-            return NextResponse.json(
-                { error: "Google API key not configured" },
-                { status: 500 }
-            );
-        }
-
-        // Step 1: Search for relevant documents
-        console.time("Vector Search");
-        const searchQuery = message || "kidney health and diet";
-        const relevantDocs = await searchDocuments(searchQuery, 6);
-        console.timeEnd("Vector Search");
-
-        // Step 2: Format context from retrieved documents
-        const context = formatContext(relevantDocs);
-
-        // Step 3: Build the prompt
-        const systemPromptBase = image ? VISION_SYSTEM_PROMPT : STRICT_SYSTEM_PROMPT;
-        const filledPrompt = systemPromptBase.replace("{context}", context).replace(
-            "{question}",
-            message || "Analyze this image."
-        );
-
-        // Step 4: Stream response from LLM
-        const chatModel = getChatModel(1); // Limit retries to 1 to avoid hanging on 429 errors
+        // Multi-step Agent Reasoning
+        console.time("Agent Request");
 
         let historyMessages: (HumanMessage | AIMessage)[] = [];
         if (history && Array.isArray(history)) {
@@ -66,58 +42,29 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        let messages;
-        if (image) {
-            // Multimodal message format
-            messages = [
-                new SystemMessage(filledPrompt),
-                ...historyMessages,
-                new HumanMessage({
-                    content: [
-                        { type: "text", text: message || "Please analyze this image." },
-                        {
-                            type: "image_url",
-                            image_url: `data:image/jpeg;base64,${image}`,
-                        },
-                    ],
-                }),
-            ];
-        } else {
-            messages = [
-                new SystemMessage(filledPrompt),
-                ...historyMessages,
-                new HumanMessage(message),
-            ];
-        }
-
-        console.time("LLM Stream Start");
-        const stream = await chatModel.stream(messages);
-        console.timeEnd("LLM Stream Start");
-
-        // Step 5: Setup streaming response
         const encoder = new TextEncoder();
         const customStream = new ReadableStream({
             async start(controller) {
-                // First event: unique sources
-                const sources = relevantDocs.map((doc) => doc.metadata.source).filter(Boolean);
-                const uniqueSources = [...new Set(sources)];
-                controller.enqueue(encoder.encode(`__SOURCES__:${JSON.stringify(uniqueSources)}\n`));
+                try {
+                    const agentStream = runAgent(message, historyMessages);
 
-                console.time("LLM First Token");
-                let isFirst = true;
-
-                for await (const chunk of stream) {
-                    if (isFirst) {
-                        console.timeEnd("LLM First Token");
-                        isFirst = false;
+                    for await (const chunk of agentStream) {
+                        if (typeof chunk === 'string') {
+                            controller.enqueue(encoder.encode(chunk));
+                        }
                     }
-                    if (chunk.content) {
-                        controller.enqueue(encoder.encode(chunk.content as string));
-                    }
+                    controller.close();
+                } catch (streamError: any) {
+                    console.error("Agent Stream Error:", streamError);
+                    // Send error as a special chunk instead of aborting the stream
+                    const errorMsg = streamError?.message || "Internal Brain Error";
+                    controller.enqueue(encoder.encode(`\n__ERROR__:${errorMsg}`));
+                    controller.close();
                 }
-                controller.close();
             },
         });
+
+        console.timeEnd("Agent Request");
 
         return new Response(customStream, {
             headers: {

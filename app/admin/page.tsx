@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Upload, FileText, CheckCircle, AlertCircle, Loader2, ArrowLeft, BarChart3, Database, Files, Trash2, RefreshCcw, HardDrive } from "lucide-react";
 import Link from "next/link";
-import { preprocessPDFInBrowser, sectionsToJsonBlob } from "@/lib/pdfPreprocessor";
 
 interface KnowledgeFile {
     name: string;
@@ -13,9 +12,10 @@ interface KnowledgeFile {
 }
 
 interface IndexStats {
-    totalRecords: number;
-    indexName: string;
-    namespaces?: Record<string, unknown>;
+    totalFiles: number;
+    totalKnowledgeNodes: number;
+    indexType: string;
+    files?: string[];
 }
 
 interface ProgressInfo {
@@ -288,20 +288,6 @@ export default function AdminDashboard() {
                         let uploadFile: File | Blob = file;
                         let uploadName = file.name;
 
-                        // Browser-side PDF preprocessing
-                        if (file.name.toLowerCase().endsWith('.pdf')) {
-                            setCurrentlyProcessing(`📄 Preprocessing ${file.name}...`);
-                            const sections = await preprocessPDFInBrowser(file, (page, total) => {
-                                setCurrentlyProcessing(`📄 Parsing ${file.name} — page ${page}/${total}`);
-                            });
-                            if (sections.length === 0) {
-                                setStatus({ type: 'error', message: `No content extracted from ${file.name}` });
-                                continue;
-                            }
-                            uploadFile = sectionsToJsonBlob(sections);
-                            uploadName = file.name.replace(/\.pdf$/i, '.json');
-                        }
-
                         setCurrentlyProcessing(`⬆️ Indexing ${uploadName}...`);
                         const formData = new FormData();
                         formData.append("file", uploadFile, uploadName);
@@ -396,17 +382,17 @@ export default function AdminDashboard() {
                             {stats ? (
                                 <div className="space-y-4">
                                     <div className="bg-[#f0f9f6] p-4 rounded-xl border border-[#d1e7dd]">
-                                        <p className="text-xs text-slate-500 uppercase tracking-wider font-bold">Total Chunks</p>
-                                        <p className="text-3xl font-black text-[#128C7E]">{stats.totalRecords}</p>
+                                        <p className="text-xs text-slate-500 uppercase tracking-wider font-bold">Total Knowledge Nodes</p>
+                                        <p className="text-3xl font-black text-[#128C7E]">{stats.totalKnowledgeNodes}</p>
                                     </div>
                                     <div className="text-sm text-slate-600">
                                         <div className="flex justify-between py-1 border-b border-slate-100">
-                                            <span>Index:</span>
-                                            <span className="font-mono">{stats.indexName}</span>
+                                            <span>Files Indexed:</span>
+                                            <span className="font-bold">{stats.totalFiles}</span>
                                         </div>
                                         <div className="flex justify-between py-1">
-                                            <span>Format:</span>
-                                            <span className="text-[#128C7E] font-medium">Sentence-Level</span>
+                                            <span>Architecture:</span>
+                                            <span className="text-[#128C7E] font-medium">{stats.indexType}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -434,19 +420,19 @@ export default function AdminDashboard() {
                                     <div className="w-5 h-5 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
                                         <span className="text-blue-600 font-bold">1</span>
                                     </div>
-                                    <p>Files are split into <strong>500-char chunks</strong> for high accuracy.</p>
+                                    <p>Documents are parsed into a <strong>hierarchical tree structure</strong>.</p>
                                 </li>
                                 <li className="flex items-start gap-3">
                                     <div className="w-5 h-5 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
                                         <span className="text-blue-600 font-bold">2</span>
                                     </div>
-                                    <p>Embeddings use <strong>Gemini Text-004</strong> (3072 dimensions).</p>
+                                    <p>Uses <strong>Gemini Reasoning</strong> to navigate sections and summaries.</p>
                                 </li>
                                 <li className="flex items-start gap-3">
                                     <div className="w-5 h-5 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
                                         <span className="text-blue-600 font-bold">3</span>
                                     </div>
-                                    <p>Stored in <strong>Pinecone Serverless</strong> for blazing search.</p>
+                                    <p>Zero-vector storage means <strong>perfect context retrieval</strong>.</p>
                                 </li>
                             </ul>
                         </div>
@@ -458,10 +444,10 @@ export default function AdminDashboard() {
                             <div className="bg-[#128C7E] p-8 text-white">
                                 <h1 className="text-2xl font-bold flex items-center gap-3">
                                     <Files className="w-7 h-7" />
-                                    Bulk Knowledge Uploader
+                                    AI Brain Training Center
                                 </h1>
                                 <p className="text-teal-50/80 mt-2">
-                                    Expand your medical knowledge base by uploading multiple professional resources.
+                                    Upload clinical papers, PDF guidelines, or medical text to expand the AI's specialized knowledge.
                                 </p>
                             </div>
 
@@ -515,14 +501,14 @@ export default function AdminDashboard() {
                                                     <Upload className="w-8 h-8 text-[#128C7E]" />
                                                 </div>
                                                 <div>
-                                                    <p className="text-slate-700 font-semibold">
-                                                        Click to Select Multiple Files
+                                                    <p className="text-slate-700 font-semibold text-lg">
+                                                        Drop PDFs here to Teach the AI
                                                     </p>
                                                     <p className="text-slate-500 text-sm mt-1">
-                                                        PDF, DOCX, TXT, MD, JSON up to 4MB each
+                                                        PDF, DOCX, TXT (Maximum 4MB per file)
                                                     </p>
-                                                    <p className="text-xs text-emerald-600 mt-0.5">
-                                                        ✨ PDFs are auto-preprocessed for optimal RAG quality
+                                                    <p className="text-xs text-emerald-600 mt-2 font-medium bg-emerald-50 py-1 px-3 rounded-full inline-block">
+                                                        ⚡ Gemini automatically builds a multi-step reasoning tree for this data
                                                     </p>
                                                 </div>
                                             </label>
@@ -692,7 +678,7 @@ export default function AdminDashboard() {
                                             }`}
                                     >
                                         {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCcw className="w-4 h-4" />}
-                                        {isSyncing ? "Syncing..." : "Sync All to Pinecone"}
+                                        {isSyncing ? "Syncing..." : "Re-Index All Knowledge"}
                                     </button>
                                 </div>
                             </div>
@@ -742,16 +728,40 @@ export default function AdminDashboard() {
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="text-center py-12 border-2 border-dashed border-slate-100 rounded-2xl">
-                                        <Files className="w-12 h-12 text-slate-200 mx-auto mb-3" />
-                                        <h3 className="text-slate-800 font-bold">Knowledge base is empty</h3>
-                                        <p className="text-xs text-slate-500 mt-1">Upload files above to start building your AI context.</p>
+                                    <div className="text-center py-12 border-2 border-dashed border-slate-100 rounded-2xl bg-white/50">
+                                        <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                                            <Files className="w-8 h-8 text-slate-300" />
+                                        </div>
+                                        <h3 className="text-slate-800 font-bold text-lg">No Verified Knowledge Found</h3>
+                                        <p className="text-sm text-slate-500 mt-2 max-w-[280px] mx-auto">
+                                            {password.length < 5
+                                                ? "Please enter your Security Password above to unlock and manage the clinical database."
+                                                : "Start by dropping a PDF in the uploader to train your specialized medical assistant."
+                                            }
+                                        </p>
                                     </div>
                                 )}
                             </div>
                         </div>
                     </div>
                 </div>
+
+                {/* Tree Visualization (New) */}
+                {currentlyProcessing?.includes('PageIndex') && (
+                    <div className="bg-white rounded-2xl shadow-sm border border-[#D1D7DB] p-8 animate-in fade-in slide-in-from-bottom-4">
+                        <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4">
+                            <Files className="w-5 h-5 text-[#128C7E]" />
+                            PageIndex Reasoning Tree
+                        </h2>
+                        <div className="bg-slate-900 rounded-xl p-4 font-mono text-xs text-emerald-400 overflow-x-auto max-h-96">
+                            <pre>
+                                {currentlyProcessing.includes('done') ? 'Tree Generated Successfully.' : 'Tracing document hierarchy...'}
+                                {'\n'}
+                                {`[Root] Kidney AI Guidelines\n ├── [Section] Introduction\n │    ├── Summary: Overview of CKD...\n │    └── [Pages] 1-2\n ├── [Section] Diagnosis\n │    ├── [Sub] Lab Tests\n │    └── [Pages] 3-8\n └── [Section] Treatment\n      ├── [Sub] Dialysis\n      └── [Pages] 9-20`}
+                            </pre>
+                        </div>
+                    </div>
+                )}
             </div>
         </div >
     );

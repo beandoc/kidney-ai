@@ -1,20 +1,20 @@
 import { NextResponse } from "next/server";
-import { syncKnowledgeBase } from "@/lib/langchain/pinecone";
+import * as fs from "fs";
+import * as path from "path";
+import { pageIndexClient } from "@/lib/pageindex/client";
+import { processFileBuffer } from "@/lib/langchain/pinecone";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-/**
- * POST /api/admin/sync
- * Triggers a sync of all local files to Pinecone with streaming progress
- */
 export async function POST(request: Request) {
     const password = request.headers.get("x-admin-password");
     if (!password || password !== process.env.ADMIN_PASSWORD) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    console.log("Starting bulk sync of knowledge base...");
+    const specificFile = request.headers.get("x-sync-file") || undefined;
+    console.log(specificFile ? `Indexing specific file: ${specificFile}` : "Starting full PageIndex re-index...");
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
@@ -24,23 +24,68 @@ export async function POST(request: Request) {
             };
 
             try {
-                const specificFile = request.headers.get("x-sync-file") || undefined;
-                console.log(specificFile ? `Syncing specific file: ${specificFile}` : "Starting bulk sync...");
+                const kbPath = path.join(process.cwd(), 'knowledge_base');
+                const pageIndexPath = path.join(kbPath, 'pageindex');
+                if (!fs.existsSync(pageIndexPath)) fs.mkdirSync(pageIndexPath, { recursive: true });
 
-                const result = await syncKnowledgeBase((progress) => {
-                    send({ type: 'progress', ...progress });
-                }, specificFile);
+                const files = specificFile
+                    ? [specificFile]
+                    : fs.readdirSync(kbPath).filter(f => fs.statSync(path.join(kbPath, f)).isFile() && !f.startsWith('.'));
+
+                let successCount = 0;
+
+                for (let i = 0; i < files.length; i++) {
+                    const fileName = files[i];
+                    const filePath = path.join(kbPath, fileName);
+                    const percent = Math.round(((i) / files.length) * 100);
+
+                    send({
+                        type: 'progress',
+                        status: `Indexing ${fileName}...`,
+                        percent,
+                        batch: i + 1,
+                        totalBatches: files.length
+                    });
+
+                    try {
+                        const buffer = fs.readFileSync(filePath);
+                        const isPdf = fileName.toLowerCase().endsWith('.pdf');
+
+                        if (isPdf) {
+                            const result = await pageIndexClient.indexPdf(buffer, fileName);
+                            fs.writeFileSync(path.join(pageIndexPath, `${fileName}.json`), JSON.stringify(result, null, 2));
+                        } else {
+                            // Simple tree for other files
+                            const docs = await processFileBuffer(buffer, fileName);
+                            const fullText = docs.map(d => d.pageContent).join('\n\n');
+                            const simpleResult = {
+                                doc_name: fileName,
+                                structure: [{
+                                    title: "Document Content",
+                                    node_id: "0000",
+                                    start_index: 1,
+                                    end_index: 1,
+                                    summary: `Extracted content from ${fileName}`,
+                                    text: fullText
+                                }]
+                            };
+                            fs.writeFileSync(path.join(pageIndexPath, `${fileName}.json`), JSON.stringify(simpleResult, null, 2));
+                        }
+                        successCount++;
+                    } catch (fileErr) {
+                        console.error(`Failed to index ${fileName}:`, fileErr);
+                        send({ type: 'progress', status: `⚠️ Failed: ${fileName}` });
+                    }
+                }
 
                 send({
                     type: 'done',
-                    totalChunks: result.totalChunks,
-                    fileCount: result.fileCount,
-                    message: `Successfully synchronized ${result.fileCount} files (${result.totalChunks} chunks).`
+                    message: `Successfully indexed ${successCount} files using PageIndex Architecture.`,
+                    fileCount: successCount
                 });
             } catch (error) {
-                const err = error as Error;
-                console.error("Sync API Error:", err);
-                send({ type: 'error', error: err.message || "Failed to sync knowledge base" });
+                console.error("Sync API Error:", error);
+                send({ type: 'error', error: error instanceof Error ? error.message : "Failed to index knowledge base" });
             }
             controller.close();
         }

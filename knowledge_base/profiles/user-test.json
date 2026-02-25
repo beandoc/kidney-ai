@@ -1,0 +1,7 @@
+{
+    "userId": "user-test",
+    "medicalFacts": [
+        "Patient is allergic to Penicillin.",
+        "Patient has a preference for Hindi-language educational materials."
+    ]
+}

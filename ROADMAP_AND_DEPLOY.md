@@ -32,16 +32,18 @@ Here is a roadmap to transform this prototype into a production-grade applicatio
 
 ### Phase 1: Knowledge & Data (The "Brain")
 -   [x] **Expanded File Support**: Enable **Word (.docx)**, **PDF**, **TXT**, and **MD** ingestion. **(Done)**
--   [x] **Permanent Memory**: Integrated **Pinecone (3072 dim)** for high-precision vector search. **(Done)**
--   [x] **Admin Upload Interface**: Secure web-based dashboard for instant knowledge updates. **(Done)**
+-   [x] **PageIndex KB**: Integrated **PageIndex** for high-precision, tree-based hierarchical search (removing vector similarity hallucinations). **(Done)**
+-   [x] **Admin Upload Interface**: Secure web-based dashboard with **Reasoning Tree Visualizer**. **(Done)**
 
 ### Phase 2: User Experience (The "Feel")
 -   [x] **Streaming Responses**: Lightning-fast, character-by-character typing effect. **(Done)**
+-   [x] **Agent Thinking States**: Real-time status updates (*"Verifying accuracy..."*) for a premium experience. **(Done)**
 -   [x] **WhatsApp UI**: Refactored the web UI to match the familiar mobile WhatsApp experience. **(Done)**
 -   [ ] **Chat History**: Save and recall past conversations using a database (e.g., Supabase/PostgreSQL).
 
 ### Phase 3: Advanced Intelligence (The "Smartness")
--   [x] **Support Multi-language**: Medical facts can now be answered in Hindi, Spanish, etc. **(Done)**
+-   [x] **Agentic RAG**: Implemented a **Researcher-Verifier** multi-agent loop to ensure clinical accuracy and double-check facts. **(Done)**
+-   [x] **Support Multi-language**: Medical facts can now be answered in Hindi, Marathi, etc. **(Done)**
 -   [ ] **Multi-Modal Analysis**: Use Gemini Vision to analyze **photos of food or lab reports**.
 
 ### Phase 4: WhatsApp Integration (The "Mobile Reach")

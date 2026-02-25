@@ -1,0 +1,13 @@
+{
+  "doc_name": "patients.json",
+  "structure": [
+    {
+      "title": "Document Content",
+      "node_id": "0000",
+      "start_index": 1,
+      "end_index": 1,
+      "summary": "Extracted content from patients.json",
+      "text": "patientId: pt-001\nname: Standard Test Patient\nvitals > latest_creatinine: 1.8 mg/dL\nvitals > latest_egfr: 42 mL/min/1.73m² (Stage 3b CKD)\nvitals > blood_pressure: 135/85 mmHg\nvitals > weight: 78 kg\nvitals > potassium: 4.2 mEq/L\nrecent_labs > date: 2024-02-15\nrecent_labs > test: Creatinine\nrecent_labs > value: 1.8\nrecent_labs > date: 2024-02-15\nrecent_labs > test: eGFR\nrecent_labs > value: 42"
+    }
+  ]
+}

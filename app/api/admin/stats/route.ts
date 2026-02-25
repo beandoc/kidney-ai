@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { Pinecone } from "@pinecone-database/pinecone";
+import * as fs from "fs";
+import * as path from "path";
 
 export const dynamic = "force-dynamic";
 
@@ -11,22 +12,31 @@ export async function GET(request: Request) {
     }
 
     try {
-        const pinecone = new Pinecone({
-            apiKey: process.env.PINECONE_API_KEY!,
-        });
+        const kbPath = path.join(process.cwd(), 'knowledge_base', 'pageindex');
+        let files: string[] = [];
+        let totalNodes = 0;
 
-        const indexName = process.env.PINECONE_INDEX_NAME || "kidney-rag-chatbot";
-        const index = pinecone.Index(indexName);
-        const stats = await index.describeIndexStats();
+        if (fs.existsSync(kbPath)) {
+            files = fs.readdirSync(kbPath).filter(f => f.endsWith('.json'));
 
-        // Note: Pinecone doesn't easily let you list all unique metadata values (like filenames) 
-        // without a full scan or external database. For now, we return the record count.
-        // We can improve this later by keeping a small JSON registry of indexed files.
+            // Optional: Count total nodes across all trees
+            for (const file of files) {
+                try {
+                    const content = JSON.parse(fs.readFileSync(path.join(kbPath, file), 'utf-8'));
+                    if (content.structure) {
+                        totalNodes += content.structure.length;
+                    }
+                } catch (e) {
+                    console.error(`Error reading ${file} for stats:`, e);
+                }
+            }
+        }
 
         return NextResponse.json({
-            totalRecords: stats.totalRecordCount,
-            indexName: indexName,
-            namespaces: stats.namespaces
+            totalFiles: files.length,
+            totalKnowledgeNodes: totalNodes,
+            indexType: "PageIndex Hierarchical Tree",
+            files: files.map(f => f.replace('.json', ''))
         });
     } catch (error) {
         console.error("Stats API Error:", error);

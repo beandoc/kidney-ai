@@ -1,3 +1,9 @@
 {
-    "trailingSlash": false
+    "trailingSlash": false,
+    "rewrites": [
+        {
+            "source": "/api/python/:path*",
+            "destination": "/api/index.py"
+        }
+    ]
 }

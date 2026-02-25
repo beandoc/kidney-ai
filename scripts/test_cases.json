@@ -1,0 +1,35 @@
+[
+    {
+        "category": "Diet & Nutrition",
+        "base_question": "What foods should I avoid with chronic kidney disease?",
+        "variations": [
+            "Can you give me a list of restricted foods for CKD patients?",
+            "What should I not eat if my kidneys are failing?",
+            "Kidney diet restrictions list",
+            "I have CKD, can I eat bananas and oranges?",
+            "Which dietary choices are harmful for renal health?"
+        ]
+    },
+    {
+        "category": "Symptoms & Early Signs",
+        "base_question": "What are the first signs of kidney trouble?",
+        "variations": [
+            "How do I know if something is wrong with my kidneys?",
+            "Early warning symptoms of renal failure",
+            "What are the physical signs of stage 1 or 2 kidney disease?",
+            "What should I watch out for to catch kidney issues early?",
+            "Signs of kidney dysfunction"
+        ]
+    },
+    {
+        "category": "Treatment & Medications",
+        "base_question": "How is stage 3 kidney disease treated?",
+        "variations": [
+            "Management of CKD stage 3",
+            "What is the protocol for stage 3 renal failure?",
+            "Medicines for stage 3 kidney patients",
+            "How can I stop stage 3 from getting worse?",
+            "Coping with a stage 3 CKD diagnosis"
+        ]
+    }
+]
