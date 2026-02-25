@@ -12,12 +12,16 @@ export async function searchPageIndex(query: string): Promise<Document[]> {
     }
 
     const files = fs.readdirSync(PAGEINDEX_KB_PATH).filter(f => f.endsWith(".json"));
-    const allRelevantDocs: Document[] = [];
 
-    for (const file of files) {
+    // Run searches in parallel instead of sequentially to drastically reduce latency
+    const searchPromises = files.map(async (file) => {
         try {
             const filePath = path.join(PAGEINDEX_KB_PATH, file);
             const content = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+
+            // Skip empty structures or malformed json
+            if (!content.structure || !Array.isArray(content.structure)) return [];
+
             const tree = content.structure as PageIndexNode[];
 
             // Perform reasoning search via the Python API
@@ -26,22 +30,24 @@ export async function searchPageIndex(query: string): Promise<Document[]> {
             // Extract the text from the identified nodes
             const matchedNodes = pageIndexClient.findNodesByIds(tree, searchResult.node_list);
 
-            for (const node of matchedNodes) {
-                allRelevantDocs.push(new Document({
-                    pageContent: node.text || node.summary || "",
-                    metadata: {
-                        source: content.doc_name || file.replace(".json", ""),
-                        title: node.title,
-                        node_id: node.node_id,
-                        pages: `${node.start_index}-${node.end_index}`,
-                        thinking: searchResult.thinking // Optional: include reasoning in metadata
-                    }
-                }));
-            }
+            return matchedNodes.map(node => new Document({
+                pageContent: node.text || node.summary || "",
+                metadata: {
+                    source: content.doc_name || file.replace(".json", ""),
+                    title: node.title,
+                    node_id: node.node_id,
+                    pages: `${node.start_index}-${node.end_index}`,
+                    thinking: searchResult.thinking // Optional: include reasoning in metadata
+                }
+            }));
         } catch (error) {
             console.error(`Error searching through ${file}:`, error);
+            return [];
         }
-    }
+    });
+
+    const results = await Promise.all(searchPromises);
+    const allRelevantDocs = results.flat();
 
     return allRelevantDocs;
 }

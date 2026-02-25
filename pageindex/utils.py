@@ -98,7 +98,7 @@ def ChatGPT_API(model, prompt, api_key=CHATGPT_API_KEY, chat_history=None):
     if "gemini" in model.lower() or (not api_key and GOOGLE_API_KEY):
         # Map gpt-4o to gemini if requested and no openai key
         if "gpt" in model.lower():
-            model = "gemini-2.5-flash"
+            model = "gemini-2.0-flash"
         return Gemini_API(model, prompt, api_key=GOOGLE_API_KEY)
 
     max_retries = 10
@@ -131,7 +131,7 @@ def ChatGPT_API(model, prompt, api_key=CHATGPT_API_KEY, chat_history=None):
 async def ChatGPT_API_async(model, prompt, api_key=CHATGPT_API_KEY):
     if "gemini" in model.lower() or (not api_key and GOOGLE_API_KEY):
         if "gpt" in model.lower():
-            model = "gemini-2.5-flash"
+            model = "gemini-2.0-flash"
         return await Gemini_API_async(model, prompt, api_key=GOOGLE_API_KEY)
 
     max_retries = 10

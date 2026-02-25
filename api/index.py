@@ -25,7 +25,7 @@ def health_check():
 @app.post("/api/python/index-pdf")
 async def index_pdf(
     file: UploadFile = File(...),
-    model: str = Form("gemini-2.5-flash"),
+    model: str = Form("gemini-2.0-flash"),
     toc_check_pages: int = Form(20),
     max_pages_per_node: int = Form(10),
     max_tokens_per_node: int = Form(20000)
@@ -62,7 +62,7 @@ async def index_pdf(
 async def search_tree(
     query: str = Form(...),
     tree_json: str = Form(...),
-    model: str = Form("gemini-2.5-flash")
+    model: str = Form("gemini-2.0-flash")
 ):
     try:
         tree = json.loads(tree_json)

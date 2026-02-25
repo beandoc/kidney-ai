@@ -1,4 +1,4 @@
-model: "gemini-2.5-flash"
+model: "gemini-2.0-flash"
 toc_check_page_num: 20
 max_page_num_each_node: 10
 max_token_num_each_node: 20000
