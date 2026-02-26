@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     }
 
     try {
-        const users = getUsers();
+        const users = await getUsers();
         return NextResponse.json(users);
     } catch (error) {
         return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Username must be at least 2 characters" }, { status: 400 });
         }
 
-        const user = registerUser(username, mobile);
+        const user = await registerUser(username, mobile);
         return NextResponse.json(user);
     } catch (error) {
         return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
@@ -44,11 +44,11 @@ export async function PATCH(request: Request) {
 
     try {
         const { id, isBlocked } = await request.json();
-        const users = getUsers();
+        const users = await getUsers();
         const index = users.findIndex(u => u.id === id);
         if (index !== -1) {
             users[index].isBlocked = isBlocked;
-            saveUsers(users);
+            await saveUsers(users);
             return NextResponse.json({ success: true });
         }
         return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -68,7 +68,7 @@ export async function DELETE(request: Request) {
     if (!id) return NextResponse.json({ error: "ID is required" }, { status: 400 });
 
     try {
-        deleteUser(id);
+        await deleteUser(id);
         return NextResponse.json({ success: true });
     } catch (error) {
         return NextResponse.json({ error: "Failed to delete user" }, { status: 500 });

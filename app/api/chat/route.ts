@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Authentication required" }, { status: 401 });
         }
 
-        const queryTracker = trackQuery(userId);
+        const queryTracker = await trackQuery(userId);
         if (!queryTracker.success) {
             if (queryTracker.error === "USER_BLOCKED") {
                 return NextResponse.json({ error: "Your access has been restricted by Admin." }, { status: 403 });

@@ -12,7 +12,7 @@ export async function POST(request: Request) {
         const isAdmin = username?.trim().toLowerCase() === "sachin" && mobile?.trim() === "0987654321";
 
         // Check if user exists
-        const existingUser = loginUser(username);
+        const existingUser = await loginUser(username);
 
         if (!existingUser && !isAdmin) {
             return NextResponse.json({
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
         }
 
         // If admin or existing, proceed with registration system (which handles login/update)
-        const user = registerUser(username, mobile);
+        const user = await registerUser(username, mobile);
         return NextResponse.json(user);
     } catch (error) {
         return NextResponse.json({ error: "Failed to register" }, { status: 500 });

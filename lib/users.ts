@@ -1,10 +1,7 @@
-import * as fs from "fs";
-import * as path from "path";
+import { kv } from "@vercel/kv";
 
-const IS_SERVERLESS = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
-const DATA_DIR = IS_SERVERLESS ? path.join("/tmp", "kidney-ai-data") : path.join(process.cwd(), "data");
-const USERS_FILE = path.join(DATA_DIR, "users.json");
 const QUOTA_PER_USER = 50;
+const KV_USERS_KEY = "kidney_ai_users";
 
 export interface UserRecord {
     id: string;
@@ -18,48 +15,33 @@ export interface UserRecord {
     mobile?: string;
 }
 
-function ensureUsersFile() {
+export async function getUsers(): Promise<UserRecord[]> {
     try {
-        if (!fs.existsSync(DATA_DIR)) {
-            fs.mkdirSync(DATA_DIR, { recursive: true });
-        }
-        if (!fs.existsSync(USERS_FILE)) {
-            fs.writeFileSync(USERS_FILE, JSON.stringify([], null, 2));
-        }
+        const users = await kv.get<UserRecord[]>(KV_USERS_KEY);
+        return users || [];
     } catch (e) {
-        console.error("Filesystem write error (ignoring for resilience):", e);
-    }
-}
-
-export function getUsers(): UserRecord[] {
-    ensureUsersFile();
-    try {
-        if (!fs.existsSync(USERS_FILE)) return [];
-        const data = fs.readFileSync(USERS_FILE, "utf-8");
-        return JSON.parse(data);
-    } catch (e) {
+        console.error("KV Read Error:", e);
         return [];
     }
 }
 
-export function saveUsers(users: UserRecord[]) {
-    ensureUsersFile();
+export async function saveUsers(users: UserRecord[]): Promise<void> {
     try {
-        fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+        await kv.set(KV_USERS_KEY, users);
     } catch (e) {
-        console.error("Failed to save users persistent state:", e);
+        console.error("KV Write Error:", e);
     }
 }
 
-export function registerUser(username: string, mobile?: string): UserRecord {
-    const users = getUsers();
+export async function registerUser(username: string, mobile?: string): Promise<UserRecord> {
+    const users = await getUsers();
     const existingIndex = users.findIndex(u => u.username.toLowerCase() === username.toLowerCase());
 
     if (existingIndex !== -1) {
         // If they already exist, we update their mobile if provided
         if (mobile) {
             users[existingIndex].mobile = mobile.trim();
-            saveUsers(users);
+            await saveUsers(users);
         }
         return users[existingIndex];
     }
@@ -77,23 +59,23 @@ export function registerUser(username: string, mobile?: string): UserRecord {
     };
 
     users.push(newUser);
-    saveUsers(users);
+    await saveUsers(users);
     return newUser;
 }
 
-export function loginUser(username: string): UserRecord | null {
-    const users = getUsers();
+export async function loginUser(username: string): Promise<UserRecord | null> {
+    const users = await getUsers();
     return users.find(u => u.username.toLowerCase() === username.toLowerCase()) || null;
 }
 
-export function trackQuery(userId: string): { success: boolean; error?: string } {
-    const users = getUsers();
+export async function trackQuery(userId: string): Promise<{ success: boolean; error?: string }> {
+    const users = await getUsers();
     const user = users.find(u => u.id === userId);
 
-    // If user not found in ephemeral storage (common in serverless),
-    // we allow the request if the userId exists in the session (graceful bypass)
+    // Graceful bypass if user not in KV (e.g. KV not configured yet)
+    // This allows the Admin/Hardcoded credentials to work even if DB is down
     if (!user) {
-        console.warn(`User ${userId} not found in storage, performing graceful bypass for session`);
+        console.warn(`User ${userId} not found in KV, performing graceful bypass`);
         return { success: true };
     }
 
@@ -115,21 +97,21 @@ export function trackQuery(userId: string): { success: boolean; error?: string }
     user.totalQueries += 1;
     user.lastActive = new Date().toISOString();
 
-    saveUsers(users);
+    await saveUsers(users);
     return { success: true };
 }
 
-export function updateUserInfo(userId: string, data: Partial<UserRecord>) {
-    const users = getUsers();
+export async function updateUserInfo(userId: string, data: Partial<UserRecord>): Promise<void> {
+    const users = await getUsers();
     const index = users.findIndex(u => u.id === userId);
     if (index !== -1) {
         users[index] = { ...users[index], ...data };
-        saveUsers(users);
+        await saveUsers(users);
     }
 }
 
-export function deleteUser(userId: string) {
-    const users = getUsers();
+export async function deleteUser(userId: string): Promise<void> {
+    const users = await getUsers();
     const filtered = users.filter(u => u.id !== userId);
-    saveUsers(filtered);
+    await saveUsers(filtered);
 }
