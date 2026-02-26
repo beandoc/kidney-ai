@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getUsers, saveUsers, deleteUser } from "../../../../lib/users";
+import { getUsers, saveUsers, deleteUser, registerUser } from "../../../../lib/users";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +14,25 @@ export async function GET(request: Request) {
         return NextResponse.json(users);
     } catch (error) {
         return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
+    }
+}
+
+export async function POST(request: Request) {
+    const password = request.headers.get("x-admin-password");
+    if (password !== process.env.ADMIN_PASSWORD) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    try {
+        const { username, mobile } = await request.json();
+        if (!username || username.trim().length < 2) {
+            return NextResponse.json({ error: "Username must be at least 2 characters" }, { status: 400 });
+        }
+
+        const user = registerUser(username, mobile);
+        return NextResponse.json(user);
+    } catch (error) {
+        return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
     }
 }
 

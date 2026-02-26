@@ -13,8 +13,8 @@ export default function ChatMessage({ message }: ChatMessageProps) {
     return (
         <div className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} mb-2 transition-all duration-300`}>
             <div
-                className={`relative max-w-[88%] sm:max-w-[75%] px-3 py-1.5 shadow-sm rounded-lg ${message.role === "user"
-                    ? "bg-[#e7fce3] rounded-tr-none bubble-user"
+                className={`relative max-w-[85%] sm:max-w-[70%] px-3 py-1.5 shadow-sm rounded-xl ${message.role === "user"
+                    ? "bg-[#dcf8c6] rounded-tr-none bubble-user"
                     : "bg-white rounded-tl-none bubble-assistant"
                     }`}
             >

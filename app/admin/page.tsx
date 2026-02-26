@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Upload, FileText, CheckCircle, AlertCircle, Loader2, ArrowLeft, BarChart3, Database, Files, Trash2, RefreshCcw, HardDrive, Users, Ban, UserCheck } from "lucide-react";
+import { Upload, FileText, CheckCircle, AlertCircle, Loader2, ArrowLeft, BarChart3, Database, Files, Trash2, RefreshCcw, HardDrive, Users, Ban, UserCheck, Plus } from "lucide-react";
 import Link from "next/link";
 
 interface KnowledgeFile {
@@ -98,6 +98,9 @@ export default function AdminDashboard() {
     const [currentTab, setCurrentTab] = useState<'knowledge' | 'users'>('knowledge');
     const [users, setUsers] = useState<any[]>([]);
     const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+    const [newUsername, setNewUsername] = useState("");
+    const [newMobile, setNewMobile] = useState("");
+    const [isCreatingUser, setIsCreatingUser] = useState(false);
 
     const fetchStats = useCallback(async () => {
         if (!password) return;
@@ -184,6 +187,38 @@ export default function AdminDashboard() {
             }
         } catch (error) {
             console.error("Failed to delete user", error);
+        }
+    };
+
+    const handleCreateUser = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!password || !newUsername) return;
+
+        setIsCreatingUser(true);
+        setStatus(null);
+        try {
+            const response = await fetch("/api/admin/users", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-admin-password": password
+                },
+                body: JSON.stringify({ username: newUsername, mobile: newMobile })
+            });
+
+            if (response.ok) {
+                setStatus({ type: 'success', message: `Registered user: ${newUsername}` });
+                setNewUsername("");
+                setNewMobile("");
+                fetchUsers();
+            } else {
+                const data = await response.json();
+                throw new Error(data.error || "Failed to register user");
+            }
+        } catch (error: any) {
+            setStatus({ type: 'error', message: error.message });
+        } finally {
+            setIsCreatingUser(false);
         }
     };
 
@@ -845,9 +880,9 @@ export default function AdminDashboard() {
                             <div>
                                 <h1 className="text-2xl font-bold flex items-center gap-3 text-slate-800">
                                     <Users className="w-7 h-7 text-[#128C7E]" />
-                                    Active Consultations
+                                    User Management
                                 </h1>
-                                <p className="text-slate-500 mt-1">Manage users, view query logs, and enforce quota limits.</p>
+                                <p className="text-slate-500 mt-1">Add new accounts, view query logs, and manage access.</p>
                             </div>
                             <button
                                 onClick={fetchUsers}
@@ -856,6 +891,51 @@ export default function AdminDashboard() {
                             >
                                 <RefreshCcw className={`w-5 h-5 text-slate-600 ${isLoadingUsers ? 'animate-spin' : ''}`} />
                             </button>
+                        </div>
+
+                        {/* New User Form Card */}
+                        <div className="p-8 bg-white border-b border-slate-100">
+                            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <Plus className="w-4 h-4 text-[#128C7E]" />
+                                Add New Authorized User
+                            </h2>
+                            <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-slate-500 ml-1">Full Name</label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. Dr. Sachin"
+                                        value={newUsername}
+                                        onChange={(e) => setNewUsername(e.target.value)}
+                                        className="w-full px-4 py-3 rounded-xl border border-[#D1D7DB] text-sm focus:ring-2 focus:ring-[#128C7E] outline-none transition-all"
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-slate-500 ml-1">Mobile Number</label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. +91 9876543210"
+                                        value={newMobile}
+                                        onChange={(e) => setNewMobile(e.target.value)}
+                                        className="w-full px-4 py-3 rounded-xl border border-[#D1D7DB] text-sm focus:ring-2 focus:ring-[#128C7E] outline-none transition-all"
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={isCreatingUser || !newUsername || !password}
+                                    className="h-[52px] bg-[#128C7E] hover:bg-[#0b6e63] text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98] disabled:bg-slate-200 disabled:shadow-none flex items-center justify-center gap-2"
+                                >
+                                    {isCreatingUser ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
+                                    Register Account
+                                </button>
+                            </form>
+                            {status && status.message.includes('Registered') && (
+                                <div className="mt-4 p-3 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-lg border border-emerald-100 flex items-center gap-2">
+                                    <CheckCircle className="w-4 h-4" />
+                                    {status.message}
+                                </div>
+                            )}
                         </div>
 
                         <div className="p-0">

@@ -1,129 +1,128 @@
 @import "tailwindcss";
 
 :root {
-  /* Premium WhatsApp HSL Tokens */
-  --wa-teal-h: 171;
-  --wa-teal-s: 77%;
-  --wa-teal-l: 31%;
-  
-  --wa-teal: hsl(var(--wa-teal-h), var(--wa-teal-s), var(--wa-teal-l));
-  --wa-teal-dark: hsl(var(--wa-teal-h), var(--wa-teal-s), 20%);
-  --wa-bg: #efe7dd; /* Slightly warmer medical beige */
-  --wa-bubble-sent: #e7fce3; /* Softer, premium green */
+  /* Premium Medical WhatsApp HSL Tokens */
+  --wa-teal: #128c7e;
+  --wa-teal-light: #25d366;
+  --wa-teal-dark: #075e54;
+  --wa-bg: #e5ddd5;
+  --wa-bubble-sent: #dcf8c6;
   --wa-bubble-received: #ffffff;
-  --wa-gray: #f0f2f5;
-  --wa-text: #111b21;
+  --wa-gray-light: #f0f2f5;
+  --wa-text-main: #111b21;
   --wa-text-secondary: #667781;
-  --wa-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+  --wa-shadow-sm: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+  --wa-shadow-md: 0 2px 5px rgba(11, 20, 26, 0.1);
 }
 
 body {
   background-color: var(--wa-bg);
-  color: var(--wa-text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--wa-text-main);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* WhatsApp wallpaper pattern */
+/* Authentic WhatsApp Wallpaper */
 .wa-wallpaper {
-  background-color: #efe7dd;
+  background-color: #e5ddd5;
   background-image: url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png");
   background-repeat: repeat;
-  background-size: 400px;
-  opacity: 0.08; /* Subtler for premium feel */
+  background-size: 440px;
+  opacity: 0.06;
   position: absolute;
   inset: 0;
   z-index: 0;
+  pointer-events: none;
 }
 
-/* Bubble tails with refined geometry */
+/* Refined Floating Bubbles */
+.bubble-user, .bubble-assistant {
+  position: relative;
+  box-shadow: var(--wa-shadow-sm);
+  max-width: 85%;
+  animation: messageBounce 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes messageBounce {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Premium Tails */
 .bubble-user::after {
   content: "";
   position: absolute;
   top: 0;
-  right: -8px;
-  width: 12px;
-  height: 15px;
+  right: -10px;
+  width: 14px;
+  height: 18px;
   background-color: var(--wa-bubble-sent);
   clip-path: polygon(0 0, 0% 100%, 100% 0);
+  filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.05));
 }
 
 .bubble-assistant::after {
   content: "";
   position: absolute;
   top: 0;
-  left: -8px;
-  width: 12px;
-  height: 15px;
+  left: -10px;
+  width: 14px;
+  height: 18px;
   background-color: var(--wa-bubble-received);
   clip-path: polygon(100% 0, 100% 100%, 0 0);
 }
 
-/* Base message bubble polish */
-.bubble-user, .bubble-assistant {
-  box-shadow: var(--wa-shadow);
-  animation: messageSlideIn 0.2s cubic-bezier(0.1, 0.9, 0.2, 1);
-  transform-origin: bottom;
-}
-
-@keyframes messageSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Glassmorphism Header */
+/* Glassmorphism Components */
 .wa-header-glass {
-  background: rgba(240, 242, 245, 0.85);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-/* Typing dots animation */
-.typing-dots {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  padding: 8px 4px;
+.wa-input-container {
+  background: #f0f2f5;
+  border-top: 1px solid rgba(0,0,0,0.05);
 }
 
-.typing-dot {
-  width: 6px;
-  height: 6px;
-  background-color: #919191;
-  border-radius: 50%;
-  animation: wa-pulse 1.3s infinite ease-in-out;
+/* Medical System Disclaimer Style */
+.system-disclaimer {
+  background: #fff9c4;
+  color: #5d4037;
+  font-size: 0.75rem;
+  padding: 8px 12px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  margin: 12px auto;
+  max-width: 90%;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
 }
 
-.typing-dot:nth-child(2) { animation-delay: 0.2s; }
-.typing-dot:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes wa-pulse {
-  0%, 100% { opacity: 0.3; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1); }
+/* Smooth Medical Pulse */
+.medical-pulse {
+  animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
 }
 
-/* Custom Scrollbar for Chat */
+@keyframes pulse-ring {
+  0% { transform: scale(0.85); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(0.85); opacity: 0.5; }
+}
+
+/* Custom Scrollbar */
 .chat-scroll-area::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 .chat-scroll-area::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.15);
   border-radius: 10px;
 }
 .chat-scroll-area::-webkit-scrollbar-track {
   background: transparent;
 }
-/* No scrollbar utility */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
+
+/* Utility: Hide Scrollbar */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

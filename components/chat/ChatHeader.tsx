@@ -22,8 +22,11 @@ export default function ChatHeader({ onMenuClick, onResetClick }: ChatHeaderProp
                     <Bot className="text-white w-6 h-6" />
                 </div>
                 <div>
-                    <h2 className="font-semibold text-[#111B21] leading-tight text-[16px]">Kidney Health AI</h2>
-                    <p className="text-[12px] text-[#667781]">Professional assistant • Online</p>
+                    <h2 className="font-bold text-[#111B21] leading-tight text-[15px]">Kidney Health AI</h2>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                        <div className="w-2 h-2 rounded-full bg-[#25D366] medical-pulse"></div>
+                        <p className="text-[12px] text-[#25D366] font-medium">Online</p>
+                    </div>
                 </div>
             </div>
             <div className="flex items-center gap-6 text-[#54656F]">

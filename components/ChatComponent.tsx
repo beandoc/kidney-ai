@@ -212,8 +212,9 @@ export default function ChatComponent() {
                 <div className="flex-1 overflow-y-auto relative z-10 px-4 sm:px-[10%] py-4 chat-scroll-area">
                     <div className="max-w-[800px] mx-auto space-y-3">
                         <div className="flex justify-center mb-6">
-                            <div className="bg-[#FFF9C4] text-[#54656F] text-[11px] py-1.5 px-4 rounded-lg shadow-sm border border-[#E9EDEF] text-center uppercase tracking-wider font-semibold max-w-[90%]">
-                                🔒 This conversation provides medical information. Not a substitute for professional advice.
+                            <div className="system-disclaimer flex items-center gap-2">
+                                <span className="opacity-70">🔒</span>
+                                MEDICAL EDUCATION PROTOCOL ACTIVE: Verified Resources Only
                             </div>
                         </div>
 
