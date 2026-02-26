@@ -43,8 +43,16 @@ export function saveUsers(users: UserRecord[]) {
 
 export function registerUser(username: string, mobile?: string): UserRecord {
     const users = getUsers();
-    const existing = users.find(u => u.username.toLowerCase() === username.toLowerCase());
-    if (existing) return existing;
+    const existingIndex = users.findIndex(u => u.username.toLowerCase() === username.toLowerCase());
+
+    if (existingIndex !== -1) {
+        // If they already exist, we update their mobile if provided
+        if (mobile) {
+            users[existingIndex].mobile = mobile.trim();
+            saveUsers(users);
+        }
+        return users[existingIndex];
+    }
 
     const newUser: UserRecord = {
         id: Math.random().toString(36).substring(2, 15),

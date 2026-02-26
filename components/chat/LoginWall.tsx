@@ -54,7 +54,7 @@ export default function LoginWall({ onLogin }: LoginWallProps) {
                         <User className="w-10 h-10 text-white" />
                     </div>
                     <h1 className="text-2xl font-bold">Kidney-AI Portal</h1>
-                    <p className="text-teal-50/80 mt-2">Please enter your details to continue</p>
+                    <p className="text-teal-50/80 mt-2">Enter Name and Mobile to start using chatbot</p>
                 </div>
 
                 <form onSubmit={handleAuth} className="p-8 space-y-5">
