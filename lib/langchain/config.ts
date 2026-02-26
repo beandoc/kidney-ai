@@ -21,10 +21,10 @@ export function getChatModel(maxRetries?: number) {
   }
 
   return new ChatGoogleGenerativeAI({
-    model: "gemini-2.0-flash",
-    temperature: 0.1, // Low temperature for factual responses
+    model: "gemini-2.5-flash",
+    temperature: 0.1,
     apiKey: apiKey,
-    maxRetries: maxRetries ?? 5, // Increased retries to handle tight 15 RPM limits on free tier
+    maxRetries: maxRetries ?? 5,
   });
 }
 

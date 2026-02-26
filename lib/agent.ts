@@ -220,7 +220,11 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
         // Step 1: Rapid Knowledge Retrieval (Consolidated)
         yield "__STATUS__:📖 Scanning Guidelines...\n";
         const docs = await searchPageIndex(input);
-        const context = formatPageIndexContext(docs);
+        // Cap context to ~4000 chars to stay within free-tier token limits
+        let context = formatPageIndexContext(docs);
+        if (context.length > 4000) {
+            context = context.slice(0, 4000) + "\n...[truncated for brevity]";
+        }
         const sources = docs.map(d => `${d.metadata.source}${d.metadata.title ? ` - ${d.metadata.title}` : ""}`);
         const uniqueSources = Array.from(new Set(sources));
 
