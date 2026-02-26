@@ -89,7 +89,6 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
     console.log("[Agent] Session starting for query:", input);
     try {
         // Step 0: Language Detection & Semantic Search Support
-        yield "__STATUS__:🌐 Analyzing Query Language...\n";
         const languageModel = getChatModel();
 
         const languageAnalysis = await languageModel.invoke([
@@ -117,7 +116,6 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
         }
 
         // Step 1: Hybrid Knowledge Retrieval (Consolidated Keyword + Semantic)
-        yield "__STATUS__:📖 Scanning Guidelines (Hybrid Search)... \n";
 
         // Run both in parallel for speed
         const [keywordDocs, semanticDocs] = await Promise.all([
@@ -151,19 +149,21 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
         }
 
         // Step 2: Initial Draft Generation
-        yield "__STATUS__:✍️ Drafting Medical Answer...\n";
 
         const model = getChatModel();
         const prompt = `
             You are a Kidney Health Assistant. 
             
             TASK:
-            1. Response Language: You MUST answer strictly in the SAME LANGUAGE as the user's question (detected as ${originalLanguage}). Use Devanagari script for Hindi/Marathi.
+            1. Response Language: Answer strictly in ${originalLanguage}.
             2. Content: Answer using ONLY the provided Guidelines.
-            3. Citations: You MUST use inline citations for EVERY medical fact you state. 
-               Format: [Source Name, Section/Page] (e.g., [KDIGO 2024, Section 2.1]).
-            4. Fallback: If the answer is not in the guidelines, say "Sorry, I don't know the answer for this question." in the user's language.
-            5. Tone: Professional, direct, and concise.
+            3. Citations: Use subtle inline citations [Source, Section].
+            4. **EXTREME BREVITY**: 
+               * For "What is..." or "Define..." questions: Provide ONLY 2-3 concise sentences.
+               * NO HEADERS (###), NO SECTIONS, NO "According to...". 
+               * Jump straight to the answer content.
+            5. **INTENT MATCHING**: If the user didn't ask for "comprehensive" or "details", give the shortest possible correct answer. 
+            6. Fallback: If not in guidelines, say "Sorry, I don't know the answer for this question."
 
             USER QUESTION: ${input}
             ENGLISH TRANSLATION: ${searchInput}
@@ -177,7 +177,6 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
         const draftAnswer = draftResponse.content.toString();
 
         // Step 3: Verification Pass (The Safety Valve)
-        yield "__STATUS__:🛡️ Verifying Safety & Accuracy...\n";
 
         const verificationState: AgentState = {
             input,
@@ -195,7 +194,6 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
         console.log(`[Agent] Verification: ${audit.verdict} - ${audit.feedback}`);
 
         if (audit.verdict === "FAIL") {
-            yield "__STATUS__:⚠️ Refining Answer based on Medical Safety Audit...\n";
             const retryPrompt = `
                 You are a Kidney Health Assistant. 
                 Your previous answer failed a medical safety audit. 

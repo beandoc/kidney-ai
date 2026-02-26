@@ -47,16 +47,6 @@ export default function ChatMessage({ message }: ChatMessageProps) {
                     )}
                 </div>
 
-                {message.sources && message.sources.length > 0 && (
-                    <div className="mt-3 pt-2 border-t border-[#E9EDEF] flex flex-wrap gap-1.5">
-                        {message.sources.map((src, i) => (
-                            <span key={i} className="text-[10px] bg-[#F0F2F5] px-2 py-0.5 rounded text-[#667781] font-medium border border-[#D1D7DB]">
-                                {src}
-                            </span>
-                        ))}
-                    </div>
-                )}
-
                 <div className="flex items-center justify-end gap-1 mt-1 h-3">
                     <span className="text-[11px] text-[#667781] uppercase font-medium mr-1 tracking-tighter">
                         {message.timestamp || "..."}
