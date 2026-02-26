@@ -112,42 +112,20 @@ export default function ChatComponent() {
                 .map(m => ({ role: m.role, content: m.content }));
 
             let response;
-            let retries = 0;
-            const maxRetries = 1;
-
-            while (retries <= maxRetries) {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-                try {
-                    response = await fetch("/api/chat", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            message: currentInput,
-                            image: currentImage?.split(',')[1],
-                            history: chatHistory
-                        }),
-                        signal: controller.signal
-                    });
-                    clearTimeout(timeoutId);
-                    if (response.ok) break;
-
-                    if (retries < maxRetries) {
-                        retries++;
-                        await new Promise(r => setTimeout(r, 1000 * retries));
-                        continue;
-                    }
-                    break;
-                } catch (err) {
-                    clearTimeout(timeoutId);
-                    if (retries < maxRetries) {
-                        retries++;
-                        await new Promise(r => setTimeout(r, 1000 * retries));
-                        continue;
-                    }
-                    throw err;
-                }
+            try {
+                // Removed the aggressive 30s timeout and automatic retry loop 
+                // which was causing extreme API quota exhaustion by duplicating requests.
+                response = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        message: currentInput,
+                        image: currentImage?.split(',')[1],
+                        history: chatHistory
+                    })
+                });
+            } catch (err) {
+                throw err;
             }
 
             if (!response || !response.ok) {
@@ -170,73 +148,37 @@ export default function ChatComponent() {
             const reader = response.body?.getReader();
             const decoder = new TextDecoder();
             let fullContent = "";
-            let streamBuffer = "";
 
             if (reader) {
                 while (true) {
                     const { done, value } = await reader.read();
-                    if (done) {
-                        if (streamBuffer.trim()) {
-                            processLine(streamBuffer, assistantId);
-                        }
-                        break;
-                    }
+                    if (done) break;
 
-                    const chunk = decoder.decode(value, { stream: true });
-                    streamBuffer += chunk;
+                    const chunkStr = decoder.decode(value, { stream: true });
 
-                    const lines = streamBuffer.split("\n");
-                    streamBuffer = lines.pop() || "";
+                    // Fixed Stream Parser: Previously, this was split by '\n' and buffered,
+                    // causing the UI to freeze unconditionally because LLMs output tokens, not lines.
+                    // Now, every decoded chunk is appended directly to the UI for instant feedback.
 
-                    for (const line of lines) {
-                        processLine(line, assistantId);
-                    }
-                }
-            }
-
-            function processLine(line: string, assistantId: string) {
-                if (!line.trim()) return;
-
-                if (line.startsWith("__SOURCES__:")) {
-                    try {
-                        const jsonPart = line.substring(12);
-                        const sources = JSON.parse(jsonPart);
+                    if (chunkStr) {
+                        fullContent += chunkStr;
                         setMessages((prev) =>
                             prev.map((m) =>
-                                m.id === assistantId ? { ...m, sources } : m
+                                m.id === assistantId ? { ...m, content: fullContent } : m
                             )
                         );
-                    } catch (e) {
-                        console.error("Failed to parse sources", e);
+                        // Hide loading indicator the moment the first token arrives
+                        if (isLoading) {
+                            setIsLoading(false);
+                            setAgentStatus(null);
+                        }
                     }
-                }
-                else if (line.startsWith("__STATUS__:")) {
-                    const status = line.substring(11).trim();
-                    setAgentStatus(status);
-                }
-                else if (line.startsWith("__CLEAR_STATUS__")) {
-                    setAgentStatus(null);
-                    if (fullContent.length < 10) fullContent = "";
-                }
-                else if (line.startsWith("__ERROR__:")) {
-                    const errorMsg = line.substring(10).trim();
-                    setError(`Medical Brain Error: ${errorMsg}`);
-                    setAgentStatus(null);
-                }
-                else {
-                    fullContent += line + "\n";
-                    setMessages((prev) =>
-                        prev.map((m) =>
-                            m.id === assistantId ? { ...m, content: fullContent.trim() } : m
-                        )
-                    );
-                    setIsLoading(false);
                 }
             }
         } catch (error: unknown) {
             const err = error as Error;
             if (err.message === "QUOTA_EXCEEDED") {
-                setError("The Medical Brain is currently very busy (API Quota Exceeded). Please wait a few minutes.");
+                setError("The Medical Brain is currently very busy (API Quota Exceeded). Please try again in 1 minute.");
             } else {
                 setError("Sorry, I encountered an error. Please try again.");
             }

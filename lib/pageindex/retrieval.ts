@@ -208,12 +208,19 @@ export function formatPageIndexContext(documents: Document[]): string {
         return "No relevant information found in the Kidney Health Guidelines.";
     }
 
-    return documents
-        .map((doc) => {
-            const source = doc.metadata.source || "Unknown";
-            const title = doc.metadata.title ? ` - ${doc.metadata.title}` : "";
-            const pages = doc.metadata.pages ? ` (Pages: ${doc.metadata.pages})` : "";
-            return `[Source: ${source}${title}${pages}]\n${doc.pageContent}`;
-        })
-        .join("\n\n---\n\n");
+    let fullContext = "";
+    const LIMIT = 5000;
+
+    for (const doc of documents) {
+        if (fullContext.length >= LIMIT) break;
+
+        const source = doc.metadata.source || "Unknown";
+        const title = doc.metadata.title ? ` - ${doc.metadata.title}` : "";
+        const pages = doc.metadata.pages ? ` (Pages: ${doc.metadata.pages})` : "";
+        const chunk = `[Source: ${source}${title}${pages}]\n${doc.pageContent}\n\n---\n\n`;
+
+        fullContext += chunk;
+    }
+
+    return fullContext.length > LIMIT ? fullContext.slice(0, LIMIT) + "\n...[truncated for speed]" : fullContext;
 }
