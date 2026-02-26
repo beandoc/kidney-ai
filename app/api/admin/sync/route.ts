@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import * as fs from "fs";
 import * as path from "path";
 import { pageIndexClient } from "@/lib/pageindex/client";
+import { invalidateIndex } from "@/lib/pageindex/retrieval";
 import { processFileBuffer } from "@/lib/langchain/pinecone";
 
 export const dynamic = "force-dynamic";
@@ -77,6 +78,9 @@ export async function POST(request: Request) {
                         send({ type: 'progress', status: `⚠️ Failed: ${fileName}` });
                     }
                 }
+
+                // Refresh the search index
+                invalidateIndex();
 
                 send({
                     type: 'done',

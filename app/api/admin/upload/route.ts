@@ -3,6 +3,7 @@ import { getPineconeStore, processFileBuffer, processRawText } from "../../../..
 import * as fs from "fs";
 import * as path from "path";
 import { pageIndexClient } from "../../../../lib/pageindex/client";
+import { invalidateIndex } from "../../../../lib/pageindex/retrieval";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // Allow up to 5 minutes for large files
@@ -86,6 +87,9 @@ export async function POST(request: Request) {
                     const outputPath = path.join(kbPath, `${label}.json`);
                     fs.writeFileSync(outputPath, JSON.stringify(result, null, 2));
 
+                    // Invalidate search index so it rebuilds on next query
+                    invalidateIndex();
+
                     send({
                         type: 'done',
                         message: `Successfully indexed ${label} using PageIndex Deep Architecture (Gemini).`
@@ -116,6 +120,9 @@ export async function POST(request: Request) {
                     const fileName = label.endsWith('.json') ? label : `${label}.json`;
                     const outputPath = path.join(kbPath, fileName);
                     fs.writeFileSync(outputPath, JSON.stringify(simpleResult, null, 2));
+
+                    // Invalidate search index so it rebuilds on next query
+                    invalidateIndex();
 
                     send({
                         type: 'done',
