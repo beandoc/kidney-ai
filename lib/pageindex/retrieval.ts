@@ -44,14 +44,33 @@ function buildIndex(): IndexEntry[] {
         try {
             const filePath = path.join(PAGEINDEX_KB_PATH, file);
             const content = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-            const docName = content.doc_name || file.replace(".json", "");
-            const nodes = flattenNodes(content.structure as PageIndexNode[]);
 
-            for (const node of nodes) {
+            // Normalize doc name
+            let docName = content.doc_name || file;
+            docName = docName.replace(/\.json\.json$/, ".json");
+            if (docName.endsWith(".json")) docName = docName.slice(0, -5);
+
+            // Handle both PageIndex tree AND simple Array of objects
+            let normalizedNodes: any[] = [];
+            if (Array.isArray(content)) {
+                normalizedNodes = content.map((item, idx) => ({
+                    title: item.section || item.title || `Part ${idx + 1}`,
+                    text: item.content || item.text || "",
+                    summary: item.summary || "",
+                    node_id: `node-${idx}`,
+                    start_index: item.page || 0,
+                    end_index: item.page || 0
+                }));
+            } else if (content.structure) {
+                normalizedNodes = flattenNodes(content.structure as PageIndexNode[]);
+            }
+
+            for (const node of normalizedNodes) {
                 const searchableText = [
+                    docName,
                     node.title || "",
                     node.summary || "",
-                    (node.text || "").slice(0, 5000) // Cap per-node text to prevent memory bloat
+                    (node.text || "").slice(0, 10000)
                 ].join(" ").toLowerCase();
 
                 // Build word set for O(1) lookups
@@ -110,34 +129,55 @@ export async function searchPageIndex(query: string): Promise<Document[]> {
         return [];
     }
 
-    const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+    // Improved tokenization: Keep alphanumeric, Devanagari script, and medical slashes
+    const tokenize = (text: string) =>
+        text.toLowerCase()
+            .split(/[\s,.\-:;!?()[\]{}"'/\\]+/)
+            .filter(w => w.length > 2);
+
+    const queryWords = tokenize(query);
     if (queryWords.length === 0) return [];
 
-    // Score each node by how many query words it contains
+    // Filter common stop words to focus on medical keywords
+    const stopWords = new Set(["the", "and", "is", "for", "with", "what", "are", "about", "your", "does", "from"]);
+    const filteredQuery = queryWords.filter(w => !stopWords.has(w));
+    const finalQuery = filteredQuery.length > 0 ? filteredQuery : queryWords;
+
     const scored: { entry: IndexEntry; score: number }[] = [];
 
     for (const entry of index) {
-        let matchCount = 0;
-        for (const word of queryWords) {
-            if (entry.words.has(word)) {
-                matchCount++;
+        let matchScore = 0;
+        const entryTextLower = (entry.title + " " + entry.text).toLowerCase();
+
+        for (const qWord of finalQuery) {
+            // Substring match (Robust against missing spaces/merged words)
+            if (entryTextLower.includes(qWord)) {
+                matchScore += 1.0;
+
+                // Title Bonus: If word is in title, boost score heavily
+                if (entry.title.toLowerCase().includes(qWord)) {
+                    matchScore += 1.5;
+                }
             }
         }
-        const score = matchCount / queryWords.length;
-        if (score >= 0.5) {
-            scored.push({ entry, score });
+
+        const normalizedScore = matchScore / finalQuery.length;
+
+        // Threshold: 25% relevance to be considered (substring match is more sensitive)
+        if (normalizedScore >= 0.25) {
+            scored.push({ entry, score: normalizedScore });
         }
     }
 
-    // Sort by score descending, take top 3
+    // Sort by score descending, take top 5 for better LLM context
     scored.sort((a, b) => b.score - a.score);
-    const topResults = scored.slice(0, 3);
+    const topResults = scored.slice(0, 5);
 
     const searchTime = Date.now() - searchStart;
-    console.log(`[SearchIndex] Found ${scored.length} matches, returning top ${topResults.length} in ${searchTime}ms`);
+    console.log(`[SearchIndex] Found ${scored.length} potential matches for "${finalQuery.join(' ')}", returning top ${topResults.length} in ${searchTime}ms`);
 
     return topResults.map(({ entry, score }) => new Document({
-        pageContent: entry.text.slice(0, 4000), // Cap content to keep LLM prompt small
+        pageContent: entry.text.slice(0, 30000), // Larger slice to capture more content from big nodes
         metadata: {
             source: entry.docName,
             title: entry.title,

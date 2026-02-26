@@ -119,6 +119,27 @@ export async function processFileBuffer(buffer: Buffer, filename: string): Promi
 }
 
 /**
+ * Search Pinecone for relevant documents using Vector Similarity
+ */
+export async function searchSemantic(query: string, limit = 5): Promise<Document[]> {
+    try {
+        const store = await getPineconeStore();
+        // search result with scores (similarity)
+        const results = await store.similaritySearchWithScore(query, limit);
+
+        // Filter out results with low similarity scores if needed, but for now just return top 5
+        return results.map(([doc, score]) => {
+            // Attach score to metadata for reranking
+            doc.metadata.score = score;
+            return doc;
+        });
+    } catch (error) {
+        console.error("[Pinecone] Semantic Search Error:", error);
+        return [];
+    }
+}
+
+/**
  * Process raw text into split documents
  */
 export async function processRawText(text: string, sourceLabel: string): Promise<Document[]> {

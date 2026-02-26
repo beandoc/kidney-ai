@@ -1,9 +1,6 @@
 import { BaseMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
 import { searchPageIndex, formatPageIndexContext } from "./pageindex/retrieval";
 import { getChatModel } from "./langchain/config";
-import * as fs from "fs";
-import * as path from "path";
-import { getProfile } from "./memory";
 
 // --- Types & State ---
 
@@ -22,126 +19,9 @@ interface AgentState {
 }
 
 // --- Constants ---
-const MAX_ITERATIONS = 2;
+const MAX_ITERATIONS = 1; // Simplified for high-speed hybrid RAG
 
-// --- Node 0: Router (Triage) ---
-// Determines if the question is within the medical scope of the assistant
-async function routerNode(state: AgentState): Promise<Partial<AgentState>> {
-    console.log("[Node: Router] Triaging query...");
-    try {
-        const model = getChatModel();
-        const prompt = `
-    You are a Kidney Health Triage Agent.
-    
-    USER QUERY: ${state.input}
-    
-    TASK: Decide if this query is related to kidney health, general medical advice, or diet.
-    If it is about weather, sports, politics, or general non-medical chat, reply with "TERMINATE".
-    Otherwise, reply with "PROCEED".
-    
-    REPLY ONLY THE WORD.
-  `;
-
-        const response = await model.invoke([new HumanMessage(prompt)]);
-        const result = (response.content as string).trim().toUpperCase();
-        console.log("[Node: Router] Result:", result);
-
-        return {
-            verdict: result === "TERMINATE" ? "TERMINATE" : "RETRY"
-        };
-    } catch (error: any) {
-        console.error("[Node: Router] Error:", error);
-        if (error?.message?.includes("429") || error?.status === 429) {
-            throw error; // Rethrow quota limits to main agent loop
-        }
-        return { verdict: "RETRY" }; // Default to proceed if triage fails
-    }
-}
-
-// --- Node 1: Clinical Data (Mock SQL Agent) ---
-// Fetches records from a structured source (Phase 2, Node B)
-async function patientNode(state: AgentState): Promise<Partial<AgentState>> {
-    console.log("[Node: Patient Data] Querying clinical database...");
-    try {
-        const filePath = path.join(process.cwd(), "knowledge_base", "patients.json");
-        if (!fs.existsSync(filePath)) return { patientData: null };
-        const patients = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-        // For demo, we assume the session belongs to pt-001
-        return { patientData: patients[0]?.vitals || null };
-    } catch (e) {
-        console.error("[Node: Patient Data] Error:", e);
-        return { patientData: null };
-    }
-}
-
-// --- Node 2: Memory Retrieval (Mem0 Logic) ---
-// Fetches long-term facts/allergies (Phase 3)
-async function memoryNode(state: AgentState): Promise<Partial<AgentState>> {
-    console.log("[Node: Memory] Accessing patient medical profile...");
-    try {
-        const profile = getProfile("user-test");
-        return { memory: profile.medicalFacts };
-    } catch (e) {
-        console.error("[Node: Memory] Error:", e);
-        return { memory: [] };
-    }
-}
-
-// --- Node 3: Researcher ---
-// Finds info and drafts an answer
-async function researcherNode(state: AgentState): Promise<Partial<AgentState>> {
-    console.log(`[Node: Researcher] Researching: ${state.input}`);
-    try {
-        // Decide what to search for (use the feedback if this is a retry)
-        const searchQuery = state.feedback ? `Specifically find: ${state.feedback}` : state.input;
-
-        const docs = await searchPageIndex(searchQuery);
-        const newContext = formatPageIndexContext(docs);
-
-        // Wait 1s between retrieval reasoning and draft generation
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Extract unique sources for the UI
-        const newSources = docs.map(d => `${d.metadata.source}${d.metadata.title ? ` - ${d.metadata.title}` : ""}`);
-        const uniqueSources = Array.from(new Set([...state.sources, ...newSources]));
-
-        // Combine with existing context to build a complete picture
-        const combinedContext = state.context ? `${state.context}\n\n${newContext}` : newContext;
-
-        const model = getChatModel();
-        const prompt = `
-    You are a Kidney Health Research Agent.
-    
-    USER QUESTION: ${state.input}
-    
-    RESOURCES: ${combinedContext}
-    
-    TASK: Answer the user's question USING ONLY the information provided in the RESOURCES block above.
-    
-    STRICT RULES:
-    1. If the RESOURCES provided do not clearly contain the answer to the user's question, you MUST reply EXACTLY with: "Sorry, I don't know the answer for this question. Consult your nephrologist." Do not attempt to guess or use outside knowledge.
-    2. Answer the question comprehensively based on the resources.
-    3. Always cite sources from the text like this: [Source: Name].
-  `;
-
-        const response = await model.invoke([new HumanMessage(prompt)]);
-
-        return {
-            context: combinedContext,
-            sources: uniqueSources,
-            draftAnswer: response.content as string,
-            iteration: state.iteration + 1
-        };
-    } catch (error: any) {
-        console.error("[Node: Researcher] Error:", error);
-        if (error?.message?.includes("429") || error?.status === 429) {
-            throw error; // Rethrow quota limits to main agent loop
-        }
-        return { draftAnswer: "I encountered an error while researching. Please try again.", iteration: state.iteration + 1 };
-    }
-}
-
-// --- Node 4: Verifier (The Medical QA) ---
+// --- Node: Verifier (The Medical QA) ---
 // Checks for correctness and hallucinations
 async function verifierNode(state: AgentState): Promise<Partial<AgentState>> {
     console.log("[Node: Verifier] Checking for inaccuracies...");
@@ -202,60 +82,147 @@ async function verifierNode(state: AgentState): Promise<Partial<AgentState>> {
     }
 }
 
+import { searchSemantic } from "./langchain/pinecone";
+
 // --- Main Agent Loop (Simulated Graph) ---
 export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
-    console.log("[Agent] Quick-Stream session for query:", input);
-    let state: AgentState = {
-        input,
-        chatHistory,
-        context: "",
-        sources: [],
-        draftAnswer: "",
-        verdict: "RETRY",
-        feedback: "",
-        iteration: 0
-    };
-
+    console.log("[Agent] Session starting for query:", input);
     try {
-        // Step 1: Rapid Knowledge Retrieval (Consolidated)
-        yield "__STATUS__:📖 Scanning Guidelines...\n";
-        const docs = await searchPageIndex(input);
-        // Cap context to ~4000 chars to stay within free-tier token limits
-        let context = formatPageIndexContext(docs);
-        if (context.length > 4000) {
-            context = context.slice(0, 4000) + "\n...[truncated for brevity]";
+        // Step 0: Language Detection & Semantic Search Support
+        yield "__STATUS__:🌐 Analyzing Query Language...\n";
+        const languageModel = getChatModel();
+
+        const languageAnalysis = await languageModel.invoke([
+            new HumanMessage(`You are a language analyzer.
+            USER QUERY: "${input}"
+            
+            TASK:
+            1. Detect if this is English, Hindi (translated or Romanized), or Marathi (translated or Romanized).
+            2. Provide a clean English medical search query for this input.
+            
+            Return ONLY a JSON object:
+            {"originalLanguage": "English|Hindi|Marathi", "searchQuery": "english medical query"}`)
+        ]);
+
+        let searchInput = input;
+        let originalLanguage = "English";
+
+        try {
+            const analysis = JSON.parse(languageAnalysis.content.toString().replace(/```json|```/g, "").trim());
+            searchInput = analysis.searchQuery;
+            originalLanguage = analysis.originalLanguage;
+            console.log(`[Agent] Language: ${originalLanguage}, Search Query: ${searchInput}`);
+        } catch (e) {
+            console.warn("[Agent] Language analysis parse fail, falling back to raw input");
         }
-        const sources = docs.map(d => `${d.metadata.source}${d.metadata.title ? ` - ${d.metadata.title}` : ""}`);
+
+        // Step 1: Hybrid Knowledge Retrieval (Consolidated Keyword + Semantic)
+        yield "__STATUS__:📖 Scanning Guidelines (Hybrid Search)... \n";
+
+        // Run both in parallel for speed
+        const [keywordDocs, semanticDocs] = await Promise.all([
+            searchPageIndex(searchInput),
+            searchSemantic(searchInput, 5)
+        ]);
+
+        // Merge and deduplicate by source/title/content
+        const allDocs = [...keywordDocs, ...semanticDocs];
+        const seen = new Set();
+        const uniqueDocs = allDocs.filter(doc => {
+            const id = `${doc.metadata.source}-${doc.metadata.title}-${doc.pageContent.slice(0, 100)}`;
+            if (seen.has(id)) return false;
+            seen.add(id);
+            return true;
+        });
+
+        console.log(`[Agent] Retrieval: ${keywordDocs.length} keywords, ${semanticDocs.length} semantic. Total unique: ${uniqueDocs.length}`);
+
+        // Cap context
+        let context = formatPageIndexContext(uniqueDocs);
+        if (context.length > 26000) {
+            context = context.slice(0, 26000) + "\n...[truncated for brevity]";
+        }
+
+        const sources = uniqueDocs.map(d => `${d.metadata.source}${d.metadata.title ? ` - ${d.metadata.title}` : ""}`);
         const uniqueSources = Array.from(new Set(sources));
 
         if (uniqueSources.length > 0) {
             yield `__SOURCES__:${JSON.stringify(uniqueSources)}\n`;
         }
 
-        // Step 2: Streaming Answer Generation
-        yield "__STATUS__:✍️ Drafting Answer...\n";
-        yield "__CLEAR_STATUS__\n";
+        // Step 2: Initial Draft Generation
+        yield "__STATUS__:✍️ Drafting Medical Answer...\n";
 
         const model = getChatModel();
         const prompt = `
             You are a Kidney Health Assistant. 
-            Answer the user's question using ONLY the provided guidelines.
-            If the answer is not in the guidelines, say: "Sorry, I don't know the answer for this question. Consult your nephrologist."
-            Keep it professional and concise.
+            
+            TASK:
+            1. Response Language: You MUST answer strictly in the SAME LANGUAGE as the user's question (detected as ${originalLanguage}). Use Devanagari script for Hindi/Marathi.
+            2. Content: Answer using ONLY the provided Guidelines.
+            3. Citations: You MUST use inline citations for EVERY medical fact you state. 
+               Format: [Source Name, Section/Page] (e.g., [KDIGO 2024, Section 2.1]).
+            4. Fallback: If the answer is not in the guidelines, say "Sorry, I don't know the answer for this question." in the user's language.
+            5. Tone: Professional, direct, and concise.
 
-            QUESTION: ${input}
-            GUIDELINES: ${context}
+            USER QUESTION: ${input}
+            ENGLISH TRANSLATION: ${searchInput}
+            GUIDELINES:
+            ${context}
             
             Answer:
         `;
 
-        const stream = await model.stream([new HumanMessage(prompt)]);
-        let fullAnswer = "";
+        const draftResponse = await model.invoke([new HumanMessage(prompt)]);
+        const draftAnswer = draftResponse.content.toString();
 
-        for await (const chunk of stream) {
-            const content = chunk.content as string;
-            fullAnswer += content;
-            yield content;
+        // Step 3: Verification Pass (The Safety Valve)
+        yield "__STATUS__:🛡️ Verifying Safety & Accuracy...\n";
+
+        const verificationState: AgentState = {
+            input,
+            chatHistory,
+            context,
+            sources: uniqueSources,
+            draftAnswer,
+            verdict: "RETRY",
+            feedback: "",
+            iteration: 0,
+            patientData: {} // Empty for now, can be populated if we had user profiles
+        };
+
+        const audit = await verifierNode(verificationState);
+        console.log(`[Agent] Verification: ${audit.verdict} - ${audit.feedback}`);
+
+        if (audit.verdict === "FAIL") {
+            yield "__STATUS__:⚠️ Refining Answer based on Medical Safety Audit...\n";
+            const retryPrompt = `
+                You are a Kidney Health Assistant. 
+                Your previous answer failed a medical safety audit. 
+                
+                REASON FOR FAILURE: ${audit.feedback}
+                LLM THOUGHTS: ${audit.thoughts}
+                
+                CRITICAL FIX: Please rewrite the answer addressing the feedback above. 
+                Ensure it strictly follows the guidelines:
+                ${context}
+                
+                Question: ${input}
+                New Answer:
+            `;
+            const finalStream = await model.stream([new HumanMessage(retryPrompt)]);
+            yield "__CLEAR_STATUS__\n";
+            for await (const chunk of finalStream) {
+                yield chunk.content as string;
+            }
+        } else {
+            // PASS - Stream the original draft (we didn't stream it before to avoid hallucinations)
+            yield "__CLEAR_STATUS__\n";
+            // Since we already have the draftAnswer, we just yield it. 
+            // To make it feel "streamy", we could split it or just send it.
+            // But usually we prefer streaming from the start. 
+            // IMPROVEMENT: In PASS case, we already have the answer.
+            yield draftAnswer;
         }
 
         yield "\n\n**Disclaimer:** *This is for educational purposes only. Always follow your doctor's advice.*";

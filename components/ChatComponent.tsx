@@ -1,34 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
-import {
-    Send,
-    Bot,
-    User,
-    Heart,
-    AlertCircle,
-    Phone,
-    Video,
-    MoreVertical,
-    Plus,
-    Mic,
-    CheckCheck,
-    Paperclip,
-    Sparkles,
-    Menu,
-    X,
-    Database,
-} from "lucide-react";
-
-interface Message {
-    id: string;
-    role: "user" | "assistant";
-    content: string;
-    image?: string; // Base64 image
-    sources?: string[];
-    timestamp: string;
-}
+import { AlertCircle } from "lucide-react";
+import ChatHeader from "./chat/ChatHeader";
+import ChatSidebar from "./chat/ChatSidebar";
+import ChatMessage from "./chat/ChatMessage";
+import ChatStatus from "./chat/ChatStatus";
+import ChatInput from "./chat/ChatInput";
+import { Message } from "./chat/types";
 
 export default function ChatComponent() {
     const [mounted, setMounted] = useState(false);
@@ -56,7 +35,6 @@ export default function ChatComponent() {
 
     useEffect(() => {
         setMounted(true);
-        // Load messages from localStorage
         const savedMessages = localStorage.getItem("kidney_chat_messages");
         if (savedMessages) {
             try {
@@ -65,7 +43,6 @@ export default function ChatComponent() {
                 console.error("Failed to parse saved messages", e);
             }
         } else {
-            // Set initial welcome timestamp if no history
             setMessages(prev => prev.map(m => m.id === "welcome" ? { ...m, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) } : m));
         }
     }, []);
@@ -129,7 +106,6 @@ export default function ChatComponent() {
         setError(null);
 
         try {
-            // Get last 6 messages for context (excluding images for text-search and current message)
             const chatHistory = messages
                 .filter(m => m.id !== "welcome")
                 .slice(-6)
@@ -141,7 +117,7 @@ export default function ChatComponent() {
 
             while (retries <= maxRetries) {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
 
                 try {
                     response = await fetch("/api/chat", {
@@ -157,11 +133,9 @@ export default function ChatComponent() {
                     clearTimeout(timeoutId);
                     if (response.ok) break;
 
-                    // If not ok and we have retries left
                     if (retries < maxRetries) {
                         retries++;
-                        console.log(`Retrying chat request... attempt ${retries}`);
-                        await new Promise(r => setTimeout(r, 1000 * retries)); // Exponential backoff
+                        await new Promise(r => setTimeout(r, 1000 * retries));
                         continue;
                     }
                     break;
@@ -184,7 +158,6 @@ export default function ChatComponent() {
                 throw new Error(errorData?.error || `Failed to get response: ${response?.status}`);
             }
 
-            // Create placeholder assistant message
             const assistantId = (Date.now() + 1).toString();
             const assistantMessage: Message = {
                 id: assistantId,
@@ -197,13 +170,12 @@ export default function ChatComponent() {
             const reader = response.body?.getReader();
             const decoder = new TextDecoder();
             let fullContent = "";
-            let streamBuffer = ""; // Buffer to handle partial lines
+            let streamBuffer = "";
 
             if (reader) {
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) {
-                        // Process any remaining text in buffer
                         if (streamBuffer.trim()) {
                             processLine(streamBuffer, assistantId);
                         }
@@ -213,9 +185,8 @@ export default function ChatComponent() {
                     const chunk = decoder.decode(value, { stream: true });
                     streamBuffer += chunk;
 
-                    // Split by newline and process complete lines
                     const lines = streamBuffer.split("\n");
-                    streamBuffer = lines.pop() || ""; // Keep the last (possibly incomplete) line
+                    streamBuffer = lines.pop() || "";
 
                     for (const line of lines) {
                         processLine(line, assistantId);
@@ -223,7 +194,6 @@ export default function ChatComponent() {
                 }
             }
 
-            // Inner helper to process individual lines/commands
             function processLine(line: string, assistantId: string) {
                 if (!line.trim()) return;
 
@@ -246,7 +216,6 @@ export default function ChatComponent() {
                 }
                 else if (line.startsWith("__CLEAR_STATUS__")) {
                     setAgentStatus(null);
-                    // Reset content only if we are at the initialization phase
                     if (fullContent.length < 10) fullContent = "";
                 }
                 else if (line.startsWith("__ERROR__:")) {
@@ -255,7 +224,6 @@ export default function ChatComponent() {
                     setAgentStatus(null);
                 }
                 else {
-                    // This is real message content
                     fullContent += line + "\n";
                     setMessages((prev) =>
                         prev.map((m) =>
@@ -268,7 +236,7 @@ export default function ChatComponent() {
         } catch (error: unknown) {
             const err = error as Error;
             if (err.message === "QUOTA_EXCEEDED") {
-                setError("The Medical Brain is currently very busy (API Quota Exceeded). If you've already enabled the Pro Plan, please wait a few minutes for the status to synchronize. Otherwise, check your Gemini API Billing in Google AI Studio.");
+                setError("The Medical Brain is currently very busy (API Quota Exceeded). Please wait a few minutes.");
             } else {
                 setError("Sorry, I encountered an error. Please try again.");
             }
@@ -281,95 +249,15 @@ export default function ChatComponent() {
 
     return (
         <div className="flex h-screen bg-[#E5DDD5] overflow-hidden">
-            {/* Sidebar */}
-            <aside className={`
-                ${isSidebarOpen ? "flex" : "hidden"} 
-                md:flex w-full md:w-96 flex-col bg-white border-r border-[#D1D7DB] 
-                absolute md:relative z-50 h-full transition-all duration-300
-            `}>
-                <header className="h-[60px] bg-[#F0F2F5] px-4 flex items-center justify-between border-b border-[#D1D7DB]">
-                    <div className="w-10 h-10 rounded-full bg-slate-300 overflow-hidden flex items-center justify-center">
-                        <User className="text-white w-6 h-6" />
-                    </div>
-                    <div className="flex gap-4 text-[#54656F] items-center">
-                        <Heart className="w-5 h-5 cursor-pointer" />
-                        <Sparkles className="w-5 h-5 cursor-pointer" />
-                        <X
-                            className="w-6 h-6 md:hidden cursor-pointer"
-                            onClick={() => setIsSidebarOpen(false)}
-                        />
-                        <MoreVertical className="w-5 h-5 cursor-pointer" />
-                    </div>
-                </header>
-                <div className="flex-1 overflow-y-auto bg-white">
-                    <div className="p-4 bg-[#F0F2F5] flex items-center gap-4 cursor-pointer hover:bg-slate-100 transition-colors">
-                        <div className="w-12 h-12 rounded-full bg-[#128C7E] flex items-center justify-center shadow-sm">
-                            <Bot className="text-white w-7 h-7" />
-                        </div>
-                        <div className="flex-1 border-b border-[#F0F2F5] pb-3">
-                            <div className="flex justify-between items-center mb-1">
-                                <span className="font-semibold text-[#111B21]">Kidney Health AI</span>
-                                <span className="text-xs text-[#667781]">Online</span>
-                            </div>
-                            <p className="text-sm text-[#667781] truncate">Professional Healthcare Assistant</p>
-                        </div>
-                    </div>
+            <ChatSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-                    {/* Admin Link - AI Training Center */}
-                    <div className="px-4 mt-6 mb-2">
-                        <p className="text-[10px] text-slate-400 uppercase font-black tracking-[0.2em] mb-3">Clinician Control Panel</p>
-                        <Link href="/admin" className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 flex items-center gap-4 cursor-pointer hover:shadow-md hover:border-[#128C7E]/30 transition-all group">
-                            <div className="w-12 h-12 rounded-xl bg-[#128C7E] flex items-center justify-center shadow-sm text-white transition-transform group-hover:scale-105">
-                                <Plus className="w-6 h-6" />
-                            </div>
-                            <div className="flex-1">
-                                <div className="flex justify-between items-center mb-0.5">
-                                    <span className="font-bold text-[#111B21] text-sm">Train Medical Brain</span>
-                                    <Sparkles className="w-3.5 h-3.5 text-[#128C7E] animate-pulse" />
-                                </div>
-                                <p className="text-[11px] text-[#128C7E] font-semibold leading-tight opacity-80">Upload PDFs & Guidelines</p>
-                            </div>
-                        </Link>
-                    </div>
-                </div>
-            </aside>
-
-            {/* Main Chat Area */}
             <div className="flex-1 flex flex-col relative h-full">
-                {/* Background Wallpaper */}
                 <div className="wa-wallpaper"></div>
 
-                {/* Chat Header */}
-                <header className="relative z-20 h-[60px] wa-header-glass px-4 flex items-center justify-between shadow-sm border-b border-[#D1D7DB]">
-                    <div className="flex items-center gap-3">
-                        <Menu
-                            className="w-6 h-6 md:hidden text-[#54656F] cursor-pointer"
-                            onClick={() => setIsSidebarOpen(true)}
-                        />
-                        <div className="w-10 h-10 rounded-full bg-[#128C7E] flex items-center justify-center">
-                            <Bot className="text-white w-6 h-6" />
-                        </div>
-                        <div>
-                            <h2 className="font-semibold text-[#111B21] leading-tight text-[16px]">Kidney Health AI</h2>
-                            <p className="text-[12px] text-[#667781]">Professional assistant • Online</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-6 text-[#54656F]">
-                        <Video className="w-5 h-5 cursor-pointer hover:text-slate-800" />
-                        <Phone className="w-5 h-5 cursor-pointer hover:text-slate-800" />
-                        <div className="w-[1px] h-6 bg-[#D1D7DB] mx-1"></div>
-                        <Plus
-                            onClick={clearChat}
-                            className="w-5 h-5 cursor-pointer hover:text-red-500 transition-colors rotate-45"
-                        />
-                        <MoreVertical className="w-5 h-5 cursor-pointer hover:text-slate-800" />
-                    </div>
-                </header>
+                <ChatHeader onMenuClick={() => setIsSidebarOpen(true)} onResetClick={clearChat} />
 
-                {/* Messages Container */}
                 <div className="flex-1 overflow-y-auto relative z-10 px-4 sm:px-[10%] py-4 chat-scroll-area">
                     <div className="max-w-[800px] mx-auto space-y-3">
-                        {/* System Message / Disclaimer */}
                         <div className="flex justify-center mb-6">
                             <div className="bg-[#FFF9C4] text-[#54656F] text-[11px] py-1.5 px-4 rounded-lg shadow-sm border border-[#E9EDEF] text-center uppercase tracking-wider font-semibold max-w-[90%]">
                                 🔒 This conversation provides medical information. Not a substitute for professional advice.
@@ -377,96 +265,10 @@ export default function ChatComponent() {
                         </div>
 
                         {messages.map((message) => (
-                            <div
-                                key={message.id}
-                                className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} mb-2 transition-all duration-300`}
-                            >
-                                <div
-                                    className={`relative max-w-[88%] sm:max-w-[75%] px-3 py-1.5 shadow-sm rounded-lg ${message.role === "user"
-                                        ? "bg-[#e7fce3] rounded-tr-none bubble-user"
-                                        : "bg-white rounded-tl-none bubble-assistant"
-                                        }`}
-                                >
-                                    {message.image && (
-                                        <div className="mb-2 rounded-md overflow-hidden border border-[#E9EDEF]">
-                                            <img src={message.image} alt="User upload" className="max-w-full h-auto object-cover" />
-                                        </div>
-                                    )}
-                                    <div className="text-[14.2px] text-[#111B21] leading-[1.45] whitespace-pre-wrap pr-10">
-                                        {message.content.includes("<thought>") ? (
-                                            (() => {
-                                                const parts = message.content.split(/<\/?thought>/);
-                                                return (
-                                                    <div className="space-y-3">
-                                                        {parts.map((part, i) => {
-                                                            if (i % 2 === 1) { // Inside <thought>
-                                                                return (
-                                                                    <div key={i} className="text-xs bg-[#F7F9FA] p-3 rounded-lg border-l-4 border-[#128C7E]/30 italic text-slate-500 font-serif leading-relaxed my-2">
-                                                                        <div className="font-bold uppercase tracking-wider text-[9px] mb-1 opacity-60 flex items-center gap-1.5">
-                                                                            <Sparkles className="w-3 h-3" />
-                                                                            Clinical Reasoning Trace
-                                                                        </div>
-                                                                        {part.trim()}
-                                                                    </div>
-                                                                );
-                                                            }
-                                                            if (!part.trim()) return null;
-                                                            return <div key={i}>{part}</div>;
-                                                        })}
-                                                    </div>
-                                                );
-                                            })()
-                                        ) : (
-                                            message.content
-                                        )}
-                                    </div>
-
-                                    {message.sources && message.sources.length > 0 && (
-                                        <div className="mt-3 pt-2 border-t border-[#E9EDEF] flex flex-wrap gap-1.5">
-                                            {message.sources.map((src, i) => (
-                                                <span key={i} className="text-[10px] bg-[#F0F2F5] px-2 py-0.5 rounded text-[#667781] font-medium border border-[#D1D7DB]">
-                                                    {src}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    <div className="flex items-center justify-end gap-1 mt-1 h-3">
-                                        <span className="text-[11px] text-[#667781] uppercase font-medium mr-1 tracking-tighter">
-                                            {message.timestamp || "..."}
-                                        </span>
-                                        {message.role === "user" && (
-                                            <CheckCheck className="w-3.5 h-3.5 text-[#53bdeb]" />
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
+                            <ChatMessage key={message.id} message={message} />
                         ))}
 
-                        {/* Agent Status & Loading */}
-                        {(isLoading || agentStatus) && (
-                            <div className="flex justify-start mb-2 animate-in fade-in slide-in-from-left-2 duration-300">
-                                <div className="bg-white rounded-lg rounded-tl-none px-4 py-3 shadow-sm relative bubble-assistant flex flex-col gap-2 min-w-[200px]">
-                                    {agentStatus ? (
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex-1 text-[13px] text-[#128C7E] font-medium flex items-center gap-2">
-                                                <div className="relative flex h-2 w-2">
-                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#128C7E]"></span>
-                                                </div>
-                                                {agentStatus}
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="typing-dots">
-                                            <div className="typing-dot"></div>
-                                            <div className="typing-dot"></div>
-                                            <div className="typing-dot"></div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
+                        <ChatStatus isLoading={isLoading} agentStatus={agentStatus} />
 
                         {error && (
                             <div className="flex justify-center my-6">
@@ -480,62 +282,15 @@ export default function ChatComponent() {
                     </div>
                 </div>
 
-                {/* Input Bar */}
-                <footer className="relative z-20 bg-[#f0f2f5] px-3 py-3 flex flex-col gap-2 border-t border-[#D1D7DB]">
-                    {selectedImage && (
-                        <div className="mx-4 mb-2 relative inline-block w-24 h-24 group">
-                            <img src={selectedImage.preview} className="w-full h-full object-cover rounded-xl border-2 border-[#128C7E] shadow-lg" alt="Preview" />
-                            <div
-                                onClick={() => setSelectedImage(null)}
-                                className="absolute -top-3 -right-3 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center cursor-pointer shadow-xl hover:bg-red-600 transition-all hover:scale-110"
-                            >
-                                <X className="w-4 h-4" />
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="flex items-center gap-2 max-w-[1000px] mx-auto w-full">
-                        <div className="flex items-center gap-3 text-[#54656F] px-1">
-                            <Plus className="w-6 h-6 cursor-pointer hover:text-[#128C7E] transition-colors" />
-                        </div>
-
-                        <form onSubmit={handleSubmit} className="flex-1 flex items-center gap-2">
-                            <div className="flex-1 bg-white rounded-[24px] px-5 py-2.5 flex items-center shadow-sm border border-transparent focus-within:border-[#128C7E]/20 transition-all">
-                                <input
-                                    type="text"
-                                    value={input}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    placeholder="Message"
-                                    className="flex-1 bg-transparent border-none outline-none text-[#111B21] text-[16px] placeholder-[#667781]"
-                                    disabled={isLoading}
-                                />
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    className="hidden"
-                                    accept="image/*"
-                                    onChange={handleFileSelect}
-                                />
-                                <Paperclip
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="w-5 h-5 text-[#54656F] cursor-pointer hover:text-[#128C7E] ml-2 transition-colors"
-                                />
-                            </div>
-
-                            <button
-                                type={input.trim() ? "submit" : "button"}
-                                disabled={isLoading}
-                                className="flex items-center justify-center w-[48px] h-[48px] min-w-[48px] rounded-full bg-[#128C7E] cursor-pointer hover:bg-[#075E54] transition-all duration-200 shadow-lg transform active:scale-95"
-                            >
-                                {input.trim() ? (
-                                    <Send className="w-5 h-5 text-white ml-0.5" />
-                                ) : (
-                                    <Mic className="w-5 h-5 text-white" />
-                                )}
-                            </button>
-                        </form>
-                    </div>
-                </footer>
+                <ChatInput
+                    input={input}
+                    setInput={setInput}
+                    isLoading={isLoading}
+                    handleSubmit={handleSubmit}
+                    selectedImage={selectedImage}
+                    setSelectedImage={setSelectedImage}
+                    handleFileSelect={handleFileSelect}
+                />
             </div>
         </div>
     );

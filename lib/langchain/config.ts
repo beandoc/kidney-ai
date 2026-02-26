@@ -21,7 +21,7 @@ export function getChatModel(maxRetries?: number) {
   }
 
   return new ChatGoogleGenerativeAI({
-    model: "gemini-2.5-flash",
+    model: "gemini-flash-latest",
     temperature: 0.1,
     apiKey: apiKey,
     maxRetries: maxRetries ?? 5,

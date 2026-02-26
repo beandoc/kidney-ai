@@ -54,23 +54,36 @@ export async function POST(request: Request) {
 
                         if (isPdf) {
                             const result = await pageIndexClient.indexPdf(buffer, fileName);
-                            fs.writeFileSync(path.join(pageIndexPath, `${fileName}.json`), JSON.stringify(result, null, 2));
+                            const outName = fileName.endsWith('.json') ? fileName : `${fileName}.json`;
+                            fs.writeFileSync(path.join(pageIndexPath, outName), JSON.stringify(result, null, 2));
+                        } else if (fileName.endsWith('.json')) {
+                            // Already an index file, just copy it
+                            fs.writeFileSync(path.join(pageIndexPath, fileName), buffer);
                         } else {
-                            // Simple tree for other files
+                            // Simple tree with CHUNKING for large files
                             const docs = await processFileBuffer(buffer, fileName);
                             const fullText = docs.map(d => d.pageContent).join('\n\n');
+
+                            // Split into 5000 char chunks for better search granularity
+                            const chunkSize = 5000;
+                            const chunks: string[] = [];
+                            for (let i = 0; i < fullText.length; i += chunkSize) {
+                                chunks.push(fullText.slice(i, i + chunkSize + 500)); // 500 char overlap
+                            }
+
                             const simpleResult = {
                                 doc_name: fileName,
-                                structure: [{
-                                    title: "Document Content",
-                                    node_id: "0000",
+                                structure: chunks.map((chunk, idx) => ({
+                                    title: `${fileName} - Part ${idx + 1}`,
+                                    node_id: `chunk-${idx}`,
                                     start_index: 1,
                                     end_index: 1,
-                                    summary: `Extracted content from ${fileName}`,
-                                    text: fullText
-                                }]
+                                    summary: `Segment ${idx + 1} of ${fileName}`,
+                                    text: chunk
+                                }))
                             };
-                            fs.writeFileSync(path.join(pageIndexPath, `${fileName}.json`), JSON.stringify(simpleResult, null, 2));
+                            const outName = fileName.endsWith('.json') ? fileName : `${fileName}.json`;
+                            fs.writeFileSync(path.join(pageIndexPath, outName), JSON.stringify(simpleResult, null, 2));
                         }
                         successCount++;
                     } catch (fileErr) {

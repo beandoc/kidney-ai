@@ -75,58 +75,49 @@ export async function POST(request: Request) {
 
             try {
                 const isPdf = label.toLowerCase().endsWith('.pdf');
+                const kbPath = path.join(process.cwd(), 'knowledge_base', 'pageindex');
+                if (!fs.existsSync(kbPath)) fs.mkdirSync(kbPath, { recursive: true });
+
+                const outName = label.endsWith('.json') ? label : `${label}.json`;
+                const outputPath = path.join(kbPath, outName);
 
                 if (isPdf && fileBuffer) {
                     send({ type: 'progress', status: 'Generating Deep Reasoning Tree...', percent: 10 });
                     const result = await pageIndexClient.indexPdf(fileBuffer, label);
-
-                    // Save to knowledge_base/pageindex
-                    const kbPath = path.join(process.cwd(), 'knowledge_base', 'pageindex');
-                    if (!fs.existsSync(kbPath)) fs.mkdirSync(kbPath, { recursive: true });
-
-                    const outputPath = path.join(kbPath, `${label}.json`);
                     fs.writeFileSync(outputPath, JSON.stringify(result, null, 2));
 
-                    // Invalidate search index so it rebuilds on next query
                     invalidateIndex();
-
                     send({
                         type: 'done',
                         message: `Successfully indexed ${label} using PageIndex Deep Architecture (Gemini).`
                     });
                 } else {
-                    // Simple Tree for non-PDFs or text
-                    send({ type: 'progress', status: 'Creating Knowledge Node...', percent: 30 });
-
+                    // Simple Tree with CHUNKING
                     const fullText = docs.map(d => d.pageContent).join('\n\n');
+                    const chunkSize = 5000;
+                    const chunks: string[] = [];
+                    for (let i = 0; i < fullText.length; i += chunkSize) {
+                        chunks.push(fullText.slice(i, i + chunkSize + 500));
+                    }
 
                     const simpleResult = {
                         doc_name: label,
-                        structure: [
-                            {
-                                title: "Document Overview",
-                                node_id: "0000",
-                                start_index: 1,
-                                end_index: 1, // Text docs are treated as 1 page
-                                summary: `Comprehensive content of ${label}`,
-                                text: fullText
-                            }
-                        ]
+                        structure: chunks.map((chunk, idx) => ({
+                            title: `${label} - Part ${idx + 1}`,
+                            node_id: `chunk-${idx}`,
+                            start_index: 1,
+                            end_index: 1,
+                            summary: `Segment ${idx + 1} of ${label}`,
+                            text: chunk
+                        }))
                     };
 
-                    const kbPath = path.join(process.cwd(), 'knowledge_base', 'pageindex');
-                    if (!fs.existsSync(kbPath)) fs.mkdirSync(kbPath, { recursive: true });
-
-                    const fileName = label.endsWith('.json') ? label : `${label}.json`;
-                    const outputPath = path.join(kbPath, fileName);
                     fs.writeFileSync(outputPath, JSON.stringify(simpleResult, null, 2));
-
-                    // Invalidate search index so it rebuilds on next query
                     invalidateIndex();
 
                     send({
                         type: 'done',
-                        message: `Successfully added ${label} to Agentic Brain (Simple Tree Mode).`
+                        message: `Successfully added ${label} to Agentic Brain (Split Chunk Mode).`
                     });
                 }
             } catch (error) {
