@@ -24,7 +24,7 @@ export function getChatModel(maxRetries?: number) {
     model: "gemini-2.0-flash",
     temperature: 0.1, // Low temperature for factual responses
     apiKey: apiKey,
-    maxRetries: maxRetries, // Optional override for fail-fast behavior
+    maxRetries: maxRetries ?? 5, // Increased retries to handle tight 15 RPM limits on free tier
   });
 }
 

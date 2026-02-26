@@ -5,9 +5,6 @@ import * as fs from "fs";
 import * as path from "path";
 import { getProfile } from "./memory";
 
-import * as dotenv from "dotenv";
-dotenv.config({ path: path.join(process.cwd(), ".env.local") });
-
 // --- Types & State ---
 
 interface AgentState {
@@ -101,6 +98,9 @@ async function researcherNode(state: AgentState): Promise<Partial<AgentState>> {
         const docs = await searchPageIndex(searchQuery);
         const newContext = formatPageIndexContext(docs);
 
+        // Wait 1s between retrieval reasoning and draft generation
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
         // Extract unique sources for the UI
         const newSources = docs.map(d => `${d.metadata.source}${d.metadata.title ? ` - ${d.metadata.title}` : ""}`);
         const uniqueSources = Array.from(new Set([...state.sources, ...newSources]));
@@ -179,13 +179,13 @@ async function verifierNode(state: AgentState): Promise<Partial<AgentState>> {
         const thoughtMatch = text.match(/<thought>([\s\S]*?)<\/thought>/);
         const thoughts = thoughtMatch ? thoughtMatch[1].trim() : "No reasoning provided.";
 
-        let result = { verdict: "PASS", reasoning: "Validation skipped due to format error." };
+        let result = { verdict: "FAIL", reasoning: "Verification format error. Retrying for safety." };
         try {
             const jsonPart = text.includes("JSON:") ? text.split("JSON:")[1] : text;
             const stripped = jsonPart.replace(/```json|```/g, "").trim();
             result = JSON.parse(stripped);
         } catch (e) {
-            console.warn("[Node: Verifier] JSON Parse fail, defaulting to PASS", e);
+            console.warn("[Node: Verifier] JSON Parse fail, defaulting to FAIL for safety", e);
         }
 
         return {
@@ -198,13 +198,13 @@ async function verifierNode(state: AgentState): Promise<Partial<AgentState>> {
         if (e?.message?.includes("429") || e?.status === 429) {
             throw e; // Rethrow quota limits to main agent loop
         }
-        return { verdict: "PASS" };
+        return { verdict: "FAIL", feedback: "Technical verification failure.", thoughts: "Safe failure due to internal error." };
     }
 }
 
 // --- Main Agent Loop (Simulated Graph) ---
 export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
-    console.log("[Agent] Starting new session for query:", input);
+    console.log("[Agent] Quick-Stream session for query:", input);
     let state: AgentState = {
         input,
         chatHistory,
@@ -217,46 +217,48 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
     };
 
     try {
-        yield "__STATUS__:� Searching Knowledge Base...\n";
+        // Step 1: Rapid Knowledge Retrieval (Consolidated)
+        yield "__STATUS__:📖 Scanning Guidelines...\n";
+        const docs = await searchPageIndex(input);
+        const context = formatPageIndexContext(docs);
+        const sources = docs.map(d => `${d.metadata.source}${d.metadata.title ? ` - ${d.metadata.title}` : ""}`);
+        const uniqueSources = Array.from(new Set(sources));
 
-        // Simplified Routine: Only fetch from knowledge base and answer
-        const researchUpdates = await researcherNode(state);
-        state = { ...state, ...researchUpdates };
+        if (uniqueSources.length > 0) {
+            yield `__SOURCES__:${JSON.stringify(uniqueSources)}\n`;
+        }
+
+        // Step 2: Streaming Answer Generation
+        yield "__STATUS__:✍️ Drafting Answer...\n";
+        yield "__CLEAR_STATUS__\n";
+
+        const model = getChatModel();
+        const prompt = `
+            You are a Kidney Health Assistant. 
+            Answer the user's question using ONLY the provided guidelines.
+            If the answer is not in the guidelines, say: "Sorry, I don't know the answer for this question. Consult your nephrologist."
+            Keep it professional and concise.
+
+            QUESTION: ${input}
+            GUIDELINES: ${context}
+            
+            Answer:
+        `;
+
+        const stream = await model.stream([new HumanMessage(prompt)]);
+        let fullAnswer = "";
+
+        for await (const chunk of stream) {
+            const content = chunk.content as string;
+            fullAnswer += content;
+            yield content;
+        }
+
+        yield "\n\n**Disclaimer:** *This is for educational purposes only. Always follow your doctor's advice.*";
 
     } catch (globalError: any) {
         console.error("[Agent] CRITICAL FAILURE:", globalError);
         yield "__CLEAR_STATUS__\n";
-
-        if (globalError?.message?.includes("429") || globalError?.status === 429) {
-            yield "⚠️ **System Alert: API Rate Limit Exceeded**\nWe have temporarily hit our Google API quota limit because of too many requests. Please wait about a minute and try again. For production, upgrading to a pay-as-you-go tier is recommended.";
-        } else {
-            yield "I encountered a technical problem while processing your request. Please try again in a few moments.";
-        }
-        return;
+        yield `I encountered a problem: ${globalError?.message || String(globalError)}`;
     }
-
-    // Final delivery
-    if (state.sources.length > 0) {
-        yield `__SOURCES__:${JSON.stringify(state.sources)}\n`;
-    }
-
-    yield "__CLEAR_STATUS__\n";
-
-    let finalResponse = "";
-
-    // Add Deep-Thought Block
-    if (state.thoughts) {
-        finalResponse += `<thought>\n${state.thoughts}\n</thought>\n\n`;
-    }
-
-    finalResponse += state.draftAnswer;
-
-    // Add a formal Verification Report if requested by the protocol
-    if (state.feedback) {
-        finalResponse += `\n\n---\n**✓ Verification Report:** ${state.feedback}`;
-    }
-
-    finalResponse += "\n\n**Disclaimer:** *This is for educational purposes only. Always follow your doctor's advice.*";
-
-    yield finalResponse;
 }

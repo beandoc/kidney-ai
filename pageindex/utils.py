@@ -17,11 +17,11 @@ from types import SimpleNamespace as config
 import google.generativeai as genai
 
 # Load environment variables from .env and .env.local
-load_dotenv()
-load_dotenv(dotenv_path=".env.local")
+load_dotenv(override=True)
+load_dotenv(dotenv_path=".env.local", override=True)
 
 CHATGPT_API_KEY = os.getenv("CHATGPT_API_KEY")
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
 
 def Gemini_API(model, prompt, api_key=GOOGLE_API_KEY):
     max_retries = 5

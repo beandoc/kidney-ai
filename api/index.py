@@ -58,45 +58,72 @@ async def index_pdf(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+from pydantic import BaseModel
+
+class SearchRequest(BaseModel):
+    query: str
+    trees_json: str
+    model: str = "gemini-2.0-flash"
+
 @app.post("/api/python/search")
-async def search_tree(
-    query: str = Form(...),
-    tree_json: str = Form(...),
-    model: str = Form("gemini-2.0-flash")
-):
+async def search_tree(req: SearchRequest):
+    query = req.query
+    trees_json = req.trees_json
+    model = req.model
+
     try:
-        tree = json.loads(tree_json)
+        # Step 1: Parse input trees
+        data = json.loads(trees_json)
+        trees = data if isinstance(data, list) else [data]
         
-        # Implementation of Reasoning Search (as seen in PageIndex tutorials)
-        # We perform a breadth-first or depth-first reasoning traversal using the LLM.
+        from pageindex.utils import ChatGPT_API_async, extract_json
         
-        # Here we'll implement a simple one-shot tree reasoning for this bridge.
-        # Ideally, this would be more recursive as per PageIndex's MCTS but this serves as a robust starting point.
-        
-        from pageindex.utils import ChatGPT_API
-        
+        # Step 2: Build a consolidated prompt for reasoning across all documents
+        # This reduces LLM calls from N (number of files) to 1.
+        trees_summary = ""
+        for i, tree in enumerate(trees):
+            trees_summary += f"\n--- DOCUMENT {i} ---\n"
+            # We truncate individual trees if they are very large, but PageIndex trees are usually small
+            trees_summary += json.dumps(tree, indent=2, ensure_ascii=False)[:10000]
+            
         prompt = f"""
 You are an expert medical document assistant for Kidney AI.
-You are given a query and the tree structure of a medical document (Kidney Health Guidelines).
-You need to find all nodes (sections) that are likely to contain the precise answer to the query.
+You are given a medical query and the tree structures (table of contents with summaries) of several documents.
+
+TASK:
+Find all nodes (sections) across ALL provided documents that are likely to contain the precise answer to the query.
 
 Query: {query}
 
-Document tree structure (Summaries):
-{json.dumps(tree, indent=2, ensure_ascii=False)[:30000]} # Truncate if too large, but tree is usually small
+Document Tree Structures:
+{trees_summary}
 
 Reply in the following JSON format:
 {{
-  "thinking": "your reasoning about which nodes are relevant based on the section titles and summaries",
-  "node_list": ["node_id1", "node_id2", ...]
+  "thinking": "your reasoning about which nodes are relevant across all documents",
+  "matches": [
+    {{
+      "doc_index": 0, 
+      "node_list": ["node_id1", "node_id2", ...]
+    }},
+    ...
+  ]
 }}
-Directly return the JSON.
+Only return the JSON.
 """
-        response = ChatGPT_API(model=model, prompt=prompt)
-        # Assuming extract_json is available in pageindex.utils
-        from pageindex.utils import extract_json
+        # Step 3: Run reasoning via Async LLM to prevent blocking
+        response = await ChatGPT_API_async(model=model, prompt=prompt)
+        
+        if response == "Error":
+            raise HTTPException(status_code=429, detail="Google API Rate Limit Exceeded during search.")
+            
         search_result = extract_json(response)
         
         return search_result
+    except HTTPException as he:
+        # Don't wrap HTTP exceptions in 500
+        raise he
     except Exception as e:
+        import logging
+        logging.error(f"Search API Critical Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))

@@ -12,44 +12,52 @@ export async function searchPageIndex(query: string): Promise<Document[]> {
     }
 
     const files = fs.readdirSync(PAGEINDEX_KB_PATH).filter(f => f.endsWith(".json"));
+    if (files.length === 0) return [];
 
-    // Run searches in parallel instead of sequentially to drastically reduce latency
-    const searchPromises = files.map(async (file) => {
-        try {
+    try {
+        // Step 1: Load all trees from the KB folder
+        const kbEntries = files.map(file => {
             const filePath = path.join(PAGEINDEX_KB_PATH, file);
             const content = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+            return {
+                file,
+                content,
+                tree: content.structure as PageIndexNode[]
+            };
+        });
 
-            // Skip empty structures or malformed json
-            if (!content.structure || !Array.isArray(content.structure)) return [];
+        // Step 2: Perform a SINGLE bulk reasoning search via the Python API
+        // This takes N files and makes 1 LLM call instead of N LLM calls.
+        const allTrees = kbEntries.map(e => e.tree);
+        const searchResult = await pageIndexClient.searchBulk(query, allTrees);
 
-            const tree = content.structure as PageIndexNode[];
+        // Step 3: Extract the text from the identified nodes across all matches
+        const allRelevantDocs: Document[] = [];
 
-            // Perform reasoning search via the Python API
-            const searchResult = await pageIndexClient.search(query, tree);
+        for (const match of searchResult.matches) {
+            const entry = kbEntries[match.doc_index];
+            if (!entry) continue;
 
-            // Extract the text from the identified nodes
-            const matchedNodes = pageIndexClient.findNodesByIds(tree, searchResult.node_list);
+            const matchedNodes = pageIndexClient.findNodesByIds(entry.tree, match.node_list);
 
-            return matchedNodes.map(node => new Document({
+            const docs = matchedNodes.map(node => new Document({
                 pageContent: node.text || node.summary || "",
                 metadata: {
-                    source: content.doc_name || file.replace(".json", ""),
+                    source: entry.content.doc_name || entry.file.replace(".json", ""),
                     title: node.title,
                     node_id: node.node_id,
                     pages: `${node.start_index}-${node.end_index}`,
-                    thinking: searchResult.thinking // Optional: include reasoning in metadata
+                    thinking: searchResult.thinking
                 }
             }));
-        } catch (error) {
-            console.error(`Error searching through ${file}:`, error);
-            return [];
+            allRelevantDocs.push(...docs);
         }
-    });
 
-    const results = await Promise.all(searchPromises);
-    const allRelevantDocs = results.flat();
-
-    return allRelevantDocs;
+        return allRelevantDocs;
+    } catch (error) {
+        console.error(`Error in bulk searchPageIndex:`, error);
+        return [];
+    }
 }
 
 export function formatPageIndexContext(documents: Document[]): string {

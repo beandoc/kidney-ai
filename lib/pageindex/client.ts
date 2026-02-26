@@ -55,18 +55,27 @@ export class PageIndexClient {
     }
 
     async search(query: string, tree: PageIndexNode[]): Promise<SearchResult> {
-        const formData = new FormData();
-        formData.append('query', query);
-        formData.append('tree_json', JSON.stringify(tree));
+        return this.searchBulk(query, [tree]).then(res => ({
+            thinking: res.thinking,
+            node_list: res.matches[0]?.node_list || []
+        }));
+    }
 
+    async searchBulk(query: string, trees: PageIndexNode[][]): Promise<{ thinking: string, matches: { doc_index: number, node_list: string[] }[] }> {
         const response = await fetch(`${this.baseUrl}/api/python/search`, {
             method: 'POST',
-            body: formData,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                query: query,
+                trees_json: JSON.stringify(trees)
+            }),
         });
 
         if (!response.ok) {
             const error = await response.text();
-            throw new Error(`PageIndex search failed: ${error}`);
+            throw new Error(`PageIndex bulk search failed: ${error}`);
         }
 
         return await response.json();
