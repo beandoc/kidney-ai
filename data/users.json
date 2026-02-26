@@ -8,5 +8,16 @@
     "dailyQueries": 2,
     "lastQueryDate": "2026-02-26",
     "isBlocked": false
+  },
+  {
+    "id": "70k4hsigvbx",
+    "username": "atul",
+    "createdAt": "2026-02-26T10:16:45.939Z",
+    "lastActive": "2026-02-26T10:16:45.939Z",
+    "totalQueries": 0,
+    "dailyQueries": 0,
+    "lastQueryDate": "2026-02-26",
+    "isBlocked": false,
+    "mobile": "0987654321"
   }
 ]
