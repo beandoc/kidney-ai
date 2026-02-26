@@ -1,7 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
 
-const DATA_DIR = path.join(process.cwd(), "data");
+const IS_SERVERLESS = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
+const DATA_DIR = IS_SERVERLESS ? path.join("/tmp", "kidney-ai-data") : path.join(process.cwd(), "data");
 const USERS_FILE = path.join(DATA_DIR, "users.json");
 const QUOTA_PER_USER = 50;
 
@@ -18,17 +19,22 @@ export interface UserRecord {
 }
 
 function ensureUsersFile() {
-    if (!fs.existsSync(DATA_DIR)) {
-        fs.mkdirSync(DATA_DIR, { recursive: true });
-    }
-    if (!fs.existsSync(USERS_FILE)) {
-        fs.writeFileSync(USERS_FILE, JSON.stringify([], null, 2));
+    try {
+        if (!fs.existsSync(DATA_DIR)) {
+            fs.mkdirSync(DATA_DIR, { recursive: true });
+        }
+        if (!fs.existsSync(USERS_FILE)) {
+            fs.writeFileSync(USERS_FILE, JSON.stringify([], null, 2));
+        }
+    } catch (e) {
+        console.error("Filesystem write error (ignoring for resilience):", e);
     }
 }
 
 export function getUsers(): UserRecord[] {
     ensureUsersFile();
     try {
+        if (!fs.existsSync(USERS_FILE)) return [];
         const data = fs.readFileSync(USERS_FILE, "utf-8");
         return JSON.parse(data);
     } catch (e) {
@@ -38,7 +44,11 @@ export function getUsers(): UserRecord[] {
 
 export function saveUsers(users: UserRecord[]) {
     ensureUsersFile();
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+    try {
+        fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+    } catch (e) {
+        console.error("Failed to save users persistent state:", e);
+    }
 }
 
 export function registerUser(username: string, mobile?: string): UserRecord {

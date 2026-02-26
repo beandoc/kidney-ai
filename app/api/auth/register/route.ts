@@ -8,8 +8,8 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Username must be at least 2 characters" }, { status: 400 });
         }
 
-        // Admin hardcoded credentials
-        const isAdmin = username.toLowerCase() === "sachin" && mobile === "0987654321";
+        // Admin hardcoded credentials (added safe check for trim)
+        const isAdmin = username?.trim().toLowerCase() === "sachin" && mobile?.trim() === "0987654321";
 
         // Check if user exists
         const existingUser = loginUser(username);
