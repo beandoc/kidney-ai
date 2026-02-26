@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Bot, Video, Phone, Plus, MoreVertical, Menu } from "lucide-react";
 
 interface ChatHeaderProps {
@@ -8,6 +9,8 @@ interface ChatHeaderProps {
 }
 
 export default function ChatHeader({ onMenuClick, onResetClick }: ChatHeaderProps) {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
     return (
         <header className="relative z-20 h-[60px] wa-header-glass px-4 flex items-center justify-between shadow-sm border-b border-[#D1D7DB]">
             <div className="flex items-center gap-3">
@@ -31,7 +34,39 @@ export default function ChatHeader({ onMenuClick, onResetClick }: ChatHeaderProp
                     onClick={onResetClick}
                     className="w-5 h-5 cursor-pointer hover:text-red-500 transition-colors rotate-45"
                 />
-                <MoreVertical className="w-5 h-5 cursor-pointer hover:text-slate-800" />
+                <div className="relative">
+                    <MoreVertical
+                        className="w-5 h-5 cursor-pointer hover:text-slate-800"
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    />
+
+                    {isMenuOpen && (
+                        <>
+                            {/* Backdrop to close menu */}
+                            <div
+                                className="fixed inset-0 z-10"
+                                onClick={() => setIsMenuOpen(false)}
+                            />
+                            <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-20 animate-in fade-in slide-in-from-top-2">
+                                <button
+                                    onClick={() => {
+                                        setIsMenuOpen(false);
+                                        const pass = prompt("Enter Admin Password:");
+                                        if (pass === "zotobsidian27") {
+                                            window.location.href = "/admin";
+                                        } else if (pass !== null) {
+                                            alert("Incorrect password");
+                                        }
+                                    }}
+                                    className="w-full text-left px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-[#128C7E] flex items-center gap-2 active:bg-slate-100 transition-colors"
+                                >
+                                    <Menu className="w-4 h-4" />
+                                    Admin Dashboard
+                                </button>
+                            </div>
+                        </>
+                    )}
+                </div>
             </div>
         </header>
     );

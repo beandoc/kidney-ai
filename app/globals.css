@@ -119,3 +119,11 @@ body {
 .chat-scroll-area::-webkit-scrollbar-track {
   background: transparent;
 }
+/* No scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

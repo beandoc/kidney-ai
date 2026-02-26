@@ -8,9 +8,11 @@ import ChatMessage from "./chat/ChatMessage";
 import ChatStatus from "./chat/ChatStatus";
 import ChatInput from "./chat/ChatInput";
 import { Message } from "./chat/types";
+import LoginWall from "./chat/LoginWall";
 
 export default function ChatComponent() {
     const [mounted, setMounted] = useState(false);
+    const [user, setUser] = useState<{ id: string; username: string } | null>(null);
     const [messages, setMessages] = useState<Message[]>([
         {
             id: "welcome",
@@ -35,23 +37,25 @@ export default function ChatComponent() {
 
     useEffect(() => {
         setMounted(true);
-        const savedMessages = localStorage.getItem("kidney_chat_messages");
-        if (savedMessages) {
-            try {
-                setMessages(JSON.parse(savedMessages));
-            } catch (e) {
-                console.error("Failed to parse saved messages", e);
+        // Clean slate: We no longer load messages from localStorage to ensure privacy between sessions
+        setMessages([
+            {
+                id: "welcome",
+                role: "assistant",
+                content: "Hello! I'm your Kidney Health Education Assistant. I provide accurate information about kidney diseases, treatments, diet recommendations, and preventive care—all based on verified medical resources.\n\nHow can I help you today?",
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             }
-        } else {
-            setMessages(prev => prev.map(m => m.id === "welcome" ? { ...m, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) } : m));
+        ]);
+
+        // Check for existing user session
+        const storedId = localStorage.getItem("kidney_ai_user_id");
+        const storedUsername = localStorage.getItem("kidney_ai_username");
+        if (storedId && storedUsername) {
+            setUser({ id: storedId, username: storedUsername });
         }
     }, []);
 
-    useEffect(() => {
-        if (mounted) {
-            localStorage.setItem("kidney_chat_messages", JSON.stringify(messages));
-        }
-    }, [messages, mounted]);
+    // Removed the Effect that saved messages to localStorage
 
     const clearChat = () => {
         const welcomeMessage: Message = {
@@ -61,7 +65,6 @@ export default function ChatComponent() {
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages([welcomeMessage]);
-        localStorage.removeItem("kidney_chat_messages");
     };
 
     useEffect(() => {
@@ -86,6 +89,7 @@ export default function ChatComponent() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if ((!input.trim() && !selectedImage) || isLoading) return;
+        if (!user) return;
 
         const currentInput = input.trim();
         const currentImage = selectedImage?.preview;
@@ -117,7 +121,10 @@ export default function ChatComponent() {
                 // which was causing extreme API quota exhaustion by duplicating requests.
                 response = await fetch("/api/chat", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        "Content-Type": "application/json",
+                        "x-user-id": user.id
+                    },
                     body: JSON.stringify({
                         message: currentInput,
                         image: currentImage?.split(',')[1],
@@ -190,7 +197,11 @@ export default function ChatComponent() {
     };
 
     return (
-        <div className="flex h-screen bg-[#E5DDD5] overflow-hidden">
+        <div className="flex h-screen bg-[#E5DDD5] overflow-hidden relative">
+            {!user && <LoginWall onLogin={(id, username) => {
+                setUser({ id, username });
+                clearChat(); // Immediate clean slate on every login
+            }} />}
             <ChatSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
             <div className="flex-1 flex flex-col relative h-full">

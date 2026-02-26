@@ -19,9 +19,27 @@ export async function OPTIONS() {
     });
 }
 
+import { trackQuery } from "../../../lib/users";
+
 export async function POST(request: NextRequest) {
     console.log("POST /api/chat received via PageIndex");
     try {
+        const userId = request.headers.get("x-user-id");
+        if (!userId) {
+            return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+        }
+
+        const queryTracker = trackQuery(userId);
+        if (!queryTracker.success) {
+            if (queryTracker.error === "USER_BLOCKED") {
+                return NextResponse.json({ error: "Your access has been restricted by Admin." }, { status: 403 });
+            }
+            if (queryTracker.error === "QUOTA_EXCEEDED") {
+                return NextResponse.json({ error: "Daily limit reached (50 queries). Please return tomorrow!" }, { status: 429 });
+            }
+            return NextResponse.json({ error: "Invalid user account" }, { status: 401 });
+        }
+
         const { message, image, history } = await request.json();
 
         if ((!message || typeof message !== "string") && !image) {
