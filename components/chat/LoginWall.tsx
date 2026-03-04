@@ -10,6 +10,7 @@ interface LoginWallProps {
 export default function LoginWall({ onLogin }: LoginWallProps) {
     const [username, setUsername] = useState("");
     const [mobile, setMobile] = useState("");
+    const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -27,7 +28,8 @@ export default function LoginWall({ onLogin }: LoginWallProps) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     username: username.trim(),
-                    mobile: mobile.trim()
+                    mobile: mobile.trim(),
+                    password: password
                 })
             });
 
@@ -82,6 +84,19 @@ export default function LoginWall({ onLogin }: LoginWallProps) {
                                 placeholder="e.g. +91 9876543210"
                                 className="w-full px-5 py-4 rounded-2xl border border-[#D1D7DB] focus:ring-2 focus:ring-[#128C7E] focus:outline-none transition-all placeholder:text-slate-300"
                                 required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Password</label>
+                        <div className="relative">
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="Enter password (optional for legacy)"
+                                className="w-full px-5 py-4 rounded-2xl border border-[#D1D7DB] focus:ring-2 focus:ring-[#128C7E] focus:outline-none transition-all placeholder:text-slate-300"
                             />
                         </div>
                     </div>

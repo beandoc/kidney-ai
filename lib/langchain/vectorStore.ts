@@ -12,9 +12,13 @@ const KNOWLEDGE_BASE_PATH = path.join(process.cwd(), "knowledge_base");
 // In-memory store for runtime (will be populated from files)
 let vectorStore: MemoryVectorStore | null = null;
 
-// Simple Query Cache
-const queryCache = new Map<string, { docs: Document[], timestamp: number }>();
-const CACHE_TTL = 1000 * 60 * 60; // 1 hour
+// Simple Query Cache replaced by LRU Cache
+import { LRUCache } from "lru-cache";
+
+const queryCache = new LRUCache<string, { docs: Document[], timestamp: number }>({
+    max: 500, // Maximum number of cached queries
+    ttl: 1000 * 60 * 60, // 1 hour TTL
+});
 
 /**
  * Load all documents from the knowledge_base directory
@@ -126,7 +130,7 @@ export async function getVectorStore(): Promise<MemoryVectorStore> {
 /**
  * Refine the user query to fix typos and normalize medical terms
  */
-async function refineQuery(query: string): Promise<string> {
+export async function refineQuery(query: string): Promise<string> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second fail-fast
 
@@ -149,95 +153,3 @@ async function refineQuery(query: string): Promise<string> {
     }
 }
 
-/**
- * Search for relevant documents based on a query
- */
-export async function searchDocuments(
-    query: string,
-    topK: number = 6
-): Promise<Document[]> {
-    // Skip refinement for very short/simple queries to save time and quota
-    // OPTIMIZATION: Disabling query refinement to reduce latency
-    let refinedQuery = query;
-    /* 
-    if (query.length > 40) {
-        refinedQuery = await refineQuery(query);
-    } else {
-        console.log(`Skipping refinement for clear/short query: "${query}"`);
-    }
-    */
-
-    const normalizedQuery = refinedQuery.toLowerCase().trim();
-
-    // Check Cache first
-    const cached = queryCache.get(normalizedQuery);
-    if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
-        console.log(`Cache hit for query: "${normalizedQuery}"`);
-        return cached.docs;
-    }
-
-    let results: Document[] = [];
-
-    // Try Pinecone first if configured
-    const isPineconeConfigured = process.env.PINECONE_API_KEY && process.env.PINECONE_API_KEY !== "YOUR_API_KEY_HERE";
-
-    if (isPineconeConfigured) {
-        try {
-            console.log("Searching in Pinecone...");
-            const pineconeStore = await getPineconeStore();
-            results = await pineconeStore.similaritySearch(query, topK);
-        } catch (error) {
-            console.error("Pinecone search failed, falling back to Local Memory Store:", error);
-            // Optimization: Fallback to local store instead of failing
-            try {
-                const store = await getVectorStore();
-                results = await store.similaritySearch(query, topK);
-            } catch (localError) {
-                console.error("Local Memory store fallback also failed:", localError);
-            }
-        }
-    } else {
-        console.log("Searching in Local Memory store (Pinecone not configured)...");
-        try {
-            const store = await getVectorStore();
-            results = await store.similaritySearch(query, topK);
-        } catch (error) {
-            console.error("Local Memory store search failed:", error);
-        }
-    }
-
-    // Hybrid Search Logic: If specific keywords (creatinine, egfr, etc) are in query,
-    // ensure those documents are prioritized or pinned.
-    const keywords = ["creatinine", "egfr", "gfr", "potassium", "hemodialysis", "dialysis"];
-    const hasKeyword = keywords.some(k => normalizedQuery.includes(k));
-
-    if (hasKeyword) {
-        // Boost documents that contain the exact keywords
-        results.sort((a, b) => {
-            const aHas = keywords.some(k => a.pageContent.toLowerCase().includes(k)) ? 1 : 0;
-            const bHas = keywords.some(k => b.pageContent.toLowerCase().includes(k)) ? 1 : 0;
-            return bHas - aHas;
-        });
-    }
-
-    // Save to cache
-    queryCache.set(normalizedQuery, { docs: results, timestamp: Date.now() });
-
-    return results;
-}
-
-/**
- * Get formatted context from search results
- */
-export function formatContext(documents: Document[]): string {
-    if (documents.length === 0) {
-        return "No relevant information found in the knowledge base.";
-    }
-
-    return documents
-        .map((doc) => {
-            const source = doc.metadata.source || "Unknown";
-            return `[Source: ${source}]\n${doc.pageContent}`;
-        })
-        .join("\n\n---\n\n");
-}

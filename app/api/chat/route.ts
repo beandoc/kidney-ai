@@ -22,7 +22,7 @@ export async function OPTIONS() {
 import { trackQuery } from "../../../lib/users";
 
 export async function POST(request: NextRequest) {
-    console.log("POST /api/chat received via PageIndex");
+    console.log(JSON.stringify({ event: "ChatAPIRequest", method: "POST", message: "Received request" }));
     try {
         const userId = request.headers.get("x-user-id");
         if (!userId) {
@@ -93,11 +93,11 @@ export async function POST(request: NextRequest) {
         });
     } catch (error: unknown) {
         const err = error as Error;
-        console.error("Chat API Error Detailed:", {
-            message: err?.message,
+        console.error(JSON.stringify({
+            event: "ChatAPIError",
+            errorMessage: err?.message,
             stack: err?.stack,
-            error: error
-        });
+        }));
         return NextResponse.json(
             {
                 error: err instanceof Error ? err.message : "An error occurred",

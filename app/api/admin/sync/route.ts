@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import * as fs from "fs";
 import * as path from "path";
-import { pageIndexClient } from "@/lib/pageindex/client";
+
 import { invalidateIndex } from "@/lib/pageindex/retrieval";
 import { processFileBuffer } from "@/lib/langchain/pinecone";
 
@@ -50,13 +50,7 @@ export async function POST(request: Request) {
 
                     try {
                         const buffer = fs.readFileSync(filePath);
-                        const isPdf = fileName.toLowerCase().endsWith('.pdf');
-
-                        if (isPdf) {
-                            const result = await pageIndexClient.indexPdf(buffer, fileName);
-                            const outName = fileName.endsWith('.json') ? fileName : `${fileName}.json`;
-                            fs.writeFileSync(path.join(pageIndexPath, outName), JSON.stringify(result, null, 2));
-                        } else if (fileName.endsWith('.json')) {
+                        if (fileName.endsWith('.json')) {
                             // Already an index file, just copy it
                             fs.writeFileSync(path.join(pageIndexPath, fileName), buffer);
                         } else {

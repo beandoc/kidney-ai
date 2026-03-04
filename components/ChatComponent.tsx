@@ -25,11 +25,9 @@ export default function ChatComponent() {
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [selectedImage, setSelectedImage] = useState<{ file: File; preview: string } | null>(null);
     const [agentStatus, setAgentStatus] = useState<string | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -69,42 +67,26 @@ export default function ChatComponent() {
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages, selectedImage]);
+    }, [messages]);
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            if (file.size > 4 * 1024 * 1024) {
-                setError("Image size must be less than 4MB");
-                return;
-            }
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setSelectedImage({ file, preview: reader.result as string });
-            };
-            reader.readAsDataURL(file);
-        }
-    };
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if ((!input.trim() && !selectedImage) || isLoading) return;
+        if (!input.trim() || isLoading) return;
         if (!user) return;
 
         const currentInput = input.trim();
-        const currentImage = selectedImage?.preview;
 
         const userMessage: Message = {
             id: Date.now().toString(),
             role: "user",
-            content: currentInput || (currentImage ? "[Image]" : ""),
-            image: currentImage,
+            content: currentInput,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
 
         setMessages((prev) => [...prev, userMessage]);
         setInput("");
-        setSelectedImage(null);
         setIsLoading(true);
         setAgentStatus(null);
         setError(null);
@@ -127,7 +109,6 @@ export default function ChatComponent() {
                     },
                     body: JSON.stringify({
                         message: currentInput,
-                        image: currentImage?.split(',')[1],
                         history: chatHistory
                     })
                 });
@@ -241,9 +222,6 @@ export default function ChatComponent() {
                     setInput={setInput}
                     isLoading={isLoading}
                     handleSubmit={handleSubmit}
-                    selectedImage={selectedImage}
-                    setSelectedImage={setSelectedImage}
-                    handleFileSelect={handleFileSelect}
                 />
             </div>
         </div>

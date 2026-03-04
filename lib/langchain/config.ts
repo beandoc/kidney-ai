@@ -1,5 +1,6 @@
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatGroq } from "@langchain/groq";
 
 /**
  * Get configured Google Gemini Embeddings instance
@@ -12,20 +13,35 @@ export function getEmbeddings() {
   });
 }
 
-// (removed duplicate comment)
+/**
+ * Get the LLM model (Gemini with Groq Fallback)
+ */
 export function getChatModel(maxRetries?: number) {
-  const apiKey = (process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY)?.trim();
+  const geminiKey = (process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY)?.trim();
+  const groqKey = process.env.GROQ_API_KEY?.trim();
 
-  if (!apiKey) {
-    console.error("FATAL: GOOGLE_API_KEY is missing from environment variables!");
+  // Primary LLM: Gemini
+  if (geminiKey) {
+    return new ChatGoogleGenerativeAI({
+      model: "gemini-flash-latest",
+      temperature: 0.1,
+      apiKey: geminiKey,
+      maxRetries: maxRetries ?? 2, // Fail fast to use fallback
+    });
   }
 
-  return new ChatGoogleGenerativeAI({
-    model: "gemini-flash-latest",
-    temperature: 0.1,
-    apiKey: apiKey,
-    maxRetries: maxRetries ?? 5,
-  });
+  // Fallback LLM: Groq
+  if (groqKey) {
+    console.log("Using Fallback LLM: Groq");
+    return new ChatGroq({
+      model: "llama-3.1-8b-instant",
+      temperature: 0.1,
+      apiKey: groqKey,
+      maxRetries: maxRetries ?? 2,
+    });
+  }
+
+  throw new Error("No LLM API keys configured (Missing GOOGLE_API_KEY and GROQ_API_KEY)");
 }
 
 /**
@@ -47,26 +63,7 @@ LANGUAGE:
 
 Remember: Use your tools before answering. If you greet the user, be brief and professional.`;
 
-export const VISION_SYSTEM_PROMPT = `You are a medical-grade Kidney Vision Assistant. 
-Analyze photos of food, meal plates, or laboratory reports (Creatinine, eGFR, Potassium, etc.).
 
-VISION PROTOCOL:
-1. LAB REPORTS: Extract EXACT values. Compare them against kidney health reference ranges found in the Context.
-2. FOOD: Identify ingredients. Check the Context for Potassium/Phosphorus/Sodium content. 
-3. MULTILINGUAL: Support Hindi/Marathi and English. Use precise medical terms.
-
-STRICT RULES:
-1. If the user greets you (e.g., "Hi", "Hello"), greet them back politely.
-2. Identify the content of the image (food, report values).
-3. INTERPRET the content using ONLY the provided Context.
-4. If the Context does not contain information about the identified content (e.g., specific food nutrient values or lab ranges), state clearly: "Sorry, I don't know the answer. Kindly consult your doctor for this."
-5. Do NOT use general medical knowledge to interpret the health implications.
-6. End with: "This analysis is for education. Please confirm these values with your clinical report and nephrologist."
-
-Context:
-{context}
-
-Question: {question}`;
 
 /**
  * Prompt for correcting typos and normalizing queries before vector search

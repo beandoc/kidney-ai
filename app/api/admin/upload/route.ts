@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getPineconeStore, processFileBuffer, processRawText } from "../../../../lib/langchain/pinecone";
 import * as fs from "fs";
 import * as path from "path";
-import { pageIndexClient } from "../../../../lib/pageindex/client";
+
 import { invalidateIndex } from "../../../../lib/pageindex/retrieval";
 
 export const dynamic = "force-dynamic";
@@ -81,45 +81,33 @@ export async function POST(request: Request) {
                 const outName = label.endsWith('.json') ? label : `${label}.json`;
                 const outputPath = path.join(kbPath, outName);
 
-                if (isPdf && fileBuffer) {
-                    send({ type: 'progress', status: 'Generating Deep Reasoning Tree...', percent: 10 });
-                    const result = await pageIndexClient.indexPdf(fileBuffer, label);
-                    fs.writeFileSync(outputPath, JSON.stringify(result, null, 2));
-
-                    invalidateIndex();
-                    send({
-                        type: 'done',
-                        message: `Successfully indexed ${label} using PageIndex Deep Architecture (Gemini).`
-                    });
-                } else {
-                    // Simple Tree with CHUNKING
-                    const fullText = docs.map(d => d.pageContent).join('\n\n');
-                    const chunkSize = 5000;
-                    const chunks: string[] = [];
-                    for (let i = 0; i < fullText.length; i += chunkSize) {
-                        chunks.push(fullText.slice(i, i + chunkSize + 500));
-                    }
-
-                    const simpleResult = {
-                        doc_name: label,
-                        structure: chunks.map((chunk, idx) => ({
-                            title: `${label} - Part ${idx + 1}`,
-                            node_id: `chunk-${idx}`,
-                            start_index: 1,
-                            end_index: 1,
-                            summary: `Segment ${idx + 1} of ${label}`,
-                            text: chunk
-                        }))
-                    };
-
-                    fs.writeFileSync(outputPath, JSON.stringify(simpleResult, null, 2));
-                    invalidateIndex();
-
-                    send({
-                        type: 'done',
-                        message: `Successfully added ${label} to Agentic Brain (Split Chunk Mode).`
-                    });
+                // Simple Tree with CHUNKING
+                const fullText = docs.map(d => d.pageContent).join('\n\n');
+                const chunkSize = 5000;
+                const chunks: string[] = [];
+                for (let i = 0; i < fullText.length; i += chunkSize) {
+                    chunks.push(fullText.slice(i, i + chunkSize + 500));
                 }
+
+                const simpleResult = {
+                    doc_name: label,
+                    structure: chunks.map((chunk, idx) => ({
+                        title: `${label} - Part ${idx + 1}`,
+                        node_id: `chunk-${idx}`,
+                        start_index: 1,
+                        end_index: 1,
+                        summary: `Segment ${idx + 1} of ${label}`,
+                        text: chunk
+                    }))
+                };
+
+                fs.writeFileSync(outputPath, JSON.stringify(simpleResult, null, 2));
+                invalidateIndex();
+
+                send({
+                    type: 'done',
+                    message: `Successfully added ${label} to Agentic Brain (Split Chunk Mode).`
+                });
             } catch (error) {
                 console.error("Worker process error:", error);
                 send({ type: 'error', error: error instanceof Error ? error.message : "Internal processing error" });

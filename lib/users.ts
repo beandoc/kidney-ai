@@ -6,6 +6,7 @@ const KV_USERS_KEY = "kidney_ai_users";
 export interface UserRecord {
     id: string;
     username: string;
+    passwordHash?: string;
     createdAt: string;
     lastActive: string;
     totalQueries: number;
@@ -33,7 +34,7 @@ export async function saveUsers(users: UserRecord[]): Promise<void> {
     }
 }
 
-export async function registerUser(username: string, mobile?: string): Promise<UserRecord> {
+export async function registerUser(username: string, mobile?: string, passwordHash?: string): Promise<UserRecord> {
     const users = await getUsers();
     const existingIndex = users.findIndex(u => u.username.toLowerCase() === username.toLowerCase());
 
@@ -41,14 +42,20 @@ export async function registerUser(username: string, mobile?: string): Promise<U
         // If they already exist, we update their mobile if provided
         if (mobile) {
             users[existingIndex].mobile = mobile.trim();
+        }
+        if (passwordHash) {
+            users[existingIndex].passwordHash = passwordHash;
+        }
+        if (mobile || passwordHash) {
             await saveUsers(users);
         }
         return users[existingIndex];
     }
 
     const newUser: UserRecord = {
-        id: Math.random().toString(36).substring(2, 15),
+        id: crypto.randomUUID(),
         username: username.trim(),
+        passwordHash: passwordHash,
         createdAt: new Date().toISOString(),
         lastActive: new Date().toISOString(),
         totalQueries: 0,

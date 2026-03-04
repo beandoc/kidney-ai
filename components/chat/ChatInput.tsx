@@ -8,9 +8,6 @@ interface ChatInputProps {
     setInput: (val: string) => void;
     isLoading: boolean;
     handleSubmit: (e: React.FormEvent) => void;
-    selectedImage: { file: File; preview: string } | null;
-    setSelectedImage: (val: { file: File; preview: string } | null) => void;
-    handleFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export default function ChatInput({
@@ -18,25 +15,12 @@ export default function ChatInput({
     setInput,
     isLoading,
     handleSubmit,
-    selectedImage,
-    setSelectedImage,
-    handleFileSelect,
 }: ChatInputProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     return (
         <footer className="relative z-20 px-4 py-4 flex flex-col gap-2 wa-input-container">
-            {selectedImage && (
-                <div className="mx-2 mb-3 relative inline-block w-28 h-28 group animate-in zoom-in-50 duration-200">
-                    <img src={selectedImage.preview} className="w-full h-full object-cover rounded-2xl border-2 border-white shadow-xl" alt="Preview" />
-                    <div
-                        onClick={() => setSelectedImage(null)}
-                        className="absolute -top-3 -right-3 bg-[#f15c5c] text-white rounded-full w-7 h-7 flex items-center justify-center cursor-pointer shadow-xl hover:scale-110 transition-all border-2 border-white"
-                    >
-                        <X className="w-4 h-4" />
-                    </div>
-                </div>
-            )}
+
 
             <div className="flex items-center gap-2.5 max-w-[1200px] mx-auto w-full">
                 <div className="flex items-center text-[#54656F] bg-white rounded-full p-2.5 shadow-sm border border-slate-100 hover:text-[#128C7E] cursor-pointer transition-colors active:bg-slate-50">
@@ -52,17 +36,6 @@ export default function ChatInput({
                             placeholder="Type a clinical query..."
                             className="flex-1 bg-transparent border-none outline-none text-[#111B21] text-[16px] placeholder-slate-400"
                             disabled={isLoading}
-                        />
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            className="hidden"
-                            accept="image/*"
-                            onChange={handleFileSelect}
-                        />
-                        <Paperclip
-                            onClick={() => fileInputRef.current?.click()}
-                            className="w-5.5 h-5.5 text-[#54656F] cursor-pointer hover:text-[#128C7E] ml-2 transition-colors active:scale-90"
                         />
                     </div>
 

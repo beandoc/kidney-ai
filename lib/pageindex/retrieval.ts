@@ -1,6 +1,17 @@
 import * as fs from "fs";
 import * as path from "path";
-import { PageIndexNode } from "./client";
+export interface PageIndexNode {
+    title?: string;
+    section?: string;
+    content?: string;
+    text?: string;
+    summary?: string;
+    node_id?: string;
+    start_index?: number;
+    end_index?: number;
+    page?: number;
+    nodes?: PageIndexNode[];
+}
 import { Document } from "@langchain/core/documents";
 
 const PAGEINDEX_KB_PATH = path.join(process.cwd(), "knowledge_base", "pageindex");
@@ -141,7 +152,31 @@ export async function searchPageIndex(query: string): Promise<Document[]> {
     // Filter common stop words to focus on medical keywords
     const stopWords = new Set(["the", "and", "is", "for", "with", "what", "are", "about", "your", "does", "from"]);
     const filteredQuery = queryWords.filter(w => !stopWords.has(w));
-    const finalQuery = filteredQuery.length > 0 ? filteredQuery : queryWords;
+    const tokenList = filteredQuery.length > 0 ? filteredQuery : queryWords;
+
+    // MEDICAL SYNONYM EXPANSION
+    const synonymMap: Record<string, string[]> = {
+        "kidney": ["renal"],
+        "renal": ["kidney"],
+        "esrd": ["failure"],
+        "failure": ["esrd"],
+        "hypertension": ["bp", "blood pressure"],
+        "bp": ["hypertension", "blood pressure"],
+        "diabetes": ["sugar"],
+        "sugar": ["diabetes", "glucose"],
+        "ckd": ["chronic", "disease"],
+        "akd": ["acute", "disease"],
+        "aki": ["acute", "injury"]
+    };
+
+    const expandedQuery = new Set<string>();
+    for (const term of tokenList) {
+        expandedQuery.add(term);
+        if (synonymMap[term]) {
+            synonymMap[term].forEach(syn => expandedQuery.add(syn));
+        }
+    }
+    const finalQuery = Array.from(expandedQuery);
 
     const scored: { entry: IndexEntry; score: number }[] = [];
 
@@ -209,7 +244,7 @@ export function formatPageIndexContext(documents: Document[]): string {
     }
 
     let fullContext = "";
-    const LIMIT = 5000;
+    const LIMIT = 15000;
 
     for (const doc of documents) {
         if (fullContext.length >= LIMIT) break;
