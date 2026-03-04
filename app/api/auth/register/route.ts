@@ -8,15 +8,20 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Username must be at least 2 characters" }, { status: 400 });
         }
 
-        // Admin hardcoded credentials (added safe check for trim)
-        // Leaving this intact for now but should be migrated to DB
-        const isAdmin = username?.trim().toLowerCase() === "sachin" && mobile?.trim() === "0987654321";
+        const cleanUsername = username.trim().toLowerCase();
+        const cleanMobile = mobile?.trim().replace(/^0+/, ""); // strip leading zeros
 
-        // Check if user exists
+        // Admin credentials from env vars (fallback to hardcoded for legacy)
+        const adminUsername = (process.env.ADMIN_USERNAME || "sachin").toLowerCase();
+        const adminMobile = (process.env.ADMIN_MOBILE || "0987654321").replace(/^0+/, "");
+
+        const isAdmin = cleanUsername === adminUsername && cleanMobile === adminMobile;
+
+        // Check if user already exists in KV
         const existingUser = await loginUser(username);
 
         if (existingUser) {
-            // Existing user handling: verify password
+            // Existing user: verify password if they've set one
             if (existingUser.passwordHash && password) {
                 const bcrypt = await import("bcryptjs");
                 const isMatch = await bcrypt.compare(password, existingUser.passwordHash);
@@ -27,13 +32,14 @@ export async function POST(request: Request) {
             return NextResponse.json(existingUser);
         }
 
-        if (!existingUser && !isAdmin) {
+        // New user — only admin can self-register, others are blocked
+        if (!isAdmin) {
             return NextResponse.json({
                 error: "Account not found. Access is limited to registered clinicians. Please contact the administrator to create your account."
             }, { status: 403 });
         }
 
-        // New user registration
+        // Register admin for the first time
         let passwordHash;
         if (password) {
             const bcrypt = await import("bcryptjs");
@@ -43,6 +49,7 @@ export async function POST(request: Request) {
         const user = await registerUser(username, mobile, passwordHash);
         return NextResponse.json(user);
     } catch (error) {
+        console.error("Register error:", error);
         return NextResponse.json({ error: "Failed to register" }, { status: 500 });
     }
 }
