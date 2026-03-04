@@ -22,8 +22,11 @@ export async function GET(request: Request) {
                 .filter(file => file.endsWith('.json'))
                 .forEach(file => {
                     const stats = fs.statSync(path.join(PAGEINDEX_PATH, file));
+                    // Store originalName so DELETE knows the real filename on disk
+                    const displayName = file.replace(/\.json$/, '');
                     files.push({
-                        name: file.replace('.json', ''),
+                        name: displayName,          // shown in UI
+                        originalName: file,         // actual file on disk
                         size: stats.size,
                         updatedAt: stats.mtime,
                         type: 'pageindex_tree',
@@ -35,13 +38,14 @@ export async function GET(request: Request) {
         // 2. Add raw files that aren't indexed yet (if any)
         if (fs.existsSync(KNOWLEDGE_BASE_PATH)) {
             fs.readdirSync(KNOWLEDGE_BASE_PATH)
-                .filter(file => !file.startsWith('.') && file !== 'pageindex' && fs.statSync(path.join(KNOWLEDGE_BASE_PATH, file)).isFile())
+                .filter(file => !file.startsWith('.') && file !== 'pageindex' && !file.startsWith('profiles') && fs.statSync(path.join(KNOWLEDGE_BASE_PATH, file)).isFile())
                 .forEach(file => {
-                    const existsInIndex = files.some(f => f.name === file);
+                    const existsInIndex = files.some(f => f.name === file || f.name === file.replace(/\.[^.]+$/, ''));
                     if (!existsInIndex) {
                         const stats = fs.statSync(path.join(KNOWLEDGE_BASE_PATH, file));
                         files.push({
-                            name: file,
+                            name: file,             // raw files keep full name
+                            originalName: file,
                             size: stats.size,
                             updatedAt: stats.mtime,
                             type: path.extname(file).replace('.', ''),
@@ -72,20 +76,36 @@ export async function DELETE(request: Request) {
             return NextResponse.json({ error: "File name is required" }, { status: 400 });
         }
 
-        // Delete from raw folder
-        const rawPath = path.join(KNOWLEDGE_BASE_PATH, fileName);
-        if (fs.existsSync(rawPath)) {
-            fs.unlinkSync(rawPath);
+        // Delete from raw knowledge_base folder — try the name as-is AND with common extensions
+        const rawCandidates = [
+            fileName,
+            `${fileName}.json`,
+            `${fileName}.pdf`,
+            `${fileName}.md`,
+            `${fileName}.txt`,
+            `${fileName}.docx`,
+        ];
+        for (const candidate of rawCandidates) {
+            const rawPath = path.join(KNOWLEDGE_BASE_PATH, candidate);
+            if (fs.existsSync(rawPath) && fs.statSync(rawPath).isFile()) {
+                fs.unlinkSync(rawPath);
+                console.log(JSON.stringify({ event: "FileDeleted", path: "knowledge_base", file: candidate }));
+            }
         }
 
-        // Delete from PageIndex folder
-        const potentialJsonNames = [fileName, `${fileName}.json`];
-        potentialJsonNames.forEach(n => {
-            const jsonPath = path.join(PAGEINDEX_PATH, n);
-            if (fs.existsSync(jsonPath)) {
-                fs.unlinkSync(jsonPath);
+        // Delete from PageIndex folder — try name as-is AND with .json suffix
+        const indexCandidates = [fileName, `${fileName}.json`];
+        for (const candidate of indexCandidates) {
+            const indexPath = path.join(PAGEINDEX_PATH, candidate);
+            if (fs.existsSync(indexPath)) {
+                fs.unlinkSync(indexPath);
+                console.log(JSON.stringify({ event: "FileDeleted", path: "pageindex", file: candidate }));
             }
-        });
+        }
+
+        // Invalidate the search index so it rebuilds without the deleted file
+        const { invalidateIndex } = await import("../../../../lib/pageindex/retrieval");
+        invalidateIndex();
 
         return NextResponse.json({ success: true, message: `Deleted ${fileName} and associated index.` });
     } catch (error: unknown) {
