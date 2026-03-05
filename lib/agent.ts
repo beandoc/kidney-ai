@@ -143,7 +143,43 @@ For patients with CKD, you can also check your risk of progression to end-stage 
 **Important Note for Indian Patients:**
 For those following the usual Indian diet, protein restriction is generally not recommended, as the diet is already naturally low in protein.
 
-*Always consult your treating nephrologist for tailored dietary advice specific to your health condition.*`
+*Always consult your treating nephrologist for tailored dietary advice specific to your health condition.*`,
+
+    "vaccinations for kidney patients": `Vaccinations are crucial for kidney patients, especially those undergoing dialysis or who have had a kidney transplant. Here are the key vaccinations recommended:
+
+1. **Hepatitis B Vaccine**
+   - **Importance:** Reduces the risk of Hepatitis B infection during dialysis or after kidney transplantation.
+   - **Schedule:** Four double doses of the recombinant Hepatitis B vaccine are given at 0, 1, 2, and 6 months, intramuscularly in the deltoid region.
+
+2. **Influenza Vaccine**
+   - **Importance:** Protects against seasonal flu, which can lead to serious complications.
+   - **Schedule:** Recommended annually, especially before flu season.
+
+3. **Pneumococcal Vaccine**
+   - **Importance:** Provides protection against pneumonia and other infections caused by Streptococcus pneumoniae.
+   - **Schedule:** Administered at least once, with a booster recommended for high-risk patients.
+
+4. **Tetanus-Diphtheria-Pertussis (Tdap) Vaccine**
+   - **Importance:** Protects against tetanus, diphtheria, and pertussis (whooping cough).
+   - **Schedule:** A booster is recommended every 10 years.
+
+5. **COVID-19 Vaccine**
+   - **Importance:** Essential for protecting against severe illness from COVID-19.
+   - **Schedule:** Follow current guidance from health authorities regarding initial doses and boosters.
+
+6. **Varicella (Chickenpox) Vaccine**
+   - **Importance:** Recommended for patients who have not had chickenpox or the vaccine in the past.
+   - **Schedule:** Generally given in two doses.
+
+7. **Meningococcal Vaccine**
+   - **Importance:** Protects against meningitis, especially in patients with weakened immune systems.
+   - **Schedule:** Administered as per current health guidelines.
+
+**General Precautions:**
+- **Consult Your Healthcare Provider:** Always discuss vaccinations with your nephrologist to tailor the schedule based on your specific health needs.
+- **Stay Updated:** Keep track of vaccination records and ensure you are up-to-date with all recommended vaccines.
+
+*These vaccinations are crucial to protect kidney patients from infections that could complicate their health. Always consult your treating nephrologist for personalized advice.*`
 };
 
 // --- Main Agent Loop ---
