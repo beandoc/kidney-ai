@@ -23,10 +23,10 @@ Learn more about our services, or get more information. I'm here to help you eve
 - Kidney Transplant
 - and much more . . . just type below . . .
 
-*(Chat with Nirogyam ChatBot in: मराठी, English, हिंदी, ગુજરાતી, ಕನ್ನಡ, മലയാളം, తెలుగు, ଓଡ଼ିଶା, தமிழ், ਪੰਜਾਬੀ, বাংলা, عربی, اردو, or any other — just ask me to translate or type in your script!)*
+*(Chat with Nirogyam ChatBot in: मराठी, English, हिंदी)*
 
 ---
-⚠️ *This is an automated chatbot response. The responses are for information purpose only, and should not be construed as medical advice! In case of an emergency or urgent care please connect with the nearest hospital.*`;
+⚠️ *This is an automated chatbot response. The responses are for information purpose only, and should not be construed as medical advice! In case of an emergency or urgent care please come to **MI Room/ Emergency***`;
 
 export default function ChatComponent() {
     const [mounted, setMounted] = useState(false);
@@ -35,7 +35,7 @@ export default function ChatComponent() {
         {
             id: "welcome",
             role: "assistant",
-            content: WELCOME_MESSAGE,
+            content: "", // Starts empty for typewriter
             timestamp: "",
         },
     ]);
@@ -50,18 +50,36 @@ export default function ChatComponent() {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
+    // TYPEWRITER EFFECT FOR WELCOME MESSAGE
+    useEffect(() => {
+        if (!mounted) return;
+
+        // Only run if we are at the welcome state
+        if (messages.length === 1 && messages[0].id === "welcome" && messages[0].content !== WELCOME_MESSAGE) {
+            let i = 0;
+            const timer = setInterval(() => {
+                setMessages(prev => {
+                    const newMessages = [...prev];
+                    if (newMessages[0].id === "welcome") {
+                        newMessages[0] = {
+                            ...newMessages[0],
+                            content: WELCOME_MESSAGE.slice(0, i),
+                            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        };
+                    }
+                    return newMessages;
+                });
+                i += 5; // Speed adjustment: typing 5 chars at a time for better flow
+                if (i > WELCOME_MESSAGE.length + 5) {
+                    clearInterval(timer);
+                }
+            }, 20);
+            return () => clearInterval(timer);
+        }
+    }, [mounted]);
+
     useEffect(() => {
         setMounted(true);
-        // Clean slate: We no longer load messages from localStorage to ensure privacy between sessions
-        setMessages([
-            {
-                id: "welcome",
-                role: "assistant",
-                content: WELCOME_MESSAGE,
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            }
-        ]);
-
         // Check for existing user session
         const storedId = localStorage.getItem("kidney_ai_user_id");
         const storedUsername = localStorage.getItem("kidney_ai_username");
@@ -94,7 +112,7 @@ export default function ChatComponent() {
         const welcomeMessage: Message = {
             id: "welcome",
             role: "assistant",
-            content: WELCOME_MESSAGE,
+            content: "", // Set to empty to re-trigger typewriter
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages([welcomeMessage]);
@@ -115,7 +133,7 @@ export default function ChatComponent() {
         }, 50);
     };
 
-    const showSuggestions = messages.length <= 1 && !isLoading;
+    const showSuggestions = messages.length <= 1 && !isLoading && messages[0]?.content === WELCOME_MESSAGE;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
