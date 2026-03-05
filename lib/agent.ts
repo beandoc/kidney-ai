@@ -47,6 +47,24 @@ function buildContextAwareQuery(input: string, chatHistory: BaseMessage[]): stri
     return input;
 }
 
+/**
+ * Pre-warms the agent's backend resources (LLM connections, Vector DB, Page Index).
+ * This is called during the welcome message phase to eliminate cold starts.
+ */
+export async function prewarmAgent() {
+    console.log(JSON.stringify({ event: "PrewarmStarted", status: "initializing_resources" }));
+    try {
+        await Promise.allSettled([
+            getChatModel(), // Warm LLM provider connection
+            searchSemantic("kidney", 1), // Warm Pinecone connection
+            searchPageIndex("introduction") // Pre-load indexing metadata
+        ]);
+        console.log(JSON.stringify({ event: "PrewarmComplete", status: "ready" }));
+    } catch (err) {
+        console.error("Prewarm failed", err);
+    }
+}
+
 // --- Main Agent Loop ---
 export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
     console.log(JSON.stringify({ event: "AgentStart", query: input, historyLength: chatHistory.length }));

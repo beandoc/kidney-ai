@@ -70,6 +70,24 @@ export default function ChatComponent() {
         }
     }, []);
 
+    // CORKED & LOADED: Pre-warm the backend while the user reads the welcome message
+    useEffect(() => {
+        const prewarm = async () => {
+            try {
+                await fetch("/api/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ type: "ping" }),
+                });
+            } catch (e) {
+                console.warn("Pre-warm ping failed, likely ignorable", e);
+            }
+        };
+        // Small delay to let critical UI mount first
+        const timer = setTimeout(prewarm, 1500);
+        return () => clearTimeout(timer);
+    }, []);
+
     // Removed the Effect that saved messages to localStorage
 
     const clearChat = () => {

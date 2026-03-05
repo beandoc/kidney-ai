@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AIMessage, HumanMessage } from "@langchain/core/messages";
-import { runAgent } from "../../../lib/agent";
 
 export const dynamic = "force-dynamic";
 
@@ -20,10 +19,19 @@ export async function OPTIONS() {
 }
 
 import { trackQuery } from "../../../lib/users";
+import { runAgent, prewarmAgent } from "../../../lib/agent";
 
 export async function POST(request: NextRequest) {
     console.log(JSON.stringify({ event: "ChatAPIRequest", method: "POST", message: "Received request" }));
     try {
+        const body = await request.json();
+
+        // CORKED & LOADED: Handle pre-warming request
+        if (body.type === "ping") {
+            prewarmAgent(); // Fire and forget pre-warming
+            return NextResponse.json({ status: "warming_up" });
+        }
+
         const userId = request.headers.get("x-user-id");
         if (!userId) {
             return NextResponse.json({ error: "Authentication required" }, { status: 401 });
