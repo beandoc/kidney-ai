@@ -179,7 +179,41 @@ For those following the usual Indian diet, protein restriction is generally not 
 - **Consult Your Healthcare Provider:** Always discuss vaccinations with your nephrologist to tailor the schedule based on your specific health needs.
 - **Stay Updated:** Keep track of vaccination records and ensure you are up-to-date with all recommended vaccines.
 
-*These vaccinations are crucial to protect kidney patients from infections that could complicate their health. Always consult your treating nephrologist for personalized advice.*`
+*These vaccinations are crucial to protect kidney patients from infections that could complicate their health. Always consult your treating nephrologist for personalized advice.*`,
+
+    "what is dialysis and fistula care?": `Dialysis and fistula care are essential components of treatment for individuals with kidney failure. Here’s a breakdown of both:
+
+### Dialysis
+Dialysis is a medical procedure that replicates some functions of healthy kidneys when they can no longer filter waste products from the blood effectively. There are two main types of dialysis:
+
+1. **Hemodialysis**
+   - **Process:** Blood is drawn from the body, filtered through a dialysis machine to remove waste and excess fluid, and then returned to the body.
+   - **Frequency:** Typically performed 3 times a week for about 3-5 hours per session.
+   - **Access Points:** Requires an access point, usually created through a fistula or graft.
+
+2. **Peritoneal Dialysis**
+   - **Process:** A special fluid is introduced into the abdomen through a catheter, allowing waste and excess fluids to be filtered through the abdominal lining (peritoneum).
+   - **Frequency:** Can be done manually several times a day or automatically using a machine at night.
+
+### Fistula Care
+A fistula is a surgically created connection between an artery and a vein, usually in the arm, that provides access for hemodialysis. Proper care is crucial to ensure its functionality and prevent complications.
+
+**Care Guidelines:**
+- **Keep It Clean:** Regularly wash the area with soap and water before and after dialysis.
+- **Inspect for Changes:** Check for swelling, redness, or unusual warmth, which may indicate infection.
+- **Avoid Pressure:** Do not carry heavy objects or put pressure on the arm with the fistula.
+- **No Blood Pressure Measurements:** Avoid taking blood pressure or drawing blood from the arm with the fistula.
+- **Palpate for Thrill:** Gently feel the fistula to ensure it is functioning properly; it should have a buzzing sensation (thrill).
+
+**Signs of Complications:**
+- **Infection:** Fever, chills, or increased redness and swelling around the fistula.
+- **Clots:** Sudden loss of blood flow or thrill in the fistula.
+- **Pain:** Unusual pain at the site of the fistula.
+
+### Conclusion
+Both dialysis and fistula care are vital for kidney patients, particularly those with end-stage renal disease. Regular monitoring and proper care can significantly enhance the effectiveness of dialysis and improve the patient's quality of life.
+
+*Always consult your treating nephrologist for personalized advice and management strategies.*`
 };
 
 // --- Main Agent Loop ---
