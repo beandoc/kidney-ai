@@ -102,7 +102,48 @@ const GOLD_ANSWERS: Record<string, string> = {
 
 Incorporating these practices into your daily life can significantly lower your risk of developing kidney disease. For more detailed guidance, consider discussing your individual health needs with your healthcare provider or nephrologist.
 
-For patients with CKD, you can also check your risk of progression to end-stage renal disease (ESRD) using this calculator: **[Kidney Failure Risk Calculator](https://kidneyfailurerisk.com/)** and consult your treating nephrologist.`
+For patients with CKD, you can also check your risk of progression to end-stage renal disease (ESRD) using this calculator: **[Kidney Failure Risk Calculator](https://kidneyfailurerisk.com/)** and consult your treating nephrologist.`,
+
+    "best diet for kidney patients": `For kidney patients, a well-structured diet is essential to manage kidney health and prevent further complications. Here are the key dietary guidelines:
+
+1. **Protein Intake**
+   - **Limit Protein:** Recommended intake is generally less than 0.8 grams/kg of body weight per day for those not on dialysis.
+   - **Increase if on Dialysis:** Those undergoing dialysis may need 1.0 to 1.2 grams/kg of body weight per day to replace lost protein.
+
+2. **Carbohydrates**
+   - **Complex Carbs:** Focus on whole grains and complex carbohydrates, such as whole wheat and unpolished rice, which provide fiber and energy.
+   - **Limit Simple Sugars:** Minimize intake of simple sugars found in sweets and sugary drinks.
+
+3. **Fats**
+   - **Choose Healthy Fats:** Unsaturated fats from sources like olive oil, canola oil, and avocados are preferable.
+   - **Avoid Saturated and Trans Fats:** Limit intake of red meat, butter, and processed foods high in trans fats.
+
+4. **Sodium**
+   - **Low Sodium Diet:** Aim for a "no added salt" diet, avoiding processed foods high in sodium.
+   - **Check Labels:** Look for low-sodium options and avoid salt substitutes that may contain high potassium.
+
+5. **Potassium and Phosphorus**
+   - **Limit High Potassium Foods:** Avoid foods like bananas, oranges, and potatoes if potassium levels are a concern.
+   - **Reduce High Phosphorus Foods:** Limit dairy products, nuts, and certain meats as they are high in phosphorus.
+
+6. **Fluids**
+   - **Monitor Fluid Intake:** Depending on kidney function, you may need to restrict fluid intake to prevent swelling and fluid retention.
+
+7. **Fruits and Vegetables**
+   - **Low Potassium Options:** Choose fruits like apples, berries, and papayas. 
+   - **Processing:** High-potassium vegetables should be cooked or processed to reduce potassium levels.
+
+8. **Vitamins and Minerals**
+   - **Supplementation:** Consider Vitamin B, C, and Folic Acid supplementation under the guidance of a healthcare provider.
+
+9. **General Guidelines**
+   - **Consult a Dietitian:** Work with a registered dietitian specializing in kidney disease for personalized dietary advice.
+   - **Balanced Nutrition:** Aim for a high-fiber diet with adequate vitamins while managing caloric intake.
+
+**Important Note for Indian Patients:**
+For those following the usual Indian diet, protein restriction is generally not recommended, as the diet is already naturally low in protein.
+
+*Always consult your treating nephrologist for tailored dietary advice specific to your health condition.*`
 };
 
 // --- Main Agent Loop ---
