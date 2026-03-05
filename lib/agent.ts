@@ -213,7 +213,39 @@ A fistula is a surgically created connection between an artery and a vein, usual
 ### Conclusion
 Both dialysis and fistula care are vital for kidney patients, particularly those with end-stage renal disease. Regular monitoring and proper care can significantly enhance the effectiveness of dialysis and improve the patient's quality of life.
 
-*Always consult your treating nephrologist for personalized advice and management strategies.*`
+*Always consult your treating nephrologist for personalized advice and management strategies.*`,
+
+    "when is kidney transplant needed?": `A kidney transplant may be needed in the following situations:
+
+1. **End-Stage Renal Disease (ESRD)**
+   - **Definition:** This is the final stage of chronic kidney disease (CKD) where the kidneys can no longer maintain normal function.
+   - **Indication:** Typically, a transplant is considered when kidney function falls below **15% of normal**.
+
+2. **Severe Symptoms of Kidney Failure**
+   - **Symptoms:** Persistent issues such as fatigue, nausea, vomiting, and loss of appetite that severely impact quality of life.
+
+3. **Dialysis Dependency**
+   - **Long-Term Dialysis:** If a patient is on dialysis for an extended period without improvement, a transplant may be the best option for long-term survival and quality of life.
+
+4. **Poor Prognosis with Other Treatments**
+   - **Ineffective Management:** If conservative treatments or medications are no longer effective in managing kidney disease or associated symptoms.
+
+5. **Genetic or Congenital Issues**
+   - **Inherited Conditions:** Certain hereditary kidney diseases that lead to progressive renal failure may require a transplant earlier in life.
+
+6. **Diabetes-Related Kidney Damage**
+   - **Diabetic Nephropathy:** Advanced kidney damage due to diabetes that significantly impairs kidney function.
+
+7. **Urgent Situations**
+   - **Acute Kidney Injury:** In some cases, severe acute kidney injury that progresses to chronic kidney disease requiring maintenance dialysis may necessitate a transplant.
+
+8. **Recurrent Kidney Disease**
+   - **Recurrence of Disease:** Conditions like focal segmental glomerulosclerosis (FSGS) may recur in a transplanted kidney, necessitating careful evaluation.
+
+### Conclusion
+A kidney transplant can significantly improve the quality of life and longevity for patients with severe kidney disease. It is essential to consult with a nephrologist to evaluate individual circumstances and determine the best course of action tailored to your health needs.
+
+*Always discuss with your treating nephrologist for personalized advice regarding kidney transplant eligibility and the process involved.*`
 };
 
 // --- Main Agent Loop ---
