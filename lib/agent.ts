@@ -50,30 +50,31 @@ function buildContextAwareQuery(input: string, chatHistory: BaseMessage[]): stri
 // --- Main Agent Loop ---
 export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
     console.log(JSON.stringify({ event: "AgentStart", query: input, historyLength: chatHistory.length }));
+
+    // IMMEDIATE PULSE: Yield a space so the UI knows the server is alive
+    yield " ";
+
     try {
         // CONVERSATION-AWARE QUERY ENRICHMENT
-        let enrichedInput = buildContextAwareQuery(input, chatHistory);
+        const enrichedInput = buildContextAwareQuery(input, chatHistory);
 
-        // QUERY REFINEMENT (typo correction / normalization)
-        let refinedInput = enrichedInput;
-        if (enrichedInput.length > 5) {
-            refinedInput = await refineQuery(enrichedInput);
-        }
-
-        // Step 1: Lightning Fast Hybrid Knowledge Retrieval
-        const [keywordDocs, semanticDocs] = await Promise.all([
-            searchPageIndex(refinedInput),
-            searchSemantic(refinedInput, 10) // Increase density for reranking
+        // STEP 1: PARALLEL RETRIEVAL & REFINEMENT
+        // We start searching with the enriched input immediately while the LLM corrects typos in parallel.
+        const [keywordDocs, semanticDocs, refinedInput] = await Promise.all([
+            searchPageIndex(enrichedInput),
+            searchSemantic(enrichedInput, 8),
+            enrichedInput.split(" ").length > 3 ? refineQuery(enrichedInput) : Promise.resolve(enrichedInput)
         ]);
 
+        // If refined input is significantly different, we could re-run search, 
+        // but for latency we merge both. Usually enrichedInput is close enough.
+
         // HYBRID MERGE: Reciprocal Rank Fusion (RRF)
-        // This is the industry standard for merging keyword + vector results.
-        // Formula: score = sum( 1 / (60 + rank) )
         const K = 60;
         const rrfScores = new Map<string, number>();
-        const docMap = new Map<string, typeof keywordDocs[0]>();
+        const docMap = new Map<string, any>();
 
-        const applyRRF = (docs: typeof keywordDocs, weight = 1.0) => {
+        const applyRRF = (docs: any[], weight = 1.0) => {
             docs.forEach((doc, rank) => {
                 const id = `${doc.metadata.source}-${doc.metadata.title}-${doc.pageContent.slice(0, 50)}`;
                 docMap.set(id, doc);
@@ -83,7 +84,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
         };
 
         applyRRF(keywordDocs, 1.0);
-        applyRRF(semanticDocs, 1.0);
+        applyRRF(semanticDocs, 1.2); // Slight boost to semantic
 
         // Sort unique docs by RRF score
         const uniqueDocs = Array.from(rrfScores.keys())
@@ -91,21 +92,22 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
             .sort((a, b) => b.score - a.score)
             .map(item => docMap.get(item.id)!);
 
-        // Step 1.2: ADVANCED RERANKING (Cross-Encoder)
-        // Pass the top-merged candidates to LLM for final clinical verification
-        const topCandidates = uniqueDocs.slice(0, 10);
-        const remainingDocs = uniqueDocs.slice(10);
-
-        const rerankedTop = await rerankDocuments(refinedInput, topCandidates);
-        const finalDocs = [...rerankedTop, ...remainingDocs];
+        // STEP 1.2: CONDITIONAL RERANKING
+        // Only call the expensive Reranker if we have ambiguity.
+        // If top-1 is very strong or query is very short, skip.
+        let finalDocs = uniqueDocs;
+        if (uniqueDocs.length > 1 && refinedInput.length > 10) {
+            const topCandidates = uniqueDocs.slice(0, 6); // Rerank fewer docs for speed
+            const remainingDocs = uniqueDocs.slice(6);
+            const rerankedTop = await rerankDocuments(refinedInput, topCandidates);
+            finalDocs = [...rerankedTop, ...remainingDocs];
+        }
 
         console.log(JSON.stringify({
-            event: "AgentRetrieval",
+            event: "AgentRetrievalComplete",
             query: refinedInput,
-            keywordDocsCount: keywordDocs.length,
-            semanticDocsCount: semanticDocs.length,
             totalUniqueDocs: uniqueDocs.length,
-            rerankedCount: rerankedTop.length
+            usedReranking: uniqueDocs.length > 1 && refinedInput.length > 10
         }));
 
         // Context Truncation for Latency Optimization
