@@ -876,7 +876,7 @@ export default function AdminDashboard() {
                 ) : (
                     /* User Management View */
                     <div className="bg-white rounded-2xl shadow-sm border border-[#D1D7DB] overflow-hidden animate-in fade-in duration-500">
-                        <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                        <div className="p-8 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between bg-slate-50 gap-4">
                             <div>
                                 <h1 className="text-2xl font-bold flex items-center gap-3 text-slate-800">
                                     <Users className="w-7 h-7 text-[#128C7E]" />
@@ -884,13 +884,22 @@ export default function AdminDashboard() {
                                 </h1>
                                 <p className="text-slate-500 mt-1">Add new accounts, view query logs, and manage access.</p>
                             </div>
-                            <button
-                                onClick={fetchUsers}
-                                className="p-3 bg-white hover:bg-slate-50 rounded-xl border border-[#D1D7DB] shadow-sm transition-all"
-                                title="Refresh Users"
-                            >
-                                <RefreshCcw className={`w-5 h-5 text-slate-600 ${isLoadingUsers ? 'animate-spin' : ''}`} />
-                            </button>
+                            <div className="flex items-center gap-3">
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="Admin Password"
+                                    className="px-4 py-2.5 rounded-xl border border-[#D1D7DB] text-sm focus:ring-2 focus:ring-[#128C7E] outline-none transition-all w-full md:w-64"
+                                />
+                                <button
+                                    onClick={fetchUsers}
+                                    className="p-2.5 bg-white hover:bg-slate-50 rounded-xl border border-[#D1D7DB] shadow-sm transition-all shrink-0"
+                                    title="Refresh Users"
+                                >
+                                    <RefreshCcw className={`w-5 h-5 text-slate-600 ${isLoadingUsers ? 'animate-spin' : ''}`} />
+                                </button>
+                            </div>
                         </div>
 
                         {/* New User Form Card */}
