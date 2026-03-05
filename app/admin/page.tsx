@@ -100,6 +100,7 @@ export default function AdminDashboard() {
     const [isLoadingUsers, setIsLoadingUsers] = useState(false);
     const [newUsername, setNewUsername] = useState("");
     const [newMobile, setNewMobile] = useState("");
+    const [newPassword, setNewPassword] = useState("");
     const [isCreatingUser, setIsCreatingUser] = useState(false);
 
     const fetchStats = useCallback(async () => {
@@ -203,13 +204,14 @@ export default function AdminDashboard() {
                     "Content-Type": "application/json",
                     "x-admin-password": password
                 },
-                body: JSON.stringify({ username: newUsername, mobile: newMobile })
+                body: JSON.stringify({ username: newUsername, mobile: newMobile, password: newPassword })
             });
 
             if (response.ok) {
                 setStatus({ type: 'success', message: `Registered user: ${newUsername}` });
                 setNewUsername("");
                 setNewMobile("");
+                setNewPassword("");
                 fetchUsers();
             } else {
                 const data = await response.json();
@@ -908,7 +910,7 @@ export default function AdminDashboard() {
                                 <Plus className="w-4 h-4 text-[#128C7E]" />
                                 Add New Authorized User
                             </h2>
-                            <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                            <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-bold text-slate-500 ml-1">Full Name</label>
                                     <input
@@ -927,6 +929,16 @@ export default function AdminDashboard() {
                                         placeholder="e.g. +91 9876543210"
                                         value={newMobile}
                                         onChange={(e) => setNewMobile(e.target.value)}
+                                        className="w-full px-4 py-3 rounded-xl border border-[#D1D7DB] text-sm focus:ring-2 focus:ring-[#128C7E] outline-none transition-all"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-slate-500 ml-1">Initial Password (Optional)</label>
+                                    <input
+                                        type="password"
+                                        placeholder="e.g. securepass123"
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
                                         className="w-full px-4 py-3 rounded-xl border border-[#D1D7DB] text-sm focus:ring-2 focus:ring-[#128C7E] outline-none transition-all"
                                     />
                                 </div>

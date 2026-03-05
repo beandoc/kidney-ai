@@ -24,12 +24,18 @@ export async function POST(request: Request) {
     }
 
     try {
-        const { username, mobile } = await request.json();
+        const { username, mobile, password: newPassword } = await request.json();
         if (!username || username.trim().length < 2) {
             return NextResponse.json({ error: "Username must be at least 2 characters" }, { status: 400 });
         }
 
-        const user = await registerUser(username, mobile);
+        let passwordHash;
+        if (newPassword) {
+            const bcrypt = await import("bcryptjs");
+            passwordHash = await bcrypt.hash(newPassword, 10);
+        }
+
+        const user = await registerUser(username, mobile, passwordHash);
         return NextResponse.json(user);
     } catch (error) {
         return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
