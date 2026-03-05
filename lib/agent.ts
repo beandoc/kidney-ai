@@ -245,7 +245,40 @@ Both dialysis and fistula care are vital for kidney patients, particularly those
 ### Conclusion
 A kidney transplant can significantly improve the quality of life and longevity for patients with severe kidney disease. It is essential to consult with a nephrologist to evaluate individual circumstances and determine the best course of action tailored to your health needs.
 
-*Always discuss with your treating nephrologist for personalized advice regarding kidney transplant eligibility and the process involved.*`
+*Always discuss with your treating nephrologist for personalized advice regarding kidney transplant eligibility and the process involved.*`,
+
+    "what does high creatinine mean?": `High creatinine levels in the blood can indicate potential issues with kidney function. Here’s a breakdown of what high creatinine means and its implications:
+
+### What is Creatinine?
+- **Definition:** Creatinine is a waste product produced from muscle metabolism and is typically filtered out of the blood by the kidneys.
+- **Normal Range:** Normal levels typically range from **0.6 to 1.2 mg/dL** (milligrams per deciliter), but this can vary based on factors like age, gender, and muscle mass.
+
+### Causes of High Creatinine Levels
+1. **Kidney Dysfunction:**
+   - **Chronic Kidney Disease (CKD):** Progressive loss of kidney function over time.
+   - **Acute Kidney Injury (AKI):** Sudden decline in kidney function due to various causes such as dehydration, medications, or infections.
+
+2. **Dehydration:**
+   - **Reduced Blood Flow:** Dehydration can lead to reduced blood flow to the kidneys, causing elevated creatinine levels.
+
+3. **High Protein Diet:**
+   - **Increased Muscle Breakdown:** Consuming excessive protein can lead to more creatinine being produced.
+
+4. **Medications:**
+   - **Nephrotoxic Drugs:** Certain medications can impair kidney function, leading to elevated creatinine levels.
+
+5. **Muscle Mass:**
+   - **Muscle Disorders:** Conditions that increase muscle mass or breakdown can result in higher creatinine production.
+
+### Implications
+- **Kidney Function Assessment:** High creatinine typically indicates that the kidneys are not functioning optimally and may require further evaluation.
+- **Potential Symptoms:** If kidney function declines, symptoms may include fatigue, swelling, changes in urine output, and more.
+
+### Next Steps
+- **Consult a Healthcare Provider:** If you have high creatinine levels, it’s essential to work with your healthcare provider to determine the underlying cause and appropriate treatment.
+- **Monitor Kidney Health:** Regular blood tests and kidney function assessments are crucial for managing kidney health.
+
+*Always consult your treating nephrologist for personalized advice and management strategies regarding high creatinine levels.*`
 };
 
 // --- Main Agent Loop ---
