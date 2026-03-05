@@ -59,15 +59,27 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
         const enrichedInput = buildContextAwareQuery(input, chatHistory);
 
         // STEP 1: PARALLEL RETRIEVAL & REFINEMENT
-        // We start searching with the enriched input immediately while the LLM corrects typos in parallel.
+        // We start searching with the enriched input immediately.
+        // For Hindi/Marathi, this might miss keyword hits, so we wait for Refinement to translate.
         const [keywordDocs, semanticDocs, refinedInput] = await Promise.all([
             searchPageIndex(enrichedInput),
             searchSemantic(enrichedInput, 8),
-            enrichedInput.split(" ").length > 3 ? refineQuery(enrichedInput) : Promise.resolve(enrichedInput)
+            refineQuery(enrichedInput)
         ]);
 
-        // If refined input is significantly different, we could re-run search, 
-        // but for latency we merge both. Usually enrichedInput is close enough.
+        let finalUniqueDocs = [];
+        const isTranslated = refinedInput.toLowerCase() !== enrichedInput.toLowerCase();
+
+        // If translated (Hindi -> English), we run a second quick targeted search
+        let translatedDocs: any[] = [];
+        if (isTranslated) {
+            console.log(`[Agent] Cross-lingual search triggered: ${refinedInput}`);
+            const [tKeyword, tSemantic] = await Promise.all([
+                searchPageIndex(refinedInput),
+                searchSemantic(refinedInput, 4)
+            ]);
+            translatedDocs = [...tKeyword, ...tSemantic];
+        }
 
         // HYBRID MERGE: Reciprocal Rank Fusion (RRF)
         const K = 60;
@@ -84,7 +96,10 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
         };
 
         applyRRF(keywordDocs, 1.0);
-        applyRRF(semanticDocs, 1.2); // Slight boost to semantic
+        applyRRF(semanticDocs, 1.2);
+        if (translatedDocs.length > 0) {
+            applyRRF(translatedDocs, 1.5); // Boost translated hits as they are likely high quality
+        }
 
         // Sort unique docs by RRF score
         const uniqueDocs = Array.from(rrfScores.keys())
@@ -93,21 +108,18 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
             .map(item => docMap.get(item.id)!);
 
         // STEP 1.2: CONDITIONAL RERANKING
-        // Only call the expensive Reranker if we have ambiguity.
-        // If top-1 is very strong or query is very short, skip.
         let finalDocs = uniqueDocs;
-        if (uniqueDocs.length > 1 && refinedInput.length > 10) {
-            const topCandidates = uniqueDocs.slice(0, 6); // Rerank fewer docs for speed
+        if (uniqueDocs.length > 1) {
+            const topCandidates = uniqueDocs.slice(0, 6);
             const remainingDocs = uniqueDocs.slice(6);
-            const rerankedTop = await rerankDocuments(refinedInput, topCandidates);
-            finalDocs = [...rerankedTop, ...remainingDocs];
+            finalDocs = [...await rerankDocuments(refinedInput, topCandidates), ...remainingDocs];
         }
 
         console.log(JSON.stringify({
             event: "AgentRetrievalComplete",
             query: refinedInput,
             totalUniqueDocs: uniqueDocs.length,
-            usedReranking: uniqueDocs.length > 1 && refinedInput.length > 10
+            usedReranking: uniqueDocs.length > 1
         }));
 
         // Context Truncation for Latency Optimization
@@ -136,7 +148,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
             You are a Kidney Health Assistant. 
             
             TASK:
-            1. Language: Use the user's language.
+            1. Language: Answer strictly in the same language as the USER QUESTION (Hindi, Marathi, or English).
             2. Content: Answer using ONLY the provided Guidelines.
             3. Citations: Use subtle inline citations like *[Source: KDIGO 2012]*. 
                * ONLY use sources from this list: ${uniqueSources.join(", ")}
@@ -147,7 +159,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
             GUIDELINES:
             ${context}
             
-            USER QUESTION: ${refinedInput}
+            USER QUESTION: ${input}
             
             Answer:
         `;

@@ -71,18 +71,27 @@ Remember: Use your tools before answering. If you greet the user, be brief and p
 /**
  * Prompt for correcting typos and normalizing queries before vector search
  */
-export const QUERY_REFINER_PROMPT = `You are a medical query normalization assistant.
-Your task is to take a user question containing potential typos (especially in medical terms) and rewrite it into a clear, correctly spelled search query.
+export const QUERY_REFINER_PROMPT = `You are a medical query normalization and translation assistant.
+Your task is to take a user question and rewrite it into a high-quality clinical search query in ENGLISH.
 
 RULES:
-1. Fix spelling of medical terms (e.g., "cretinine" -> "creatinine", "dialysis" -> "dialysis").
-2. Keep the core intent of the question.
-3. If the query is already clear, return it as is.
-4. Return ONLY the corrected query text. No explanations.
+1. ARABIC/HINDI/MARATHI SUPPORT: If the user asks in Hindi, Marathi, or any other language, TRANSLATE the intent to professional medical English.
+2. TYPO CORRECTION: Correct all medical typos (e.g., "cretinine" -> "creatinine").
+3. CLINICAL EXPANSION: Convert common terms to clinical ones if appropriate (e.g., "sugar" -> "diabetes" or "blood glucose").
+4. KAJAL CORE: Keep the core clinical intent.
+5. NO EXPLANATIONS: Return ONLY the English query text.
+
+Example 1:
+User: ल्युपस नेफ्रायटिस क्या है?
+Output: Lupus Nephritis definition and overview
+
+Example 2:
+User: cretinine levels high effect on kidney
+Output: high creatinine levels impact on renal function
 
 User Question: {question}
 
-Corrected Query:`;
+English Search Query:`;
 
 /**
  * Prompt for reranking documents based on medical relevance
