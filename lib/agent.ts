@@ -316,9 +316,35 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
    console.log(JSON.stringify({ event: "AgentStart", query: input, historyLength: chatHistory.length }));
 
    const normalizedInput = input.trim().toLowerCase();
+
+   // Flexible Gold Answer Matching
+   let goldMatchKey: string | null = null;
+
    if (GOLD_ANSWERS[normalizedInput]) {
-      console.log(JSON.stringify({ event: "GoldAnswerTriggered", query: normalizedInput }));
-      const tokens = GOLD_ANSWERS[normalizedInput].split(" ");
+      goldMatchKey = normalizedInput;
+   } else if (normalizedInput.includes("diet") && normalizedInput.includes("kidney")) {
+      goldMatchKey = "best diet for kidney patients";
+   } else if (normalizedInput.includes("prevent") && normalizedInput.includes("kidney")) {
+      goldMatchKey = "how to prevent kidney disease?";
+   } else if (normalizedInput.includes("vaccin")) {
+      goldMatchKey = "vaccinations for kidney patients";
+   } else if (normalizedInput.includes("fistula") || normalizedInput.includes("dialysis care")) {
+      goldMatchKey = "what is dialysis and fistula care?";
+   } else if (normalizedInput.includes("transplant") && (normalizedInput.includes("when") || normalizedInput.includes("need"))) {
+      goldMatchKey = "when is kidney transplant needed?";
+   } else if (normalizedInput.includes("high") && normalizedInput.includes("creatinine")) {
+      goldMatchKey = "what does high creatinine mean?";
+   } else if (normalizedInput.includes("can") && normalizedInput.includes("revers")) {
+      goldMatchKey = "can kidney damage be reversed?";
+   } else if (normalizedInput.includes("stone") && normalizedInput.includes("failure")) {
+      goldMatchKey = "kidney stones vs kidney failure?";
+   } else if (normalizedInput.includes("how much water") || normalizedInput.includes("water intake")) {
+      goldMatchKey = "how much water do i really need?";
+   }
+
+   if (goldMatchKey && GOLD_ANSWERS[goldMatchKey]) {
+      console.log(JSON.stringify({ event: "GoldAnswerTriggered", query: goldMatchKey }));
+      const tokens = GOLD_ANSWERS[goldMatchKey].split(" ");
       for (const token of tokens) {
          yield token + " ";
          await new Promise(r => setTimeout(r, 20)); // Simulate typing speed
