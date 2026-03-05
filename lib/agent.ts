@@ -12,39 +12,39 @@ import { searchSemantic } from "./langchain/pinecone";
  * the last known medical topic to improve retrieval.
  */
 function buildContextAwareQuery(input: string, chatHistory: BaseMessage[]): string {
-    const FOLLOWUP_INDICATORS = [
-        "what about", "and the", "how about", "tell me more",
-        "treatment", "symptoms", "causes", "diet", "medication",
-        "what is the", "can you explain", "aur", "batao", "iske baare"
-    ];
-    const isFollowUp = input.split(/\s+/).length <= 6 ||
-        FOLLOWUP_INDICATORS.some(f => input.toLowerCase().includes(f));
+   const FOLLOWUP_INDICATORS = [
+      "what about", "and the", "how about", "tell me more",
+      "treatment", "symptoms", "causes", "diet", "medication",
+      "what is the", "can you explain", "aur", "batao", "iske baare"
+   ];
+   const isFollowUp = input.split(/\s+/).length <= 6 ||
+      FOLLOWUP_INDICATORS.some(f => input.toLowerCase().includes(f));
 
-    if (!isFollowUp || chatHistory.length === 0) return input;
+   if (!isFollowUp || chatHistory.length === 0) return input;
 
-    // Scan the last 4 messages for medical keywords
-    const MEDICAL_TOPICS = [
-        "creatinine", "egfr", "gfr", "dialysis", "hemodialysis", "peritoneal",
-        "ckd", "akd", "aki", "esrd", "kidney", "renal", "transplant",
-        "potassium", "phosphorus", "sodium", "albumin", "proteinuria",
-        "hypertension", "diabetes", "nephropathy", "glomerulonephritis",
-        "nephrotic", "nephritic", "biopsy", "ultrasound", "anemia", "erythropoietin"
-    ];
+   // Scan the last 4 messages for medical keywords
+   const MEDICAL_TOPICS = [
+      "creatinine", "egfr", "gfr", "dialysis", "hemodialysis", "peritoneal",
+      "ckd", "akd", "aki", "esrd", "kidney", "renal", "transplant",
+      "potassium", "phosphorus", "sodium", "albumin", "proteinuria",
+      "hypertension", "diabetes", "nephropathy", "glomerulonephritis",
+      "nephrotic", "nephritic", "biopsy", "ultrasound", "anemia", "erythropoietin"
+   ];
 
-    const recentText = chatHistory
-        .slice(-4)
-        .map(m => (typeof m.content === "string" ? m.content : ""))
-        .join(" ")
-        .toLowerCase();
+   const recentText = chatHistory
+      .slice(-4)
+      .map(m => (typeof m.content === "string" ? m.content : ""))
+      .join(" ")
+      .toLowerCase();
 
-    const detectedTopics = MEDICAL_TOPICS.filter(t => recentText.includes(t));
+   const detectedTopics = MEDICAL_TOPICS.filter(t => recentText.includes(t));
 
-    if (detectedTopics.length > 0) {
-        const topicContext = detectedTopics.slice(0, 3).join(" ");
-        console.log(JSON.stringify({ event: "ContextAwareQuery", originalQuery: input, injectedTopics: topicContext }));
-        return `${topicContext} ${input}`;
-    }
-    return input;
+   if (detectedTopics.length > 0) {
+      const topicContext = detectedTopics.slice(0, 3).join(" ");
+      console.log(JSON.stringify({ event: "ContextAwareQuery", originalQuery: input, injectedTopics: topicContext }));
+      return `${topicContext} ${input}`;
+   }
+   return input;
 }
 
 /**
@@ -52,21 +52,21 @@ function buildContextAwareQuery(input: string, chatHistory: BaseMessage[]): stri
  * This is called during the welcome message phase to eliminate cold starts.
  */
 export async function prewarmAgent() {
-    console.log(JSON.stringify({ event: "PrewarmStarted", status: "initializing_resources" }));
-    try {
-        await Promise.allSettled([
-            getChatModel(), // Warm LLM provider connection
-            searchSemantic("kidney", 1), // Warm Pinecone connection
-            searchPageIndex("introduction") // Pre-load indexing metadata
-        ]);
-        console.log(JSON.stringify({ event: "PrewarmComplete", status: "ready" }));
-    } catch (err) {
-        console.error("Prewarm failed", err);
-    }
+   console.log(JSON.stringify({ event: "PrewarmStarted", status: "initializing_resources" }));
+   try {
+      await Promise.allSettled([
+         getChatModel(), // Warm LLM provider connection
+         searchSemantic("kidney", 1), // Warm Pinecone connection
+         searchPageIndex("introduction") // Pre-load indexing metadata
+      ]);
+      console.log(JSON.stringify({ event: "PrewarmComplete", status: "ready" }));
+   } catch (err) {
+      console.error("Prewarm failed", err);
+   }
 }
 
 const GOLD_ANSWERS: Record<string, string> = {
-    "how to prevent kidney disease?": `To prevent kidney disease, it's essential to adopt a healthy lifestyle and monitor your health regularly. Here are some effective strategies:
+   "how to prevent kidney disease?": `To prevent kidney disease, it's essential to adopt a healthy lifestyle and monitor your health regularly. Here are some effective strategies:
 
 1. **Stay Active**
    - **Regular Exercise:** Engage in aerobic activities and physical exercises to maintain a healthy weight, control blood pressure, and manage blood sugar levels.
@@ -104,7 +104,7 @@ Incorporating these practices into your daily life can significantly lower your 
 
 For patients with CKD, you can also check your risk of progression to end-stage renal disease (ESRD) using this calculator: **[Kidney Failure Risk Calculator](https://kidneyfailurerisk.com/)** and consult your treating nephrologist.`,
 
-    "best diet for kidney patients": `For kidney patients, a well-structured diet is essential to manage kidney health and prevent further complications. Here are the key dietary guidelines:
+   "best diet for kidney patients": `For kidney patients, a well-structured diet is essential to manage kidney health and prevent further complications. Here are the key dietary guidelines:
 
 1. **Protein Intake**
    - **Limit Protein:** Recommended intake is generally less than 0.8 grams/kg of body weight per day for those not on dialysis.
@@ -145,7 +145,7 @@ For those following the usual Indian diet, protein restriction is generally not 
 
 *Always consult your treating nephrologist for tailored dietary advice specific to your health condition.*`,
 
-    "vaccinations for kidney patients": `Vaccinations are crucial for kidney patients, especially those undergoing dialysis or who have had a kidney transplant. Here are the key vaccinations recommended:
+   "vaccinations for kidney patients": `Vaccinations are crucial for kidney patients, especially those undergoing dialysis or who have had a kidney transplant. Here are the key vaccinations recommended:
 
 1. **Hepatitis B Vaccine**
    - **Importance:** Reduces the risk of Hepatitis B infection during dialysis or after kidney transplantation.
@@ -181,7 +181,7 @@ For those following the usual Indian diet, protein restriction is generally not 
 
 *These vaccinations are crucial to protect kidney patients from infections that could complicate their health. Always consult your treating nephrologist for personalized advice.*`,
 
-    "what is dialysis and fistula care?": `Dialysis and fistula care are essential components of treatment for individuals with kidney failure. Here’s a breakdown of both:
+   "what is dialysis and fistula care?": `Dialysis and fistula care are essential components of treatment for individuals with kidney failure. Here’s a breakdown of both:
 
 ### Dialysis
 Dialysis is a medical procedure that replicates some functions of healthy kidneys when they can no longer filter waste products from the blood effectively. There are two main types of dialysis:
@@ -215,7 +215,7 @@ Both dialysis and fistula care are vital for kidney patients, particularly those
 
 *Always consult your treating nephrologist for personalized advice and management strategies.*`,
 
-    "when is kidney transplant needed?": `A kidney transplant may be needed in the following situations:
+   "when is kidney transplant needed?": `A kidney transplant may be needed in the following situations:
 
 1. **End-Stage Renal Disease (ESRD)**
    - **Definition:** This is the final stage of chronic kidney disease (CKD) where the kidneys can no longer maintain normal function.
@@ -247,7 +247,7 @@ A kidney transplant can significantly improve the quality of life and longevity 
 
 *Always discuss with your treating nephrologist for personalized advice regarding kidney transplant eligibility and the process involved.*`,
 
-    "what does high creatinine mean?": `High creatinine levels in the blood can indicate potential issues with kidney function. Here’s a breakdown of what high creatinine means and its implications:
+   "what does high creatinine mean?": `High creatinine levels in the blood can indicate potential issues with kidney function. Here’s a breakdown of what high creatinine means and its implications:
 
 ### What is Creatinine?
 - **Definition:** Creatinine is a waste product produced from muscle metabolism and is typically filtered out of the blood by the kidneys.
@@ -278,118 +278,148 @@ A kidney transplant can significantly improve the quality of life and longevity 
 - **Consult a Healthcare Provider:** If you have high creatinine levels, it’s essential to work with your healthcare provider to determine the underlying cause and appropriate treatment.
 - **Monitor Kidney Health:** Regular blood tests and kidney function assessments are crucial for managing kidney health.
 
-*Always consult your treating nephrologist for personalized advice and management strategies regarding high creatinine levels.*`
+*Always consult your treating nephrologist for personalized advice and management strategies regarding high creatinine levels.*`,
+
+   "can kidney damage be reversed?": `The answer depends on whether the damage is acute or chronic:
+
+1. **Acute Kidney Injury (AKI):**
+   - **Reversibility:** AKI is a sudden decline in kidney function often caused by dehydration, severe infection, or certain medications.
+   - **Outcome:** If caught early and the underlying cause is treated, kidneys can often return to their normal function.
+
+2. **Chronic Kidney Disease (CKD):**
+   - **Reversibility:** CKD is generally permanent and progressive. However, its progression can be significantly slowed or even "braked" with modern medical treatments and lifestyle changes.
+   - **Goal:** The focus is on protecting the remaining kidney function to avoid long-term complications or dialysis.
+
+*Always consult your treating nephrologist for a personalized assessment of your kidney health.*`,
+
+   "kidney stones vs kidney failure?": `Kidney stones and kidney failure are very different conditions, although both involve the kidneys:
+
+- **Kidney Stones:** Think of a stone as a **pebble stuck in a pipe**. It causes intense pain as it moves through the urinary tract, but it is typically a mechanical blockage. Once the stone is passed or removed, the kidney function usually remains normal.
+- **Kidney Failure:** This is when the **entire plumbing system (filters)** breaks down. The kidneys can no longer filter waste products from the blood. This is a much more serious, systemic condition that requires long-term management or dialysis.
+
+*While stones are painful, kidney failure is a silent condition that requires regular check-ups to detect early.*`,
+
+   "how much water do i really need?": `Hydration needs are not the same for everyone, especially for kidney patients:
+
+1. **For Kidney Stone Prevention:**
+   - **Recommendation:** Drinking plenty of water (about **2.5 to 3 liters** per day) is essential to dilute urine and prevent stones.
+
+2. **For Advanced CKD or Dialysis Patients:**
+   - **Recommendation:** You may actually need **fluid restriction**. If the kidneys cannot flush enough water, excess fluid builds up, causing swelling (edema), high blood pressure, and heart strain.
+   - **Goal:** Follow the specific fluid chart provided by your nephrologist.
+
+*The "drink 8 glasses" rule doesn't apply to everyone. Always follow the personalized fluid allowance set by your treating nephrologist.*`
 };
 
 // --- Main Agent Loop ---
 export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
-    console.log(JSON.stringify({ event: "AgentStart", query: input, historyLength: chatHistory.length }));
+   console.log(JSON.stringify({ event: "AgentStart", query: input, historyLength: chatHistory.length }));
 
-    const normalizedInput = input.trim().toLowerCase();
-    if (GOLD_ANSWERS[normalizedInput]) {
-        console.log(JSON.stringify({ event: "GoldAnswerTriggered", query: normalizedInput }));
-        const tokens = GOLD_ANSWERS[normalizedInput].split(" ");
-        for (const token of tokens) {
-            yield token + " ";
-            await new Promise(r => setTimeout(r, 20)); // Simulate typing speed
-        }
-        return;
-    }
+   const normalizedInput = input.trim().toLowerCase();
+   if (GOLD_ANSWERS[normalizedInput]) {
+      console.log(JSON.stringify({ event: "GoldAnswerTriggered", query: normalizedInput }));
+      const tokens = GOLD_ANSWERS[normalizedInput].split(" ");
+      for (const token of tokens) {
+         yield token + " ";
+         await new Promise(r => setTimeout(r, 20)); // Simulate typing speed
+      }
+      return;
+   }
 
-    // IMMEDIATE PULSE: Yield a space so the UI knows the server is alive
-    yield " ";
+   // IMMEDIATE PULSE: Yield a space so the UI knows the server is alive
+   yield " ";
 
-    try {
-        // CONVERSATION-AWARE QUERY ENRICHMENT
-        const enrichedInput = buildContextAwareQuery(input, chatHistory);
+   try {
+      // CONVERSATION-AWARE QUERY ENRICHMENT
+      const enrichedInput = buildContextAwareQuery(input, chatHistory);
 
-        // STEP 1: PARALLEL RETRIEVAL & REFINEMENT
-        // We start searching with the enriched input immediately.
-        // For Hindi/Marathi, this might miss keyword hits, so we wait for Refinement to translate.
-        const [keywordDocs, semanticDocs, refinedInput] = await Promise.all([
-            searchPageIndex(enrichedInput),
-            searchSemantic(enrichedInput, 8),
-            refineQuery(enrichedInput)
-        ]);
+      // STEP 1: PARALLEL RETRIEVAL & REFINEMENT
+      // We start searching with the enriched input immediately.
+      // For Hindi/Marathi, this might miss keyword hits, so we wait for Refinement to translate.
+      const [keywordDocs, semanticDocs, refinedInput] = await Promise.all([
+         searchPageIndex(enrichedInput),
+         searchSemantic(enrichedInput, 8),
+         refineQuery(enrichedInput)
+      ]);
 
-        let finalUniqueDocs = [];
-        const isTranslated = refinedInput.toLowerCase() !== enrichedInput.toLowerCase();
+      let finalUniqueDocs = [];
+      const isTranslated = refinedInput.toLowerCase() !== enrichedInput.toLowerCase();
 
-        // If translated (Hindi -> English), we run a second quick targeted search
-        let translatedDocs: any[] = [];
-        if (isTranslated) {
-            console.log(`[Agent] Cross-lingual search triggered: ${refinedInput}`);
-            const [tKeyword, tSemantic] = await Promise.all([
-                searchPageIndex(refinedInput),
-                searchSemantic(refinedInput, 4)
-            ]);
-            translatedDocs = [...tKeyword, ...tSemantic];
-        }
+      // If translated (Hindi -> English), we run a second quick targeted search
+      let translatedDocs: any[] = [];
+      if (isTranslated) {
+         console.log(`[Agent] Cross-lingual search triggered: ${refinedInput}`);
+         const [tKeyword, tSemantic] = await Promise.all([
+            searchPageIndex(refinedInput),
+            searchSemantic(refinedInput, 4)
+         ]);
+         translatedDocs = [...tKeyword, ...tSemantic];
+      }
 
-        // HYBRID MERGE: Reciprocal Rank Fusion (RRF)
-        const K = 60;
-        const rrfScores = new Map<string, number>();
-        const docMap = new Map<string, any>();
+      // HYBRID MERGE: Reciprocal Rank Fusion (RRF)
+      const K = 60;
+      const rrfScores = new Map<string, number>();
+      const docMap = new Map<string, any>();
 
-        const applyRRF = (docs: any[], weight = 1.0) => {
-            docs.forEach((doc, rank) => {
-                const id = `${doc.metadata.source}-${doc.metadata.title}-${doc.pageContent.slice(0, 50)}`;
-                docMap.set(id, doc);
-                const currentScore = rrfScores.get(id) || 0;
-                rrfScores.set(id, currentScore + (weight / (K + rank + 1)));
-            });
-        };
+      const applyRRF = (docs: any[], weight = 1.0) => {
+         docs.forEach((doc, rank) => {
+            const id = `${doc.metadata.source}-${doc.metadata.title}-${doc.pageContent.slice(0, 50)}`;
+            docMap.set(id, doc);
+            const currentScore = rrfScores.get(id) || 0;
+            rrfScores.set(id, currentScore + (weight / (K + rank + 1)));
+         });
+      };
 
-        applyRRF(keywordDocs, 1.0);
-        applyRRF(semanticDocs, 1.2);
-        if (translatedDocs.length > 0) {
-            applyRRF(translatedDocs, 1.5); // Boost translated hits as they are likely high quality
-        }
+      applyRRF(keywordDocs, 1.0);
+      applyRRF(semanticDocs, 1.2);
+      if (translatedDocs.length > 0) {
+         applyRRF(translatedDocs, 1.5); // Boost translated hits as they are likely high quality
+      }
 
-        // Sort unique docs by RRF score
-        const uniqueDocs = Array.from(rrfScores.keys())
-            .map(id => ({ id, score: rrfScores.get(id)! }))
-            .sort((a, b) => b.score - a.score)
-            .map(item => docMap.get(item.id)!);
+      // Sort unique docs by RRF score
+      const uniqueDocs = Array.from(rrfScores.keys())
+         .map(id => ({ id, score: rrfScores.get(id)! }))
+         .sort((a, b) => b.score - a.score)
+         .map(item => docMap.get(item.id)!);
 
-        // STEP 1.2: CONDITIONAL RERANKING
-        let finalDocs = uniqueDocs;
-        if (uniqueDocs.length > 1) {
-            const topCandidates = uniqueDocs.slice(0, 6);
-            const remainingDocs = uniqueDocs.slice(6);
-            finalDocs = [...await rerankDocuments(refinedInput, topCandidates), ...remainingDocs];
-        }
+      // STEP 1.2: CONDITIONAL RERANKING
+      let finalDocs = uniqueDocs;
+      if (uniqueDocs.length > 1) {
+         const topCandidates = uniqueDocs.slice(0, 6);
+         const remainingDocs = uniqueDocs.slice(6);
+         finalDocs = [...await rerankDocuments(refinedInput, topCandidates), ...remainingDocs];
+      }
 
-        console.log(JSON.stringify({
-            event: "AgentRetrievalComplete",
-            query: refinedInput,
-            totalUniqueDocs: uniqueDocs.length,
-            usedReranking: uniqueDocs.length > 1
-        }));
+      console.log(JSON.stringify({
+         event: "AgentRetrievalComplete",
+         query: refinedInput,
+         totalUniqueDocs: uniqueDocs.length,
+         usedReranking: uniqueDocs.length > 1
+      }));
 
-        // Context Truncation for Latency Optimization
-        let context = formatPageIndexContext(finalDocs);
-        if (context.length > 15000) {
-            context = context.slice(0, 15000) + "\n...[truncated]";
-        }
+      // Context Truncation for Latency Optimization
+      let context = formatPageIndexContext(finalDocs);
+      if (context.length > 15000) {
+         context = context.slice(0, 15000) + "\n...[truncated]";
+      }
 
-        // SMART SOURCE SHORTENING: Clean filenames for better readability
-        // e.g., "KDIGO-2012-AKI-Guideline.pdf" -> "KDIGO 2012"
-        const cleanSourceName = (name: string) => {
-            return name
-                .replace(/\.(pdf|md|docx|txt)$/i, "")
-                .replace(/-Guideline-English|-English|-Guideline/i, "")
-                .replace(/-/g, " ")
-                .replace(/AKI|CKD|AKI Trial/gi, "") // Remove redundant acronyms if present in filename
-                .trim();
-        };
+      // SMART SOURCE SHORTENING: Clean filenames for better readability
+      // e.g., "KDIGO-2012-AKI-Guideline.pdf" -> "KDIGO 2012"
+      const cleanSourceName = (name: string) => {
+         return name
+            .replace(/\.(pdf|md|docx|txt)$/i, "")
+            .replace(/-Guideline-English|-English|-Guideline/i, "")
+            .replace(/-/g, " ")
+            .replace(/AKI|CKD|AKI Trial/gi, "") // Remove redundant acronyms if present in filename
+            .trim();
+      };
 
-        const sources = uniqueDocs.map(d => cleanSourceName(d.metadata.source));
-        const uniqueSources = Array.from(new Set(sources));
+      const sources = uniqueDocs.map(d => cleanSourceName(d.metadata.source));
+      const uniqueSources = Array.from(new Set(sources));
 
-        // Step 2: Direct Streaming Response
-        const model = getChatModel();
-        const prompt = `
+      // Step 2: Direct Streaming Response
+      const model = getChatModel();
+      const prompt = `
             You are a Kidney Health Assistant. 
             
             TASK:
@@ -409,44 +439,44 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
             Answer:
         `;
 
-        const messages = [
-            ...chatHistory,
-            new HumanMessage(prompt)
-        ];
+      const messages = [
+         ...chatHistory,
+         new HumanMessage(prompt)
+      ];
 
-        const finalStream = await model.stream(messages);
-        let fullResponse = "";
+      const finalStream = await model.stream(messages);
+      let fullResponse = "";
 
-        for await (const chunk of finalStream) {
-            if (chunk.content) {
-                const text = chunk.content as string;
-                fullResponse += text;
-                yield text;
-            }
-        }
+      for await (const chunk of finalStream) {
+         if (chunk.content) {
+            const text = chunk.content as string;
+            fullResponse += text;
+            yield text;
+         }
+      }
 
-        // CITATION VERIFICATION (Post-process)
-        // Detects if the LLM hallucinated a source that wasn't provided
-        const citationRegex = /\[Source:\s*([^,\]]+)(?:,\s*([^\]]+))?\]/g;
-        const citedSources = new Set<string>();
-        let match;
-        while ((match = citationRegex.exec(fullResponse)) !== null) {
-            citedSources.add(match[1].trim().toLowerCase());
-        }
+      // CITATION VERIFICATION (Post-process)
+      // Detects if the LLM hallucinated a source that wasn't provided
+      const citationRegex = /\[Source:\s*([^,\]]+)(?:,\s*([^\]]+))?\]/g;
+      const citedSources = new Set<string>();
+      let match;
+      while ((match = citationRegex.exec(fullResponse)) !== null) {
+         citedSources.add(match[1].trim().toLowerCase());
+      }
 
-        const validSourceNames = new Set(uniqueDocs.map(d => d.metadata.source.toLowerCase()));
-        const invalidCitations = Array.from(citedSources).filter(s => !validSourceNames.has(s));
+      const validSourceNames = new Set(uniqueDocs.map(d => d.metadata.source.toLowerCase()));
+      const invalidCitations = Array.from(citedSources).filter(s => !validSourceNames.has(s));
 
-        if (invalidCitations.length > 0) {
-            console.warn(`[Agent] Hallucinated citations detected: ${invalidCitations.join(", ")}`);
-            // We've already yielded the text, but we log the safety violation for the admin
-        }
+      if (invalidCitations.length > 0) {
+         console.warn(`[Agent] Hallucinated citations detected: ${invalidCitations.join(", ")}`);
+         // We've already yielded the text, but we log the safety violation for the admin
+      }
 
-        yield "\n\n---\n**Disclaimer:** *This is for educational purposes only. Always follow your doctor's advice.*";
+      yield "\n\n---\n**Disclaimer:** *This is for educational purposes only. Always follow your doctor's advice.*";
 
-    } catch (globalError: any) {
-        console.error("[Agent] CRITICAL FAILURE:", globalError);
-        const errorMessage = globalError?.message || String(globalError);
-        yield `\n\n⚠️ **System Error:** ${errorMessage}\n\nPlease check your API keys in the settings or contact the administrator.`;
-    }
+   } catch (globalError: any) {
+      console.error("[Agent] CRITICAL FAILURE:", globalError);
+      const errorMessage = globalError?.message || String(globalError);
+      yield `\n\n⚠️ **System Error:** ${errorMessage}\n\nPlease check your API keys in the settings or contact the administrator.`;
+   }
 }
