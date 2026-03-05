@@ -2,6 +2,9 @@ import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatGroq } from "@langchain/groq";
 
+export const CHUNK_SIZE = 1000;
+export const CHUNK_OVERLAP = 200;
+
 /**
  * Get configured Google Gemini Embeddings instance
  */
@@ -80,3 +83,21 @@ RULES:
 User Question: {question}
 
 Corrected Query:`;
+
+/**
+ * Prompt for reranking documents based on medical relevance
+ */
+export const RERANKER_PROMPT = `You are a medical knowledge reranking assistant.
+Your task is to evaluate how relevant a piece of medical text is to a specific user question.
+
+RULES:
+1. Assign a score from 0.0 to 1.0 (where 1.0 is a perfect match and 0.0 is completely irrelevant).
+2. Consider medical context, specific conditions, and treatments.
+3. Return ONLY a JSON list of scores for the provided documents in order.
+
+User Question: {question}
+
+Documents:
+{documents}
+
+Return JSON (e.g., [0.9, 0.4, 0.7]):`;

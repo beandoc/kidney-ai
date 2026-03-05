@@ -15,6 +15,8 @@ export interface PageIndexNode {
 import { Document } from "@langchain/core/documents";
 
 const PAGEINDEX_KB_PATH = path.join(process.cwd(), "knowledge_base", "pageindex");
+// On Vercel, newly uploaded files live in /tmp/pageindex (writable)
+const TMP_PAGEINDEX_PATH = process.env.VERCEL ? '/tmp/pageindex' : PAGEINDEX_KB_PATH;
 
 /**
  * Pre-built Inverted Search Index
@@ -43,17 +45,27 @@ function buildIndex(): IndexEntry[] {
     const startTime = Date.now();
     console.log("[SearchIndex] Building pre-computed search index...");
 
-    if (!fs.existsSync(PAGEINDEX_KB_PATH)) {
-        console.warn("[SearchIndex] Knowledge base not found at", PAGEINDEX_KB_PATH);
-        return [];
-    }
+    // Collect files from both the bundled KB and /tmp uploads (Vercel)
+    const seenFiles = new Set<string>();
+    const fileSources: { dir: string; file: string }[] = [];
 
-    const files = fs.readdirSync(PAGEINDEX_KB_PATH).filter(f => f.endsWith(".json"));
+    const collectFrom = (dir: string) => {
+        if (!fs.existsSync(dir)) return;
+        for (const file of fs.readdirSync(dir).filter(f => f.endsWith(".json"))) {
+            if (!seenFiles.has(file)) {
+                seenFiles.add(file);
+                fileSources.push({ dir, file });
+            }
+        }
+    };
+    collectFrom(PAGEINDEX_KB_PATH);
+    if (TMP_PAGEINDEX_PATH !== PAGEINDEX_KB_PATH) collectFrom(TMP_PAGEINDEX_PATH);
+
     const index: IndexEntry[] = [];
 
-    for (const file of files) {
+    for (const { dir, file } of fileSources) {
         try {
-            const filePath = path.join(PAGEINDEX_KB_PATH, file);
+            const filePath = path.join(dir, file);
             const content = JSON.parse(fs.readFileSync(filePath, "utf-8"));
 
             // Normalize doc name
@@ -109,7 +121,7 @@ function buildIndex(): IndexEntry[] {
     }
 
     INDEX_BUILD_TIME = Date.now() - startTime;
-    console.log(`[SearchIndex] Built index: ${index.length} nodes from ${files.length} files in ${INDEX_BUILD_TIME}ms`);
+    console.log(`[SearchIndex] Built index: ${index.length} nodes from ${fileSources.length} files in ${INDEX_BUILD_TIME}ms`);
     return index;
 }
 

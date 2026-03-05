@@ -4,6 +4,8 @@ import * as path from "path";
 
 const KNOWLEDGE_BASE_PATH = path.join(process.cwd(), "knowledge_base");
 const PAGEINDEX_PATH = path.join(KNOWLEDGE_BASE_PATH, "pageindex");
+// On Vercel, newly uploaded files go to /tmp/pageindex (read-only fs workaround)
+const TMP_PAGEINDEX_PATH = process.env.VERCEL ? '/tmp/pageindex' : PAGEINDEX_PATH;
 
 export const dynamic = "force-dynamic";
 
@@ -15,27 +17,39 @@ export async function GET(request: Request) {
         }
 
         const files: any[] = [];
+        const seenNames = new Set<string>();
 
-        // 1. List PageIndex processed documents
-        if (fs.existsSync(PAGEINDEX_PATH)) {
-            fs.readdirSync(PAGEINDEX_PATH)
+        // Helper to add files from a pageindex directory
+        const addFromPageindex = (dirPath: string, source: string) => {
+            if (!fs.existsSync(dirPath)) return;
+            fs.readdirSync(dirPath)
                 .filter(file => file.endsWith('.json'))
                 .forEach(file => {
-                    const stats = fs.statSync(path.join(PAGEINDEX_PATH, file));
-                    // Store originalName so DELETE knows the real filename on disk
+                    if (seenNames.has(file)) return; // avoid duplicates
+                    seenNames.add(file);
+                    const stats = fs.statSync(path.join(dirPath, file));
                     const displayName = file.replace(/\.json$/, '');
                     files.push({
-                        name: displayName,          // shown in UI
-                        originalName: file,         // actual file on disk
+                        name: displayName,
+                        originalName: file,
                         size: stats.size,
                         updatedAt: stats.mtime,
                         type: 'pageindex_tree',
-                        isIndexed: true
+                        isIndexed: true,
+                        source
                     });
                 });
+        };
+
+        // 1. List bundled (static) PageIndex documents
+        addFromPageindex(PAGEINDEX_PATH, 'bundled');
+
+        // 2. List runtime-uploaded documents (Vercel /tmp or same dir locally)
+        if (TMP_PAGEINDEX_PATH !== PAGEINDEX_PATH) {
+            addFromPageindex(TMP_PAGEINDEX_PATH, 'uploaded');
         }
 
-        // 2. Add raw files that aren't indexed yet (if any)
+        // 3. Add raw files that aren't indexed yet (if any)
         if (fs.existsSync(KNOWLEDGE_BASE_PATH)) {
             fs.readdirSync(KNOWLEDGE_BASE_PATH)
                 .filter(file => !file.startsWith('.') && file !== 'pageindex' && !file.startsWith('profiles') && fs.statSync(path.join(KNOWLEDGE_BASE_PATH, file)).isFile())
@@ -44,7 +58,7 @@ export async function GET(request: Request) {
                     if (!existsInIndex) {
                         const stats = fs.statSync(path.join(KNOWLEDGE_BASE_PATH, file));
                         files.push({
-                            name: file,             // raw files keep full name
+                            name: file,
                             originalName: file,
                             size: stats.size,
                             updatedAt: stats.mtime,
@@ -93,13 +107,18 @@ export async function DELETE(request: Request) {
             }
         }
 
-        // Delete from PageIndex folder — try name as-is AND with .json suffix
+        // Delete from PageIndex folder(s) — try name as-is AND with .json suffix
         const indexCandidates = [fileName, `${fileName}.json`];
-        for (const candidate of indexCandidates) {
-            const indexPath = path.join(PAGEINDEX_PATH, candidate);
-            if (fs.existsSync(indexPath)) {
-                fs.unlinkSync(indexPath);
-                console.log(JSON.stringify({ event: "FileDeleted", path: "pageindex", file: candidate }));
+        const indexDirs = TMP_PAGEINDEX_PATH !== PAGEINDEX_PATH
+            ? [PAGEINDEX_PATH, TMP_PAGEINDEX_PATH]
+            : [PAGEINDEX_PATH];
+        for (const dir of indexDirs) {
+            for (const candidate of indexCandidates) {
+                const indexPath = path.join(dir, candidate);
+                if (fs.existsSync(indexPath)) {
+                    fs.unlinkSync(indexPath);
+                    console.log(JSON.stringify({ event: "FileDeleted", path: dir, file: candidate }));
+                }
             }
         }
 

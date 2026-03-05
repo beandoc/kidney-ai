@@ -1,7 +1,7 @@
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { MemoryVectorStore } from "@langchain/classic/vectorstores/memory";
 import { Document } from "@langchain/core/documents";
-import { getEmbeddings, getChatModel, QUERY_REFINER_PROMPT } from "./config";
+import { getEmbeddings, getChatModel, QUERY_REFINER_PROMPT, RERANKER_PROMPT } from "./config";
 import * as fs from "fs";
 import * as path from "path";
 import { getPineconeStore } from "./pinecone";
@@ -153,3 +153,39 @@ export async function refineQuery(query: string): Promise<string> {
     }
 }
 
+/**
+ * Cross-Encoder Reranker using LLM
+ * Takes top candidates and re-scores them for semantic relevance
+ */
+export async function rerankDocuments(query: string, documents: Document[]): Promise<Document[]> {
+    if (documents.length === 0) return [];
+
+    try {
+        const model = getChatModel();
+        const docSummaries = documents.map((doc, idx) => `[Doc ${idx}]: ${doc.pageContent.slice(0, 500)}...`).join('\n\n');
+
+        const prompt = RERANKER_PROMPT
+            .replace("{question}", query)
+            .replace("{documents}", docSummaries);
+
+        const response = await model.invoke([new HumanMessage(prompt)]);
+        const content = response.content.toString();
+
+        // Extract JSON array from LLM response
+        const jsonMatch = content.match(/\[.*\]/s);
+        if (!jsonMatch) return documents;
+
+        const scores: number[] = JSON.parse(jsonMatch[0]);
+
+        // Attach scores and sort
+        const scoredDocs = documents.map((doc, idx) => {
+            doc.metadata.rerankScore = scores[idx] || 0;
+            return doc;
+        });
+
+        return scoredDocs.sort((a, b) => (b.metadata.rerankScore || 0) - (a.metadata.rerankScore || 0));
+    } catch (error) {
+        console.error("Reranking failed, returning original order:", error);
+        return documents;
+    }
+}

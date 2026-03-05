@@ -1,6 +1,9 @@
-import { kv } from "@vercel/kv";
+import Redis from "ioredis";
 
-const QUOTA_PER_USER = 50;
+// Use the existing REDIS_URL from .env.local
+const redis = new Redis(process.env.REDIS_URL || "");
+
+const QUOTA_PER_USER = 20; // Lowered from 50 to safely support ~10 users/day on free tier
 const KV_USERS_KEY = "kidney_ai_users";
 
 export interface UserRecord {
@@ -18,19 +21,20 @@ export interface UserRecord {
 
 export async function getUsers(): Promise<UserRecord[]> {
     try {
-        const users = await kv.get<UserRecord[]>(KV_USERS_KEY);
-        return users || [];
+        const usersStr = await redis.get(KV_USERS_KEY);
+        if (!usersStr) return [];
+        return JSON.parse(usersStr);
     } catch (e) {
-        console.error("KV Read Error:", e);
+        console.error("Redis Read Error:", e);
         return [];
     }
 }
 
 export async function saveUsers(users: UserRecord[]): Promise<void> {
     try {
-        await kv.set(KV_USERS_KEY, users);
+        await redis.set(KV_USERS_KEY, JSON.stringify(users));
     } catch (e) {
-        console.error("KV Write Error:", e);
+        console.error("Redis Write Error:", e);
     }
 }
 

@@ -4,6 +4,8 @@ import * as fs from "fs";
 import * as path from "path";
 
 import { invalidateIndex } from "../../../../lib/pageindex/retrieval";
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+import { CHUNK_SIZE, CHUNK_OVERLAP } from "../../../../lib/langchain/config";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // Allow up to 5 minutes for large files
@@ -75,29 +77,33 @@ export async function POST(request: Request) {
 
             try {
                 const isPdf = label.toLowerCase().endsWith('.pdf');
-                const kbPath = path.join(process.cwd(), 'knowledge_base', 'pageindex');
+                // Use /tmp for writes — Vercel serverless filesystem is read-only except /tmp
+                const kbPath = process.env.VERCEL
+                    ? '/tmp/pageindex'
+                    : path.join(process.cwd(), 'knowledge_base', 'pageindex');
                 if (!fs.existsSync(kbPath)) fs.mkdirSync(kbPath, { recursive: true });
 
                 const outName = label.endsWith('.json') ? label : `${label}.json`;
                 const outputPath = path.join(kbPath, outName);
 
-                // Simple Tree with CHUNKING
-                const fullText = docs.map(d => d.pageContent).join('\n\n');
-                const chunkSize = 5000;
-                const chunks: string[] = [];
-                for (let i = 0; i < fullText.length; i += chunkSize) {
-                    chunks.push(fullText.slice(i, i + chunkSize + 500));
-                }
+                // Use the SAME splitter as Pinecone for consistency
+                const splitter = new RecursiveCharacterTextSplitter({
+                    chunkSize: CHUNK_SIZE,
+                    chunkOverlap: CHUNK_OVERLAP,
+                    separators: ["\n\n", "\n", ". ", "? ", "! ", " ", ""],
+                });
+
+                const splitDocs = await splitter.splitDocuments(docs);
 
                 const simpleResult = {
                     doc_name: label,
-                    structure: chunks.map((chunk, idx) => ({
+                    structure: splitDocs.map((doc, idx) => ({
                         title: `${label} - Part ${idx + 1}`,
                         node_id: `chunk-${idx}`,
                         start_index: 1,
                         end_index: 1,
                         summary: `Segment ${idx + 1} of ${label}`,
-                        text: chunk
+                        text: doc.pageContent
                     }))
                 };
 

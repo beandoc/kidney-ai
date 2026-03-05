@@ -1,7 +1,7 @@
 import { BaseMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
 import { searchPageIndex, formatPageIndexContext } from "./pageindex/retrieval";
 import { getChatModel } from "./langchain/config";
-import { refineQuery } from "./langchain/vectorStore";
+import { refineQuery, rerankDocuments } from "./langchain/vectorStore";
 
 
 import { searchSemantic } from "./langchain/pinecone";
@@ -63,45 +63,53 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
         // Step 1: Lightning Fast Hybrid Knowledge Retrieval
         const [keywordDocs, semanticDocs] = await Promise.all([
             searchPageIndex(refinedInput),
-            searchSemantic(refinedInput, 5)
+            searchSemantic(refinedInput, 10) // Increase density for reranking
         ]);
 
-        // Merge and deduplicate by source/title/content
-        const allDocs = [...keywordDocs, ...semanticDocs];
-        const seen = new Set();
-        const uniqueDocs = allDocs.filter(doc => {
-            const id = `${doc.metadata.source}-${doc.metadata.title}-${doc.pageContent.slice(0, 100)}`;
-            if (seen.has(id)) return false;
-            seen.add(id);
-            return true;
-        });
+        // HYBRID MERGE: Reciprocal Rank Fusion (RRF)
+        // This is the industry standard for merging keyword + vector results.
+        // Formula: score = sum( 1 / (60 + rank) )
+        const K = 60;
+        const rrfScores = new Map<string, number>();
+        const docMap = new Map<string, typeof keywordDocs[0]>();
 
-        // RERANKING STEP: Simple keyword overlap scoring 
-        const queryTerms = refinedInput.toLowerCase().split(/\s+/).filter(w => w.length > 3);
-        uniqueDocs.forEach(doc => {
-            const content = doc.pageContent.toLowerCase();
-            let score = doc.metadata.score || 0; // Baseline from Pinecone if semantic
-            queryTerms.forEach(term => {
-                if (content.includes(term)) {
-                    score += 0.5; // Bump score for direct keyword matches (cross-store reranking)
-                }
+        const applyRRF = (docs: typeof keywordDocs, weight = 1.0) => {
+            docs.forEach((doc, rank) => {
+                const id = `${doc.metadata.source}-${doc.metadata.title}-${doc.pageContent.slice(0, 50)}`;
+                docMap.set(id, doc);
+                const currentScore = rrfScores.get(id) || 0;
+                rrfScores.set(id, currentScore + (weight / (K + rank + 1)));
             });
-            doc.metadata.rerankScore = score;
-        });
+        };
 
-        // Sort effectively by our custom rerank scoring
-        uniqueDocs.sort((a, b) => (b.metadata.rerankScore || 0) - (a.metadata.rerankScore || 0));
+        applyRRF(keywordDocs, 1.0);
+        applyRRF(semanticDocs, 1.0);
+
+        // Sort unique docs by RRF score
+        const uniqueDocs = Array.from(rrfScores.keys())
+            .map(id => ({ id, score: rrfScores.get(id)! }))
+            .sort((a, b) => b.score - a.score)
+            .map(item => docMap.get(item.id)!);
+
+        // Step 1.2: ADVANCED RERANKING (Cross-Encoder)
+        // Pass the top-merged candidates to LLM for final clinical verification
+        const topCandidates = uniqueDocs.slice(0, 10);
+        const remainingDocs = uniqueDocs.slice(10);
+
+        const rerankedTop = await rerankDocuments(refinedInput, topCandidates);
+        const finalDocs = [...rerankedTop, ...remainingDocs];
 
         console.log(JSON.stringify({
             event: "AgentRetrieval",
             query: refinedInput,
             keywordDocsCount: keywordDocs.length,
             semanticDocsCount: semanticDocs.length,
-            totalUniqueDocs: uniqueDocs.length
+            totalUniqueDocs: uniqueDocs.length,
+            rerankedCount: rerankedTop.length
         }));
 
         // Context Truncation for Latency Optimization
-        let context = formatPageIndexContext(uniqueDocs);
+        let context = formatPageIndexContext(finalDocs);
         if (context.length > 15000) {
             context = context.slice(0, 15000) + "\n...[truncated]";
         }
@@ -118,11 +126,11 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
             TASK:
             1. Response Language: Answer strictly in the same language the user asked in.
             2. Content: Answer using ONLY the provided Guidelines.
-            3. Citations: Use subtle inline citations [Source, Section].
+            3. Citations: Use subtle inline citations [Source: filename.pdf]. 
+               * ONLY use sources listed in the Guidelines below.
+               * Valid sources for this query: ${uniqueSources.join(", ")}
             4. **EXTREME BREVITY**: 
-               * For "What is..." or "Define..." questions: Provide ONLY 2-3 concise sentences.
-               * NO HEADERS (###), NO SECTIONS, NO "According to...". 
-               * Jump straight to the answer content.
+               * Provide ONLY 2-3 concise sentences.
             5. **SAFETY VERIFICATION**: You are medical AI. Rely solely on the provided context. Do NOT guess. If not in guidelines, say "Sorry, I don't know the answer for this question."
             
             GUIDELINES:
@@ -139,10 +147,31 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
         ];
 
         const finalStream = await model.stream(messages);
+        let fullResponse = "";
+
         for await (const chunk of finalStream) {
             if (chunk.content) {
-                yield chunk.content as string;
+                const text = chunk.content as string;
+                fullResponse += text;
+                yield text;
             }
+        }
+
+        // CITATION VERIFICATION (Post-process)
+        // Detects if the LLM hallucinated a source that wasn't provided
+        const citationRegex = /\[Source:\s*([^,\]]+)(?:,\s*([^\]]+))?\]/g;
+        const citedSources = new Set<string>();
+        let match;
+        while ((match = citationRegex.exec(fullResponse)) !== null) {
+            citedSources.add(match[1].trim().toLowerCase());
+        }
+
+        const validSourceNames = new Set(uniqueDocs.map(d => d.metadata.source.toLowerCase()));
+        const invalidCitations = Array.from(citedSources).filter(s => !validSourceNames.has(s));
+
+        if (invalidCitations.length > 0) {
+            console.warn(`[Agent] Hallucinated citations detected: ${invalidCitations.join(", ")}`);
+            // We've already yielded the text, but we log the safety violation for the admin
         }
 
         yield "\n\n**Disclaimer:** *This is for educational purposes only. Always follow your doctor's advice.*";

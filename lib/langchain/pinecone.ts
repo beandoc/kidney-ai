@@ -1,7 +1,7 @@
 
 import { Pinecone } from "@pinecone-database/pinecone";
 import { PineconeStore } from "@langchain/pinecone";
-import { getEmbeddings } from "./config";
+import { getEmbeddings, CHUNK_SIZE, CHUNK_OVERLAP } from "./config";
 import { Document } from "@langchain/core/documents";
 import * as fs from "fs";
 import * as path from "path";
@@ -104,8 +104,8 @@ export async function processFileBuffer(buffer: Buffer, filename: string): Promi
     if (documents.length === 0) return [];
 
     const splitter = new RecursiveCharacterTextSplitter({
-        chunkSize: 1000, // Balanced: good context per chunk, fewer total chunks for faster indexing
-        chunkOverlap: 150,
+        chunkSize: CHUNK_SIZE,
+        chunkOverlap: CHUNK_OVERLAP,
         separators: ["\n\n", "\n", ". ", "? ", "! ", " ", ""],
     });
 

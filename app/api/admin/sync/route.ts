@@ -4,6 +4,8 @@ import * as path from "path";
 
 import { invalidateIndex } from "@/lib/pageindex/retrieval";
 import { processFileBuffer } from "@/lib/langchain/pinecone";
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+import { CHUNK_SIZE, CHUNK_OVERLAP } from "@/lib/langchain/config";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -54,26 +56,25 @@ export async function POST(request: Request) {
                             // Already an index file, just copy it
                             fs.writeFileSync(path.join(pageIndexPath, fileName), buffer);
                         } else {
-                            // Simple tree with CHUNKING for large files
+                            // Use the SAME splitter as Pinecone for consistency
                             const docs = await processFileBuffer(buffer, fileName);
-                            const fullText = docs.map(d => d.pageContent).join('\n\n');
+                            const splitter = new RecursiveCharacterTextSplitter({
+                                chunkSize: CHUNK_SIZE,
+                                chunkOverlap: CHUNK_OVERLAP,
+                                separators: ["\n\n", "\n", ". ", "? ", "! ", " ", ""],
+                            });
 
-                            // Split into 5000 char chunks for better search granularity
-                            const chunkSize = 5000;
-                            const chunks: string[] = [];
-                            for (let i = 0; i < fullText.length; i += chunkSize) {
-                                chunks.push(fullText.slice(i, i + chunkSize + 500)); // 500 char overlap
-                            }
+                            const splitDocs = await splitter.splitDocuments(docs);
 
                             const simpleResult = {
                                 doc_name: fileName,
-                                structure: chunks.map((chunk, idx) => ({
+                                structure: splitDocs.map((doc, idx) => ({
                                     title: `${fileName} - Part ${idx + 1}`,
                                     node_id: `chunk-${idx}`,
                                     start_index: 1,
                                     end_index: 1,
                                     summary: `Segment ${idx + 1} of ${fileName}`,
-                                    text: chunk
+                                    text: doc.pageContent
                                 }))
                             };
                             const outName = fileName.endsWith('.json') ? fileName : `${fileName}.json`;
