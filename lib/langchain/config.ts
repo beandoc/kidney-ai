@@ -23,28 +23,28 @@ export function getChatModel(maxRetries?: number) {
   const geminiKey = (process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY)?.trim();
   const groqKey = process.env.GROQ_API_KEY?.trim();
 
-  // Primary LLM: Gemini
-  if (geminiKey) {
-    return new ChatGoogleGenerativeAI({
-      model: "gemini-flash-latest",
-      temperature: 0.1,
-      apiKey: geminiKey,
-      maxRetries: maxRetries ?? 2, // Fail fast to use fallback
-    });
-  }
-
-  // Fallback LLM: Groq
+  // Primary LLM: Groq (Switched because of Gemini quota issues)
   if (groqKey) {
-    console.log("Using Fallback LLM: Groq");
+    console.log("Using Primary LLM: Groq (Llama-3.3-70b)");
     return new ChatGroq({
-      model: "llama-3.1-8b-instant",
+      model: "llama-3.3-70b-versatile",
       temperature: 0.1,
       apiKey: groqKey,
-      maxRetries: maxRetries ?? 2,
+      maxRetries: maxRetries ?? 0,
     });
   }
 
-  throw new Error("No LLM API keys configured (Missing GOOGLE_API_KEY and GROQ_API_KEY)");
+  // Fallback LLM: Gemini
+  if (geminiKey) {
+    return new ChatGoogleGenerativeAI({
+      model: "gemini-1.5-flash-latest",
+      temperature: 0.1,
+      apiKey: geminiKey,
+      maxRetries: maxRetries ?? 0,
+    });
+  }
+
+  throw new Error("No valid LLM API keys configured. Please check your GOOGLE_API_KEY or GROQ_API_KEY.");
 }
 
 /**

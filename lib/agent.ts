@@ -180,6 +180,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
 
     } catch (globalError: any) {
         console.error("[Agent] CRITICAL FAILURE:", globalError);
-        yield `I encountered a problem: ${globalError?.message || String(globalError)}`;
+        const errorMessage = globalError?.message || String(globalError);
+        yield `\n\n⚠️ **System Error:** ${errorMessage}\n\nPlease check your API keys in the settings or contact the administrator.`;
     }
 }
