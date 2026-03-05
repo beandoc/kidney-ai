@@ -7,6 +7,7 @@ import ChatSidebar from "./chat/ChatSidebar";
 import ChatMessage from "./chat/ChatMessage";
 import ChatStatus from "./chat/ChatStatus";
 import ChatInput from "./chat/ChatInput";
+import SuggestedQuestions from "./chat/SuggestedQuestions";
 import { Message } from "./chat/types";
 import LoginWall from "./chat/LoginWall";
 
@@ -70,6 +71,17 @@ export default function ChatComponent() {
     }, [messages]);
 
 
+
+    const handleSuggestedQuestion = (question: string) => {
+        setInput(question);
+        // Use a micro-delay so React updates the input first, then submit
+        setTimeout(() => {
+            const form = document.querySelector('form') as HTMLFormElement;
+            if (form) form.requestSubmit();
+        }, 50);
+    };
+
+    const showSuggestions = messages.length <= 1 && !isLoading;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -202,6 +214,11 @@ export default function ChatComponent() {
                         {messages.map((message) => (
                             <ChatMessage key={message.id} message={message} />
                         ))}
+
+                        <SuggestedQuestions
+                            onSelect={handleSuggestedQuestion}
+                            visible={showSuggestions}
+                        />
 
                         <ChatStatus isLoading={isLoading} agentStatus={agentStatus} />
 

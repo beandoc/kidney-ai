@@ -176,3 +176,48 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Suggested Question Chips */
+.suggested-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: white;
+  border: 1px solid #d1e7dd;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #075e54;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  white-space: nowrap;
+}
+
+.suggested-chip:hover {
+  background: #e8f5e9;
+  border-color: #128c7e;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(18, 140, 126, 0.15);
+}
+
+.suggested-chip:active {
+  transform: translateY(0);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease-out;
+}
