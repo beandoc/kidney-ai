@@ -36,7 +36,8 @@ body {
 }
 
 /* Refined Floating Bubbles */
-.bubble-user, .bubble-assistant {
+.bubble-user,
+.bubble-assistant {
   position: relative;
   box-shadow: var(--wa-shadow-sm);
   max-width: 85%;
@@ -44,8 +45,15 @@ body {
 }
 
 @keyframes messageBounce {
-  from { opacity: 0; transform: translateY(12px) scale(0.97); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* Premium Tails */
@@ -58,7 +66,7 @@ body {
   height: 18px;
   background-color: var(--wa-bubble-sent);
   clip-path: polygon(0 0, 0% 100%, 100% 0);
-  filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.05));
+  filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.05));
 }
 
 .bubble-assistant::after {
@@ -81,7 +89,7 @@ body {
 
 .wa-input-container {
   background: #f0f2f5;
-  border-top: 1px solid rgba(0,0,0,0.05);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 /* Medical System Disclaimer Style */
@@ -92,7 +100,7 @@ body {
   padding: 8px 12px;
   border-radius: 10px;
   text-align: center;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   margin: 12px auto;
   max-width: 90%;
   text-transform: uppercase;
@@ -106,23 +114,65 @@ body {
 }
 
 @keyframes pulse-ring {
-  0% { transform: scale(0.85); opacity: 0.5; }
-  50% { transform: scale(1.1); opacity: 1; }
-  100% { transform: scale(0.85); opacity: 0.5; }
+  0% {
+    transform: scale(0.85);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(0.85);
+    opacity: 0.5;
+  }
 }
 
 /* Custom Scrollbar */
 .chat-scroll-area::-webkit-scrollbar {
   width: 5px;
 }
+
 .chat-scroll-area::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.15);
   border-radius: 10px;
 }
+
 .chat-scroll-area::-webkit-scrollbar-track {
   background: transparent;
 }
 
+/* Typography for RAG Answers */
+.markdown-content em {
+  font-size: 0.88em;
+  color: #667781;
+  opacity: 0.9;
+  font-weight: 500;
+  font-style: italic;
+}
+
+.disclaimer-text {
+  font-size: 0.78rem;
+  line-height: 1.4;
+  display: block;
+  margin-top: 4px;
+  color: #667781;
+}
+
+.message-divider {
+  border: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  margin: 8px 0;
+}
+
 /* Utility: Hide Scrollbar */
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

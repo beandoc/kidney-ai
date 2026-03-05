@@ -116,9 +116,19 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
             context = context.slice(0, 15000) + "\n...[truncated]";
         }
 
-        const sources = uniqueDocs.map(d => `${d.metadata.source}${d.metadata.title ? ` - ${d.metadata.title}` : ""}`);
-        const uniqueSources = Array.from(new Set(sources));
+        // SMART SOURCE SHORTENING: Clean filenames for better readability
+        // e.g., "KDIGO-2012-AKI-Guideline.pdf" -> "KDIGO 2012"
+        const cleanSourceName = (name: string) => {
+            return name
+                .replace(/\.(pdf|md|docx|txt)$/i, "")
+                .replace(/-Guideline-English|-English|-Guideline/i, "")
+                .replace(/-/g, " ")
+                .replace(/AKI|CKD|AKI Trial/gi, "") // Remove redundant acronyms if present in filename
+                .trim();
+        };
 
+        const sources = uniqueDocs.map(d => cleanSourceName(d.metadata.source));
+        const uniqueSources = Array.from(new Set(sources));
 
         // Step 2: Direct Streaming Response
         const model = getChatModel();
@@ -126,14 +136,13 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
             You are a Kidney Health Assistant. 
             
             TASK:
-            1. Response Language: Answer strictly in the same language the user asked in.
+            1. Language: Use the user's language.
             2. Content: Answer using ONLY the provided Guidelines.
-            3. Citations: Use subtle inline citations [Source: filename.pdf]. 
-               * ONLY use sources listed in the Guidelines below.
-               * Valid sources for this query: ${uniqueSources.join(", ")}
+            3. Citations: Use subtle inline citations like *[Source: KDIGO 2012]*. 
+               * ONLY use sources from this list: ${uniqueSources.join(", ")}
             4. **EXTREME BREVITY**: 
-               * Provide ONLY 2-3 concise sentences.
-            5. **SAFETY VERIFICATION**: You are medical AI. Rely solely on the provided context. Do NOT guess. If not in guidelines, say "Sorry, I don't know the answer for this question."
+               * Maximum 2-3 concise sentences.
+            5. **SAFETY**: If not in guidelines, say "Sorry, I don't know the answer for this."
             
             GUIDELINES:
             ${context}
@@ -176,7 +185,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
             // We've already yielded the text, but we log the safety violation for the admin
         }
 
-        yield "\n\n**Disclaimer:** *This is for educational purposes only. Always follow your doctor's advice.*";
+        yield "\n\n---\n**Disclaimer:** *This is for educational purposes only. Always follow your doctor's advice.*";
 
     } catch (globalError: any) {
         console.error("[Agent] CRITICAL FAILURE:", globalError);

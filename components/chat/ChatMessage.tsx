@@ -2,6 +2,7 @@
 
 import { Message } from "./types";
 import { CheckCheck, Sparkles } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
 interface ChatMessageProps {
     message: Message;
@@ -10,10 +11,40 @@ interface ChatMessageProps {
 export default function ChatMessage({ message }: ChatMessageProps) {
     const isAssistant = message.role === "assistant";
 
+    const renderText = (text: string) => {
+        // Split by the custom divider we added in agent.ts
+        const parts = text.split("\n---\n");
+        const mainContent = parts[0];
+        const disclaimer = parts.length > 1 ? parts[1] : null;
+
+        return (
+            <div className="flex flex-col gap-1">
+                <div className="markdown-content">
+                    <ReactMarkdown
+                        components={{
+                            p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                        }}
+                    >
+                        {mainContent}
+                    </ReactMarkdown>
+                </div>
+
+                {disclaimer && (
+                    <>
+                        <hr className="message-divider" />
+                        <div className="disclaimer-text">
+                            <ReactMarkdown>{disclaimer}</ReactMarkdown>
+                        </div>
+                    </>
+                )}
+            </div>
+        );
+    };
+
     return (
         <div className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} mb-2 transition-all duration-300`}>
             <div
-                className={`relative max-w-[85%] sm:max-w-[70%] px-3 py-1.5 shadow-sm rounded-xl ${message.role === "user"
+                className={`relative max-w-[85%] sm:max-w-[70%] px-3 py-2 shadow-sm rounded-xl ${message.role === "user"
                     ? "bg-[#dcf8c6] rounded-tr-none bubble-user"
                     : "bg-white rounded-tl-none bubble-assistant"
                     }`}
@@ -23,7 +54,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
                         <img src={message.image} alt="User upload" className="max-w-full h-auto object-cover" />
                     </div>
                 )}
-                <div className="text-[14.2px] text-[#111B21] leading-[1.45] whitespace-pre-wrap pr-10">
+                <div className="text-[14.2px] text-[#111B21] leading-[1.45] pr-10">
                     {message.content.includes("<thought>") ? (
                         <div className="space-y-3">
                             {message.content.split(/<\/?thought>/).map((part, i) => {
@@ -39,11 +70,11 @@ export default function ChatMessage({ message }: ChatMessageProps) {
                                     );
                                 }
                                 if (!part.trim()) return null;
-                                return <div key={i}>{part}</div>;
+                                return <div key={i}>{renderText(part)}</div>;
                             })}
                         </div>
                     ) : (
-                        message.content
+                        renderText(message.content)
                     )}
                 </div>
 
