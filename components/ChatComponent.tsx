@@ -45,6 +45,7 @@ export default function ChatComponent() {
     const [agentStatus, setAgentStatus] = useState<string | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const [welcomeTrigger, setWelcomeTrigger] = useState(0);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -54,31 +55,30 @@ export default function ChatComponent() {
     useEffect(() => {
         if (!mounted) return;
 
-        // Only run if we are at the welcome state
-        if (messages.length === 1 && messages[0].id === "welcome" && messages[0].content !== WELCOME_MESSAGE) {
-            let i = 0;
-            const timer = setInterval(() => {
-                setMessages(prev => {
-                    const newMessages = [...prev];
-                    if (newMessages[0].id === "welcome") {
-                        const nextContent = WELCOME_MESSAGE.slice(0, i);
-                        newMessages[0] = {
-                            ...newMessages[0],
-                            content: nextContent,
-                            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                            isStreaming: i < WELCOME_MESSAGE.length
-                        };
-                    }
-                    return newMessages;
-                });
-                i += 5; // Speed adjustment: typing 5 chars at a time for better flow
-                if (i > WELCOME_MESSAGE.length + 5) {
+        let i = 0;
+        const timer = setInterval(() => {
+            setMessages(prev => {
+                if (prev.length === 0 || prev[0].id !== "welcome") {
                     clearInterval(timer);
+                    return prev;
                 }
-            }, 20);
-            return () => clearInterval(timer);
-        }
-    }, [mounted]);
+                const newMessages = [...prev];
+                const nextContent = WELCOME_MESSAGE.slice(0, i);
+                newMessages[0] = {
+                    ...newMessages[0],
+                    content: nextContent,
+                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    isStreaming: i < WELCOME_MESSAGE.length
+                };
+                return newMessages;
+            });
+            i += 5; // Speed adjustment: typing 5 chars at a time for better flow
+            if (i > WELCOME_MESSAGE.length + 5) {
+                clearInterval(timer);
+            }
+        }, 20);
+        return () => clearInterval(timer);
+    }, [mounted, welcomeTrigger]);
 
     useEffect(() => {
         setMounted(true);
@@ -118,6 +118,7 @@ export default function ChatComponent() {
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages([welcomeMessage]);
+        setWelcomeTrigger(v => v + 1);
     };
 
     useEffect(() => {
@@ -257,7 +258,7 @@ export default function ChatComponent() {
                 setUser({ id, username });
                 clearChat(); // Immediate clean slate on every login
             }} />}
-            <ChatSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+            <ChatSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} user={user} />
 
             <div className="flex-1 flex flex-col relative h-full">
                 <div className="wa-wallpaper"></div>

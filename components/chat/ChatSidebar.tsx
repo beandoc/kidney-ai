@@ -6,9 +6,10 @@ import Link from "next/link";
 interface ChatSidebarProps {
     isOpen: boolean;
     onClose: () => void;
+    user: { id: string; username: string } | null;
 }
 
-export default function ChatSidebar({ isOpen, onClose }: ChatSidebarProps) {
+export default function ChatSidebar({ isOpen, onClose, user }: ChatSidebarProps) {
     return (
         <aside className={`
             ${isOpen ? "flex" : "hidden"} 
@@ -44,21 +45,23 @@ export default function ChatSidebar({ isOpen, onClose }: ChatSidebarProps) {
                 </div>
 
                 {/* Admin Link - AI Training Center */}
-                <div className="px-4 mt-6 mb-2">
-                    <p className="text-[10px] text-slate-400 uppercase font-black tracking-[0.2em] mb-3">Clinician Control Panel</p>
-                    <Link href="/admin" className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 flex items-center gap-4 cursor-pointer hover:shadow-md hover:border-[#128C7E]/30 transition-all group">
-                        <div className="w-12 h-12 rounded-xl bg-[#128C7E] flex items-center justify-center shadow-sm text-white transition-transform group-hover:scale-105">
-                            <Plus className="w-6 h-6" />
-                        </div>
-                        <div className="flex-1">
-                            <div className="flex justify-between items-center mb-0.5">
-                                <span className="font-bold text-[#111B21] text-sm">Train Medical Brain</span>
-                                <Sparkles className="w-3.5 h-3.5 text-[#128C7E] animate-pulse" />
+                {user?.username?.toLowerCase().includes('sachin') && (
+                    <div className="px-4 mt-6 mb-2">
+                        <p className="text-[10px] text-slate-400 uppercase font-black tracking-[0.2em] mb-3">Clinician Control Panel</p>
+                        <Link href="/admin" className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 flex items-center gap-4 cursor-pointer hover:shadow-md hover:border-[#128C7E]/30 transition-all group">
+                            <div className="w-12 h-12 rounded-xl bg-[#128C7E] flex items-center justify-center shadow-sm text-white transition-transform group-hover:scale-105">
+                                <Plus className="w-6 h-6" />
                             </div>
-                            <p className="text-[11px] text-[#128C7E] font-semibold leading-tight opacity-80">Upload PDFs & Guidelines</p>
-                        </div>
-                    </Link>
-                </div>
+                            <div className="flex-1">
+                                <div className="flex justify-between items-center mb-0.5">
+                                    <span className="font-bold text-[#111B21] text-sm">Train Medical Brain</span>
+                                    <Sparkles className="w-3.5 h-3.5 text-[#128C7E] animate-pulse" />
+                                </div>
+                                <p className="text-[11px] text-[#128C7E] font-semibold leading-tight opacity-80">Upload PDFs & Guidelines</p>
+                            </div>
+                        </Link>
+                    </div>
+                )}
             </div>
         </aside>
     );
