@@ -25,9 +25,10 @@ export async function POST(request: NextRequest) {
     console.log(JSON.stringify({ event: "ChatAPIRequest", method: "POST", message: "Received request" }));
     try {
         const body = await request.json();
+        const { message, image, history, type } = body;
 
         // CORKED & LOADED: Handle pre-warming request
-        if (body.type === "ping") {
+        if (type === "ping") {
             prewarmAgent(); // Fire and forget pre-warming
             return NextResponse.json({ status: "warming_up" });
         }
@@ -47,8 +48,6 @@ export async function POST(request: NextRequest) {
             }
             return NextResponse.json({ error: "Invalid user account" }, { status: 401 });
         }
-
-        const { message, image, history } = await request.json();
 
         if ((!message || typeof message !== "string") && !image) {
             return NextResponse.json(

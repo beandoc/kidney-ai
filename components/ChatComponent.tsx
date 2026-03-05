@@ -127,22 +127,22 @@ export default function ChatComponent() {
 
 
     const handleSuggestedQuestion = (question: string) => {
-        setInput(question);
-        // Use a micro-delay so React updates the input first, then submit
-        setTimeout(() => {
-            const form = document.querySelector('form') as HTMLFormElement;
-            if (form) form.requestSubmit();
-        }, 50);
+        executeSubmit(question);
     };
 
     const showSuggestions = messages.length <= 1 && !isLoading && messages[0]?.content === WELCOME_MESSAGE;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!input.trim() || isLoading) return;
+        executeSubmit();
+    };
+
+    const executeSubmit = async (forcedInput?: string) => {
+        const textToSubmit = (forcedInput || input).trim();
+        if (!textToSubmit || isLoading) return;
         if (!user) return;
 
-        const currentInput = input.trim();
+        const currentInput = textToSubmit;
 
         const userMessage: Message = {
             id: Date.now().toString(),
