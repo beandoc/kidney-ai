@@ -61,10 +61,12 @@ export default function ChatComponent() {
                 setMessages(prev => {
                     const newMessages = [...prev];
                     if (newMessages[0].id === "welcome") {
+                        const nextContent = WELCOME_MESSAGE.slice(0, i);
                         newMessages[0] = {
                             ...newMessages[0],
-                            content: WELCOME_MESSAGE.slice(0, i),
-                            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                            content: nextContent,
+                            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                            isStreaming: i < WELCOME_MESSAGE.length
                         };
                     }
                     return newMessages;
@@ -194,6 +196,7 @@ export default function ChatComponent() {
                 role: "assistant",
                 content: "",
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                isStreaming: true, // Start streaming
             };
             setMessages((prev) => [...prev, assistantMessage]);
 
@@ -227,6 +230,13 @@ export default function ChatComponent() {
                     }
                 }
             }
+
+            // Mark streaming as finished
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === assistantId ? { ...m, isStreaming: false } : m
+                )
+            );
         } catch (error: unknown) {
             const err = error as Error;
             if (err.message === "QUOTA_EXCEEDED") {

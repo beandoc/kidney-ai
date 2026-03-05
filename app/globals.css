@@ -221,3 +221,37 @@ body {
 .animate-fadeIn {
   animation: fadeIn 0.4s ease-out;
 }
+
+.typewriter-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  background-color: var(--wa-teal);
+  margin-left: 2px;
+  vertical-align: middle;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+
+  from,
+  to {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+.markdown-content.streaming p {
+  display: inline;
+}
+
+.markdown-content.streaming p:after {
+  content: " ";
+}
+
+.inline-markdown {
+  display: inline;
+}

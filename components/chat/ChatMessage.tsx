@@ -19,7 +19,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
 
         return (
             <div className="flex flex-col gap-1">
-                <div className="markdown-content">
+                <div className={`markdown-content ${message.isStreaming ? 'streaming' : ''}`}>
                     <ReactMarkdown
                         components={{
                             p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
@@ -34,6 +34,9 @@ export default function ChatMessage({ message }: ChatMessageProps) {
                     >
                         {mainContent}
                     </ReactMarkdown>
+                    {message.isStreaming && !disclaimer && (
+                        <span className="typewriter-cursor"></span>
+                    )}
                 </div>
 
                 {disclaimer && (

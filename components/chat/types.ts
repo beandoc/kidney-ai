@@ -5,4 +5,5 @@ export interface Message {
     image?: string;
     sources?: string[];
     timestamp: string;
+    isStreaming?: boolean;
 }
