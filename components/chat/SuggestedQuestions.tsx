@@ -6,12 +6,12 @@ interface SuggestedQuestionsProps {
 }
 
 const SUGGESTED_QUESTIONS = [
-    { emoji: "🫘", text: "What is Chronic Kidney Disease?" },
+    { emoji: "🛡️", text: "How to prevent kidney disease?" },
+    { emoji: "🥗", text: "Best diet for kidney patients" },
+    { emoji: "💉", text: "Vaccinations for kidney patients" },
+    { emoji: "💊", text: "What is dialysis and fistula care?" },
+    { emoji: "🏥", text: "When is kidney transplant needed?" },
     { emoji: "🧪", text: "What does high creatinine mean?" },
-    { emoji: "🥗", text: "Foods to avoid in kidney disease" },
-    { emoji: "💊", text: "What is dialysis and when is it needed?" },
-    { emoji: "🩺", text: "What is Lupus Nephritis?" },
-    { emoji: "📊", text: "What is eGFR and its normal range?" },
 ];
 
 export default function SuggestedQuestions({ onSelect, visible }: SuggestedQuestionsProps) {

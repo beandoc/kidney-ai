@@ -11,6 +11,23 @@ import SuggestedQuestions from "./chat/SuggestedQuestions";
 import { Message } from "./chat/types";
 import LoginWall from "./chat/LoginWall";
 
+const WELCOME_MESSAGE = `Hello! I'm **Nirogyam ChatBot** — I am here to assist you with all your questions about Kidney Health, and consultation with **Dr Sachin**.
+
+Learn more about our services, or get more information. I'm here to help you every step of the way. Let's ensure you have a wonderful experience!
+
+**For everything on Kidneys —**
+- Prevention and Care
+- Lifestyle or Diet
+- Vaccinations
+- Dialysis and Fistula Care
+- Kidney Transplant
+- and much more . . . just type below . . .
+
+*(Chat with Nirogyam ChatBot in: मराठी, English, हिंदी, ગુજરાતી, ಕನ್ನಡ, മലയാളം, తెలుగు, ଓଡ଼ିଶା, தமிழ், ਪੰਜਾਬੀ, বাংলা, عربی, اردو, or any other — just ask me to translate or type in your script!)*
+
+---
+⚠️ *This is an automated chatbot response. The responses are for information purpose only, and should not be construed as medical advice! In case of an emergency or urgent care please connect with the nearest hospital.*`;
+
 export default function ChatComponent() {
     const [mounted, setMounted] = useState(false);
     const [user, setUser] = useState<{ id: string; username: string } | null>(null);
@@ -18,9 +35,8 @@ export default function ChatComponent() {
         {
             id: "welcome",
             role: "assistant",
-            content:
-                "Hello! I'm your Kidney Health Education Assistant. I provide accurate information about kidney diseases, treatments, diet recommendations, and preventive care—all based on verified medical resources.\n\nHow can I help you today?",
-            timestamp: "", // Will be set on mount
+            content: WELCOME_MESSAGE,
+            timestamp: "",
         },
     ]);
     const [input, setInput] = useState("");
@@ -41,7 +57,7 @@ export default function ChatComponent() {
             {
                 id: "welcome",
                 role: "assistant",
-                content: "Hello! I'm your Kidney Health Education Assistant. I provide accurate information about kidney diseases, treatments, diet recommendations, and preventive care—all based on verified medical resources.\n\nHow can I help you today?",
+                content: WELCOME_MESSAGE,
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             }
         ]);
@@ -60,7 +76,7 @@ export default function ChatComponent() {
         const welcomeMessage: Message = {
             id: "welcome",
             role: "assistant",
-            content: "Hello! I'm your Kidney Health Education Assistant. I provide accurate information about kidney diseases, treatments, diet recommendations, and preventive care—all based on verified medical resources.\n\nHow can I help you today?",
+            content: WELCOME_MESSAGE,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages([welcomeMessage]);
