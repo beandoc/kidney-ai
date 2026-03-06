@@ -106,18 +106,15 @@ export async function POST(request: Request) {
                 };
 
                 // Store dynamically uploaded file
-                if (process.env.BLOB_READ_WRITE_TOKEN) {
+                if (process.env.REDIS_URL) {
                     try {
-                        const { put } = await import('@vercel/blob');
+                        const { createClient } = await import('redis');
+                        const redis = await createClient({ url: process.env.REDIS_URL }).connect();
                         // Save the PageIndex chunk array
-                        await put(`pageindex/${outName}`, JSON.stringify(simpleResult, null, 2), { access: 'public', contentType: 'application/json' });
-
-                        // Save the raw original file (PDF/Docx)
-                        if (fileBuffer) {
-                            await put(`raw/${label}`, fileBuffer, { access: 'public' }).catch(e => console.warn('Failed to upload raw file:', e));
-                        }
+                        await redis.set(`pageindex:${outName}`, JSON.stringify(simpleResult));
+                        await redis.quit();
                     } catch (e) {
-                        console.error("Vercel Blob upload error:", e);
+                        console.error("Redis upload error:", e);
                         throw e;
                     }
                 } else {

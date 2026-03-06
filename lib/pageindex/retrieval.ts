@@ -76,24 +76,32 @@ async function buildIndex(): Promise<IndexEntry[]> {
         collectFrom(PAGEINDEX_KB_PATH);
     }
 
-    // 2. Fetch any dynamically uploaded files at runtime (from Vercel Blob or /tmp)
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
+    // 2. Fetch any dynamically uploaded files at runtime (from Redis on Vercel or local)
+    if (process.env.REDIS_URL) {
         try {
-            console.log("[SearchIndex] Fetching dynamic uploads from Vercel Blob...");
-            const { list } = await import('@vercel/blob');
-            const { blobs } = await list({ prefix: 'pageindex/' });
+            console.log("[SearchIndex] Fetching dynamic uploads from Redis...");
+            const { createClient } = await import('redis');
+            const redis = await createClient({ url: process.env.REDIS_URL }).connect();
+            const keys = await redis.keys('pageindex:*');
 
-            for (const blob of blobs.filter(b => b.pathname.endsWith('.json'))) {
-                const fileName = path.basename(blob.pathname);
+            for (const key of keys) {
+                const fileName = key.replace('pageindex:', '');
                 // Skip if this file is already in the bundled index
                 if (!index.some(i => i.fileName === fileName)) {
-                    const res = await fetch(blob.url);
-                    const content = await res.json();
-                    processFileContent(index, fileName, content);
+                    const contentStr = await redis.get(key);
+                    if (contentStr) {
+                        try {
+                            const content = JSON.parse(contentStr);
+                            processFileContent(index, fileName, content);
+                        } catch (e) {
+                            console.error(`[SearchIndex] Redis parse error for ${fileName}:`, e);
+                        }
+                    }
                 }
             }
+            await redis.quit();
         } catch (e) {
-            console.error("[SearchIndex] Failed to fetch from Vercel Blob:", e);
+            console.error("[SearchIndex] Failed to fetch from Redis:", e);
         }
     } else if (TMP_PAGEINDEX_PATH !== PAGEINDEX_KB_PATH && fs.existsSync(TMP_PAGEINDEX_PATH)) {
         for (const file of fs.readdirSync(TMP_PAGEINDEX_PATH).filter(f => f.endsWith(".json") && !f.includes("merged"))) {

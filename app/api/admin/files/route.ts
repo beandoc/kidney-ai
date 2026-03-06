@@ -44,30 +44,31 @@ export async function GET(request: Request) {
         // 1. List bundled (static) PageIndex documents
         addFromPageindex(PAGEINDEX_PATH, 'bundled');
 
-        // 2. Fetch runtime-uploaded documents (from Vercel Blob or /tmp)
-        if (process.env.BLOB_READ_WRITE_TOKEN) {
+        // 2. Fetch runtime-uploaded documents (from Redis on Vercel or local)
+        if (process.env.REDIS_URL) {
             try {
-                const { list } = await import('@vercel/blob');
-                const { blobs } = await list({ prefix: 'pageindex/' });
-                for (const blob of blobs) {
-                    if (blob.pathname.endsWith('.json')) {
-                        const displayName = path.basename(blob.pathname).replace(/\.json$/, '');
-                        if (!seenNames.has(displayName + '.json')) {
-                            seenNames.add(displayName + '.json');
-                            files.push({
-                                name: displayName,
-                                originalName: path.basename(blob.pathname),
-                                size: blob.size,
-                                updatedAt: blob.uploadedAt,
-                                type: 'pageindex_tree',
-                                isIndexed: true,
-                                source: 'vercel_blob'
-                            });
-                        }
+                const { createClient } = await import('redis');
+                const redis = await createClient({ url: process.env.REDIS_URL }).connect();
+                const keys = await redis.keys('pageindex:*');
+                for (const key of keys) {
+                    const fileName = key.replace('pageindex:', '');
+                    const displayName = fileName.replace(/\.json$/, '');
+                    if (!seenNames.has(displayName + '.json')) {
+                        seenNames.add(displayName + '.json');
+                        files.push({
+                            name: displayName,
+                            originalName: fileName,
+                            size: 1024,
+                            updatedAt: new Date(),
+                            type: 'pageindex_tree',
+                            isIndexed: true,
+                            source: 'redis_store'
+                        });
                     }
                 }
+                await redis.quit();
             } catch (e) {
-                console.error("Vercel Blob list error:", e);
+                console.error("Redis list error:", e);
             }
         } else if (TMP_PAGEINDEX_PATH !== PAGEINDEX_PATH) {
             addFromPageindex(TMP_PAGEINDEX_PATH, 'uploaded');
@@ -146,20 +147,26 @@ export async function DELETE(request: Request) {
             }
         }
 
-        // Delete from Vercel blob
-        if (process.env.BLOB_READ_WRITE_TOKEN) {
+        // Delete from Redis
+        if (process.env.REDIS_URL) {
             try {
-                const { list, del } = await import('@vercel/blob');
-                const { blobs } = await list();
-                const toDelete = blobs
-                    .filter(b => b.pathname === `pageindex/${fileName}` || b.pathname === `pageindex/${fileName}.json` || b.pathname === `raw/${fileName}`)
-                    .map(b => b.url);
-                if (toDelete.length > 0) {
-                    await del(toDelete);
-                    console.log(`Deleted ${toDelete.length} blobs for ${fileName}`);
+                const { createClient } = await import('redis');
+                const redis = await createClient({ url: process.env.REDIS_URL }).connect();
+                const targets = [
+                    `pageindex:${fileName}`,
+                    `pageindex:${fileName}.json`,
+                    `raw:${fileName}`
+                ];
+                let deletedCount = 0;
+                for (const t of targets) {
+                    deletedCount += await redis.del(t);
                 }
+                if (deletedCount > 0) {
+                    console.log(`Deleted ${deletedCount} keys from Redis for ${fileName}`);
+                }
+                await redis.quit();
             } catch (e) {
-                console.error("Vercel Blob delete error:", e);
+                console.error("Redis delete error:", e);
             }
         }
 
