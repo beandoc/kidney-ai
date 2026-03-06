@@ -125,7 +125,12 @@ export default function ChatComponent() {
         scrollToBottom();
     }, [messages]);
 
-
+    const handleSignOut = () => {
+        localStorage.removeItem("kidney_ai_user_id");
+        localStorage.removeItem("kidney_ai_username");
+        setUser(null);
+        clearChat();
+    };
 
     const handleSuggestedQuestion = (question: string) => {
         executeSubmit(question);
@@ -258,12 +263,19 @@ export default function ChatComponent() {
                 setUser({ id, username });
                 clearChat(); // Immediate clean slate on every login
             }} />}
-            <ChatSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} user={user} />
+            {user?.username?.toLowerCase().includes('sachin') && (
+                <ChatSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} user={user} />
+            )}
 
             <div className="flex-1 flex flex-col relative h-full">
                 <div className="wa-wallpaper"></div>
 
-                <ChatHeader onMenuClick={() => setIsSidebarOpen(true)} onResetClick={clearChat} />
+                <ChatHeader
+                    onMenuClick={() => setIsSidebarOpen(true)}
+                    onResetClick={clearChat}
+                    user={user}
+                    onSignOut={handleSignOut}
+                />
 
                 <div className="flex-1 overflow-y-auto relative z-10 px-4 sm:px-[10%] py-4 chat-scroll-area">
                     <div className="max-w-[800px] mx-auto space-y-3">

@@ -84,7 +84,6 @@ export async function POST(request: Request) {
                 if (!fs.existsSync(kbPath)) fs.mkdirSync(kbPath, { recursive: true });
 
                 const outName = label.endsWith('.json') ? label : `${label}.json`;
-                const outputPath = path.join(kbPath, outName);
 
                 // Use the SAME splitter as Pinecone for consistency
                 const splitter = new RecursiveCharacterTextSplitter({
@@ -92,7 +91,6 @@ export async function POST(request: Request) {
                     chunkOverlap: CHUNK_OVERLAP,
                     separators: ["\n\n", "\n", ". ", "? ", "! ", " ", ""],
                 });
-
                 const splitDocs = await splitter.splitDocuments(docs);
 
                 const simpleResult = {
@@ -107,7 +105,26 @@ export async function POST(request: Request) {
                     }))
                 };
 
-                fs.writeFileSync(outputPath, JSON.stringify(simpleResult, null, 2));
+                // Store dynamically uploaded file
+                if (process.env.BLOB_READ_WRITE_TOKEN) {
+                    try {
+                        const { put } = await import('@vercel/blob');
+                        // Save the PageIndex chunk array
+                        await put(`pageindex/${outName}`, JSON.stringify(simpleResult, null, 2), { access: 'public', contentType: 'application/json' });
+
+                        // Save the raw original file (PDF/Docx)
+                        if (fileBuffer) {
+                            await put(`raw/${label}`, fileBuffer, { access: 'public' }).catch(e => console.warn('Failed to upload raw file:', e));
+                        }
+                    } catch (e) {
+                        console.error("Vercel Blob upload error:", e);
+                        throw e;
+                    }
+                } else {
+                    const outputPath = path.join(kbPath, outName);
+                    fs.writeFileSync(outputPath, JSON.stringify(simpleResult, null, 2));
+                }
+
                 invalidateIndex();
 
                 send({

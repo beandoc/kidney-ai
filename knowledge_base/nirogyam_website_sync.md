@@ -56,14 +56,27 @@ Creatinine is a waste product from muscle metabolism. It is the "Report Card" of
 
 ---
 
-## 🏥 6. Treatments: Dialysis vs. Transplantation
-| Feature | Life on Dialysis | Life after Kidney Transplant |
-| :--- | :--- | :--- |
-| **Routine** | 2-3 sessions/week (4 hours each). | Daily life; freedom from machines. |
-| **Energy** | Often leaves patients feeling drained. | Significant energy boost (return to work). |
-| **Diet** | Extremely strict (Na, K, P, Fluid). | Flexible, but must stay healthy. |
-| **Medication** | Binders, EPO, Vitamins. | Lifelong **Immunosuppressants** (Non-negotiable). |
-| **Cost** | Ongoing, long-term expense. | High one-time cost, then lifelong medication. |
+## 🏥 6. Treatments: Hemodialysis, Peritoneal Dialysis & Transplantation
+
+### Hemodialysis (HD)
+*   **The Process:** Blood is pumped out of your body to an artificial kidney machine (dialyzer), cleaned of toxins and excess fluid, and returned.
+*   **Access:** Requires a surgical connection (AV Fistula or Graft) or a catheter.
+*   **Routine:** Usually performed in a dialysis center 3 times a week, taking about 4 hours per session.
+
+### Peritoneal Dialysis (PD)
+*   **The Process:** Uses the inside lining of your own belly (the peritoneum) as a natural filter. A cleansing fluid (dialysate) is washed in and out of your belly in cycles through a soft catheter.
+*   **Continuous Ambulatory Peritoneal Dialysis (CAPD):** Manual exchanges done 3 to 4 times a day. You can carry out normal activities while the fluid is in your belly.
+*   **Automated Peritoneal Dialysis (APD):** A machine (cycler) performs the fluid exchanges at night while you sleep.
+*   **Pros/Cons:** Offers more lifestyle flexibility, fewer dietary restrictions, and no needles. However, it requires a clean environment to prevent infection (peritonitis) and daily self-care.
+
+### Kidney Transplantation
+*   **The Best Option:** Considered the best treatment for ESRD because it offers the highest quality of life and longest survival.
+*   **Types of Donors:** 
+    *   **Living Donor:** A healthy person (often a relative) donates one kidney. This is preferred due to quicker surgery and better long-term outcomes.
+    *   **Deceased (Cadaveric) Donor:** A kidney from someone who has recently passed away.
+*   **The Process:** Involves rigorous medical typing and cross-matching to ensure compatibility. The new kidney is surgically placed in the lower abdomen.
+*   **Post-Transplant Life:** Freedom from dialysis machines, drastic energy boost, and fewer dietary restrictions.
+*   **Lifelong Commitment:** You must take immunosuppressant (anti-rejection) medications for the rest of your life so your immune system doesn’t attack the new organ. Regular monitoring is essential.
 
 ---
 
@@ -79,6 +92,14 @@ Creatinine is a waste product from muscle metabolism. It is the "Report Card" of
 *   **Inherited vs. Congenital:** Inherited is from parents/genes; Congenital is present at birth (can be environmental).
 *   **PKD:** Fluid-filled cysts grow, enlarging kidneys over decades.
 *   **Clue:** High BP at a very young age and a family history of dialysis.
+
+---
+
+## 🦠 9. Glomerulonephritis (GN)
+*   **What It Is:** Inflammation of the glomeruli, the tiny blood vessels in your kidneys that act as filters. When damaged, they allow protein and red blood cells to leak into the urine.
+*   **Causes:** Can be triggered by infections (such as strep throat), immune system disorders (like Lupus or IgA nephropathy), or vasculitis. It can occur suddenly (Acute) or gradually (Chronic).
+*   **Symptoms:** Pink or cola-colored urine (hematuria), foamy urine (proteinuria), high blood pressure, and swelling (edema) in the face, hands, feet, and abdomen.
+*   **Treatment:** Depends on the underlying cause. May include blood pressure medications, immunosuppressants (like steroids) to quiet the immune system from attacking the kidneys, and dietary changes (less salt, protein, and fluid). Untreated, it can lead to CKD or kidney failure.
 
 ---
 *Verified clinical data sourced from nirogyams.com - 2025*

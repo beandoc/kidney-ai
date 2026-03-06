@@ -39,7 +39,7 @@
       "start_index": 1,
       "end_index": 1,
       "summary": "Segment 5 of nirogyam_website_sync.md",
-      "text": "### High Uric Acid\n*   **Crystals:** Forms needle-like crystals in joints (**Gout**) or kidneys (**Stones**).\n*   **Renal Link:** Long-term high uric acid causes direct kidney scarring.\n*   **Diet:** Limit red meat (mutton), beer, and sugary sodas.\n\n---\n\n## 🏥 6. Treatments: Dialysis vs. Transplantation\n| Feature | Life on Dialysis | Life after Kidney Transplant |\n| :--- | :--- | :--- |\n| **Routine** | 2-3 sessions/week (4 hours each). | Daily life; freedom from machines. |\n| **Energy** | Often leaves patients feeling drained. | Significant energy boost (return to work). |\n| **Diet** | Extremely strict (Na, K, P, Fluid). | Flexible, but must stay healthy. |\n| **Medication** | Binders, EPO, Vitamins. | Lifelong **Immunosuppressants** (Non-negotiable). |\n| **Cost** | Ongoing, long-term expense. | High one-time cost, then lifelong medication. |\n\n---"
+      "text": "### High Uric Acid\n*   **Crystals:** Forms needle-like crystals in joints (**Gout**) or kidneys (**Stones**).\n*   **Renal Link:** Long-term high uric acid causes direct kidney scarring.\n*   **Diet:** Limit red meat (mutton), beer, and sugary sodas.\n\n---\n\n## 🏥 6. Treatments: Hemodialysis, Peritoneal Dialysis & Transplantation\n\n### Hemodialysis (HD)\n*   **The Process:** Blood is pumped out of your body to an artificial kidney machine (dialyzer), cleaned of toxins and excess fluid, and returned.\n*   **Access:** Requires a surgical connection (AV Fistula or Graft) or a catheter.\n*   **Routine:** Usually performed in a dialysis center 3 times a week, taking about 4 hours per session."
     },
     {
       "title": "nirogyam_website_sync.md - Part 6",
@@ -47,7 +47,31 @@
       "start_index": 1,
       "end_index": 1,
       "summary": "Segment 6 of nirogyam_website_sync.md",
-      "text": "---\n\n## 🧼 7. Infection & Hygiene (UTIs)\n*   **Recurrent UTIs:** Often caused by incomplete antibiotic courses, bacteria \"biofilms\" (E. coli), or anatomical issues.\n*   **Hygiene Rule:** **Wipe Front-to-Back**. This prevents rectal bacteria from entering the urethra.\n*   **Prevention:** Urinate immediately after sex; stay well-hydrated to \"flush the pipes.\"\n*   **Blood in Urine:** 10 common causes including UTIs, stones, enlarged prostate, and rarely, cancer. Never ignore it.\n\n---\n\n## 🧬 8. Inherited Kidney Disease (PKD)\n*   **Inherited vs. Congenital:** Inherited is from parents/genes; Congenital is present at birth (can be environmental).\n*   **PKD:** Fluid-filled cysts grow, enlarging kidneys over decades.\n*   **Clue:** High BP at a very young age and a family history of dialysis.\n\n---\n*Verified clinical data sourced from nirogyams.com - 2025*"
+      "text": "### Peritoneal Dialysis (PD)\n*   **The Process:** Uses the inside lining of your own belly (the peritoneum) as a natural filter. A cleansing fluid (dialysate) is washed in and out of your belly in cycles through a soft catheter.\n*   **Continuous Ambulatory Peritoneal Dialysis (CAPD):** Manual exchanges done 3 to 4 times a day. You can carry out normal activities while the fluid is in your belly.\n*   **Automated Peritoneal Dialysis (APD):** A machine (cycler) performs the fluid exchanges at night while you sleep.\n*   **Pros/Cons:** Offers more lifestyle flexibility, fewer dietary restrictions, and no needles. However, it requires a clean environment to prevent infection (peritonitis) and daily self-care."
+    },
+    {
+      "title": "nirogyam_website_sync.md - Part 7",
+      "node_id": "chunk-6",
+      "start_index": 1,
+      "end_index": 1,
+      "summary": "Segment 7 of nirogyam_website_sync.md",
+      "text": "### Kidney Transplantation\n*   **The Best Option:** Considered the best treatment for ESRD because it offers the highest quality of life and longest survival.\n*   **Types of Donors:** \n    *   **Living Donor:** A healthy person (often a relative) donates one kidney. This is preferred due to quicker surgery and better long-term outcomes.\n    *   **Deceased (Cadaveric) Donor:** A kidney from someone who has recently passed away.\n*   **The Process:** Involves rigorous medical typing and cross-matching to ensure compatibility. The new kidney is surgically placed in the lower abdomen.\n*   **Post-Transplant Life:** Freedom from dialysis machines, drastic energy boost, and fewer dietary restrictions.\n*   **Lifelong Commitment:** You must take immunosuppressant (anti-rejection) medications for the rest of your life so your immune system doesn’t attack the new organ. Regular monitoring is essential.\n\n---"
+    },
+    {
+      "title": "nirogyam_website_sync.md - Part 8",
+      "node_id": "chunk-7",
+      "start_index": 1,
+      "end_index": 1,
+      "summary": "Segment 8 of nirogyam_website_sync.md",
+      "text": "---\n\n## 🧼 7. Infection & Hygiene (UTIs)\n*   **Recurrent UTIs:** Often caused by incomplete antibiotic courses, bacteria \"biofilms\" (E. coli), or anatomical issues.\n*   **Hygiene Rule:** **Wipe Front-to-Back**. This prevents rectal bacteria from entering the urethra.\n*   **Prevention:** Urinate immediately after sex; stay well-hydrated to \"flush the pipes.\"\n*   **Blood in Urine:** 10 common causes including UTIs, stones, enlarged prostate, and rarely, cancer. Never ignore it.\n\n---\n\n## 🧬 8. Inherited Kidney Disease (PKD)\n*   **Inherited vs. Congenital:** Inherited is from parents/genes; Congenital is present at birth (can be environmental).\n*   **PKD:** Fluid-filled cysts grow, enlarging kidneys over decades.\n*   **Clue:** High BP at a very young age and a family history of dialysis.\n\n---"
+    },
+    {
+      "title": "nirogyam_website_sync.md - Part 9",
+      "node_id": "chunk-8",
+      "start_index": 1,
+      "end_index": 1,
+      "summary": "Segment 9 of nirogyam_website_sync.md",
+      "text": "---\n\n## 🦠 9. Glomerulonephritis (GN)\n*   **What It Is:** Inflammation of the glomeruli, the tiny blood vessels in your kidneys that act as filters. When damaged, they allow protein and red blood cells to leak into the urine.\n*   **Causes:** Can be triggered by infections (such as strep throat), immune system disorders (like Lupus or IgA nephropathy), or vasculitis. It can occur suddenly (Acute) or gradually (Chronic).\n*   **Symptoms:** Pink or cola-colored urine (hematuria), foamy urine (proteinuria), high blood pressure, and swelling (edema) in the face, hands, feet, and abdomen.\n*   **Treatment:** Depends on the underlying cause. May include blood pressure medications, immunosuppressants (like steroids) to quiet the immune system from attacking the kidneys, and dietary changes (less salt, protein, and fluid). Untreated, it can lead to CKD or kidney failure.\n\n---\n*Verified clinical data sourced from nirogyams.com - 2025*"
     }
   ]
 }

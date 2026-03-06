@@ -44,8 +44,32 @@ export async function GET(request: Request) {
         // 1. List bundled (static) PageIndex documents
         addFromPageindex(PAGEINDEX_PATH, 'bundled');
 
-        // 2. List runtime-uploaded documents (Vercel /tmp or same dir locally)
-        if (TMP_PAGEINDEX_PATH !== PAGEINDEX_PATH) {
+        // 2. Fetch runtime-uploaded documents (from Vercel Blob or /tmp)
+        if (process.env.BLOB_READ_WRITE_TOKEN) {
+            try {
+                const { list } = await import('@vercel/blob');
+                const { blobs } = await list({ prefix: 'pageindex/' });
+                for (const blob of blobs) {
+                    if (blob.pathname.endsWith('.json')) {
+                        const displayName = path.basename(blob.pathname).replace(/\.json$/, '');
+                        if (!seenNames.has(displayName + '.json')) {
+                            seenNames.add(displayName + '.json');
+                            files.push({
+                                name: displayName,
+                                originalName: path.basename(blob.pathname),
+                                size: blob.size,
+                                updatedAt: blob.uploadedAt,
+                                type: 'pageindex_tree',
+                                isIndexed: true,
+                                source: 'vercel_blob'
+                            });
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Vercel Blob list error:", e);
+            }
+        } else if (TMP_PAGEINDEX_PATH !== PAGEINDEX_PATH) {
             addFromPageindex(TMP_PAGEINDEX_PATH, 'uploaded');
         }
 
@@ -119,6 +143,23 @@ export async function DELETE(request: Request) {
                     fs.unlinkSync(indexPath);
                     console.log(JSON.stringify({ event: "FileDeleted", path: dir, file: candidate }));
                 }
+            }
+        }
+
+        // Delete from Vercel blob
+        if (process.env.BLOB_READ_WRITE_TOKEN) {
+            try {
+                const { list, del } = await import('@vercel/blob');
+                const { blobs } = await list();
+                const toDelete = blobs
+                    .filter(b => b.pathname === `pageindex/${fileName}` || b.pathname === `pageindex/${fileName}.json` || b.pathname === `raw/${fileName}`)
+                    .map(b => b.url);
+                if (toDelete.length > 0) {
+                    await del(toDelete);
+                    console.log(`Deleted ${toDelete.length} blobs for ${fileName}`);
+                }
+            } catch (e) {
+                console.error("Vercel Blob delete error:", e);
             }
         }
 

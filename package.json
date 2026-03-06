@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/build-pageindex.js",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -16,6 +17,7 @@
     "@langchain/pinecone": "^1.0.1",
     "@langchain/textsplitters": "^1.0.1",
     "@pinecone-database/pinecone": "^5.1.2",
+    "@vercel/blob": "^2.3.1",
     "@vercel/kv": "^3.0.0",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",

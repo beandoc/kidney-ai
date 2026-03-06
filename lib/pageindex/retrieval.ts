@@ -41,93 +41,118 @@ interface IndexEntry {
 let SEARCH_INDEX: IndexEntry[] | null = null;
 let INDEX_BUILD_TIME: number = 0;
 
-function buildIndex(): IndexEntry[] {
+async function buildIndex(): Promise<IndexEntry[]> {
     const startTime = Date.now();
     console.log("[SearchIndex] Building pre-computed search index...");
 
-    // Collect files from both the bundled KB and /tmp uploads (Vercel)
-    const seenFiles = new Set<string>();
-    const fileSources: { dir: string; file: string }[] = [];
-
-    const collectFrom = (dir: string) => {
-        if (!fs.existsSync(dir)) return;
-        for (const file of fs.readdirSync(dir).filter(f => f.endsWith(".json"))) {
-            if (!seenFiles.has(file)) {
-                seenFiles.add(file);
-                fileSources.push({ dir, file });
-            }
-        }
-    };
-    collectFrom(PAGEINDEX_KB_PATH);
-    if (TMP_PAGEINDEX_PATH !== PAGEINDEX_KB_PATH) collectFrom(TMP_PAGEINDEX_PATH);
-
     const index: IndexEntry[] = [];
 
-    for (const { dir, file } of fileSources) {
+    // 1. Check for Pre-computed Merged Index (build time optimization)
+    const mergedPath = path.join(PAGEINDEX_KB_PATH, "pageindex_merged.json");
+    if (fs.existsSync(mergedPath)) {
+        console.log("[SearchIndex] Found pre-computed pageindex_merged.json - loading...");
         try {
-            const filePath = path.join(dir, file);
-            const content = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-
-            // Normalize doc name
-            let docName = content.doc_name || file;
-            docName = docName.replace(/\.json\.json$/, ".json");
-            if (docName.endsWith(".json")) docName = docName.slice(0, -5);
-
-            // Handle both PageIndex tree AND simple Array of objects
-            let normalizedNodes: any[] = [];
-            if (Array.isArray(content)) {
-                normalizedNodes = content.map((item, idx) => ({
-                    title: item.section || item.title || `Part ${idx + 1}`,
-                    text: item.content || item.text || "",
-                    summary: item.summary || "",
-                    node_id: `node-${idx}`,
-                    start_index: item.page || 0,
-                    end_index: item.page || 0
-                }));
-            } else if (content.structure) {
-                normalizedNodes = flattenNodes(content.structure as PageIndexNode[]);
+            const mergedContent = JSON.parse(fs.readFileSync(mergedPath, "utf-8"));
+            for (const [file, content] of Object.entries(mergedContent)) {
+                processFileContent(index, file, content);
             }
-
-            for (const node of normalizedNodes) {
-                const searchableText = [
-                    docName,
-                    node.title || "",
-                    node.summary || "",
-                    (node.text || "").slice(0, 10000)
-                ].join(" ").toLowerCase();
-
-                // Build word set for O(1) lookups
-                const words = new Set(
-                    searchableText
-                        .split(/[\s,.\-;:!?()[\]{}"'/\\]+/)
-                        .filter(w => w.length > 2)
-                );
-
-                index.push({
-                    docName,
-                    fileName: file,
-                    title: node.title || "Untitled",
-                    nodeId: node.node_id || "",
-                    startIndex: node.start_index || 0,
-                    endIndex: node.end_index || 0,
-                    text: node.text || node.summary || "",
-                    summary: node.summary || "",
-                    words
-                });
+        } catch (e) {
+            console.error("[SearchIndex] Failed to load merged index:", e);
+        }
+    } else {
+        // Fallback: load individually if merged file is missing
+        const collectFrom = (dir: string) => {
+            if (!fs.existsSync(dir)) return;
+            for (const file of fs.readdirSync(dir).filter(f => f.endsWith(".json") && !f.includes("merged"))) {
+                try {
+                    const filePath = path.join(dir, file);
+                    const content = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+                    processFileContent(index, file, content);
+                } catch (e) {
+                    console.error(`[SearchIndex] Error indexing ${file}:`, e);
+                }
             }
-        } catch (error) {
-            console.error(`[SearchIndex] Error indexing ${file}:`, error);
+        };
+        collectFrom(PAGEINDEX_KB_PATH);
+    }
+
+    // 2. Fetch any dynamically uploaded files at runtime (from Vercel Blob or /tmp)
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+        try {
+            console.log("[SearchIndex] Fetching dynamic uploads from Vercel Blob...");
+            const { list } = await import('@vercel/blob');
+            const { blobs } = await list({ prefix: 'pageindex/' });
+
+            for (const blob of blobs.filter(b => b.pathname.endsWith('.json'))) {
+                const fileName = path.basename(blob.pathname);
+                // Skip if this file is already in the bundled index
+                if (!index.some(i => i.fileName === fileName)) {
+                    const res = await fetch(blob.url);
+                    const content = await res.json();
+                    processFileContent(index, fileName, content);
+                }
+            }
+        } catch (e) {
+            console.error("[SearchIndex] Failed to fetch from Vercel Blob:", e);
+        }
+    } else if (TMP_PAGEINDEX_PATH !== PAGEINDEX_KB_PATH && fs.existsSync(TMP_PAGEINDEX_PATH)) {
+        for (const file of fs.readdirSync(TMP_PAGEINDEX_PATH).filter(f => f.endsWith(".json") && !f.includes("merged"))) {
+            if (!index.some(i => i.fileName === file)) {
+                try {
+                    const content = JSON.parse(fs.readFileSync(path.join(TMP_PAGEINDEX_PATH, file), "utf-8"));
+                    processFileContent(index, file, content);
+                } catch (e) {
+                    // ignore
+                }
+            }
         }
     }
 
     INDEX_BUILD_TIME = Date.now() - startTime;
-    console.log(`[SearchIndex] Built index: ${index.length} nodes from ${fileSources.length} files in ${INDEX_BUILD_TIME}ms`);
+    console.log(`[SearchIndex] Built index: ${index.length} nodes in ${INDEX_BUILD_TIME}ms`);
     return index;
 }
 
-function getIndex(): IndexEntry[] {
+// Extract processing logic to avoid duplication
+function processFileContent(indexArr: IndexEntry[], file: string, content: any) {
+    let docName = content.doc_name || file;
+    docName = docName.replace(/\.json\.json$/, ".json");
+    if (docName.endsWith(".json")) docName = docName.slice(0, -5);
+
+    let normalizedNodes: any[] = [];
+    if (Array.isArray(content)) {
+        normalizedNodes = content.map((item, idx) => ({
+            title: item.section || item.title || `Part ${idx + 1}`,
+            text: item.content || item.text || "",
+            summary: item.summary || "",
+            node_id: `node-${idx}`,
+            start_index: item.page || 0,
+            end_index: item.page || 0
+        }));
+    } else if (content.structure) {
+        normalizedNodes = flattenNodes(content.structure as PageIndexNode[]);
+    }
+
+    for (const node of normalizedNodes) {
+        const searchableText = [docName, node.title || "", node.summary || "", (node.text || "").slice(0, 10000)].join(" ").toLowerCase();
+        const words = new Set(searchableText.split(/[\s,.\-;:!?()[\]{}"'/\\]+/).filter(w => w.length > 2));
+        indexArr.push({
+            docName,
+            fileName: file,
+            title: node.title || "Untitled",
+            nodeId: node.node_id || "",
+            startIndex: node.start_index || 0,
+            endIndex: node.end_index || 0,
+            text: node.text || node.summary || "",
+            summary: node.summary || "",
+            words
+        });
+    }
+}
+
+async function getIndex(): Promise<IndexEntry[]> {
     if (!SEARCH_INDEX) {
-        SEARCH_INDEX = buildIndex();
+        SEARCH_INDEX = await buildIndex();
     }
     return SEARCH_INDEX;
 }
@@ -146,7 +171,7 @@ export function invalidateIndex(): void {
  */
 export async function searchPageIndex(query: string): Promise<Document[]> {
     const searchStart = Date.now();
-    const index = getIndex();
+    const index = await getIndex();
 
     if (index.length === 0) {
         return [];
