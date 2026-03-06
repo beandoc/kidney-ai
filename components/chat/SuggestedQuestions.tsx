@@ -10,8 +10,11 @@ const SUGGESTED_QUESTIONS = [
     { emoji: "🥗", text: "Best diet for kidney patients" },
     { emoji: "💉", text: "Vaccinations for kidney patients" },
     { emoji: "💊", text: "What is dialysis and fistula care?" },
+    { emoji: "🔄", text: "What is kidney Transplant?" },
     { emoji: "🏥", text: "When is kidney transplant needed?" },
     { emoji: "🧪", text: "What does high creatinine mean?" },
+    { emoji: "⚠️", text: "What are the common kidney silent killers?" },
+    { emoji: "🔍", text: "What are the symptoms of kidney disease?" },
 ];
 
 export default function SuggestedQuestions({ onSelect, visible }: SuggestedQuestionsProps) {

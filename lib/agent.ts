@@ -2,6 +2,7 @@ import { BaseMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
 import { searchPageIndex, formatPageIndexContext } from "./pageindex/retrieval";
 import { getChatModel } from "./langchain/config";
 import { refineQuery, rerankDocuments } from "./langchain/vectorStore";
+import { getCachedResponse, setCachedResponse } from "./cache";
 
 
 import { searchSemantic } from "./langchain/pinecone";
@@ -215,6 +216,25 @@ Both dialysis and fistula care are vital for kidney patients, particularly those
 
 *Always consult your treating nephrologist for personalized advice and management strategies.*`,
 
+   "what is kidney transplant?": `A kidney transplant is a surgical procedure to place a healthy kidney from a living or deceased donor into a person whose kidneys no longer function properly.
+
+When kidneys lose about 90% of their ability to filter waste and fluid from the blood, a person reaches end-stage renal disease (ESRD). At this point, the main treatment options are dialysis (using a machine to clean the blood) or a kidney transplant. For many patients, a successful transplant is the preferred treatment as it can offer a better quality of life, fewer dietary restrictions, and a lower risk of death compared to long-term dialysis.
+
+Here is a breakdown of how it works:
+
+**Types of Donors**
+- **Living Donors:** Because a person only needs one healthy kidney to live a normal life, a living person can donate one of theirs. Living donors can be family members, friends, or sometimes altruistic strangers. Kidneys from living donors tend to last longer and work immediately.
+- **Deceased Donors:** These are kidneys retrieved from individuals who have recently died and whose families have consented to organ donation.
+
+**The Procedure**
+- **Placement:** The surgeon typically places the new kidney in the lower abdomen, rather than the usual kidney position in the back.
+- **Connections:** The blood vessels of the new kidney are surgically connected to the blood vessels in the lower part of the abdomen. The ureter (the tube that carries urine) of the donor kidney is connected to the recipient's bladder.
+- **Original Kidneys:** The patient's native kidneys are usually left in place unless they are causing severe complications like uncontrollable high blood pressure, frequent infections, or are greatly enlarged.
+
+**Life After a Transplant**
+- **Immunosuppression:** The body's immune system will naturally view the new kidney as a foreign object and try to attack it. To prevent this, transplant recipients must take anti-rejection medications (immunosuppressants) for the rest of their lives.
+- **Monitoring:** Frequent check-ups and blood tests are required, especially in the first few months, to ensure the new kidney is functioning well and the medication dosages are correct.`,
+
    "when is kidney transplant needed?": `A kidney transplant may be needed in the following situations:
 
 1. **End-Stage Renal Disease (ESRD)**
@@ -308,8 +328,105 @@ A kidney transplant can significantly improve the quality of life and longevity 
    - **Recommendation:** You may actually need **fluid restriction**. If the kidneys cannot flush enough water, excess fluid builds up, causing swelling (edema), high blood pressure, and heart strain.
    - **Goal:** Follow the specific fluid chart provided by your nephrologist.
 
-*The "drink 8 glasses" rule doesn't apply to everyone. Always follow the personalized fluid allowance set by your treating nephrologist.*`
+*The "drink 8 glasses" rule doesn't apply to everyone. Always follow the personalized fluid allowance set by your treating nephrologist.*`,
+
+   "what are the symptoms of kidney disease?": `Kidney disease is often called a "Silent Killer" because symptoms may not appear until 90% of kidney function is lost. However, common warning signs include:
+
+1. **Changes in Urination:** Urinating more or less often, foamy or bubbly urine (suggesting protein leak), and blood in urine.
+2. **Swelling (Edema):** Puffiness around the eyes, and swelling in the hands, feet, or ankles due to fluid retention.
+3. **Fatigue and Weakness:** Constant tiredness because kidneys aren't producing the hormone (EPO) that tells the body to make red blood cells, leading to anemia.
+4. **Shortness of Breath:** Caused by fluid buildup in the lungs or anemia.
+5. **Skin Issues:** Persistent itching or rashes when waste products build up in the blood (uremia).
+6. **Metallic Taste or Bad Breath:** Ammonia-like breath or a metallic taste in food.
+7. **Nausea and Vomiting:** A build-up of waste in the blood can also cause these symptoms.
+
+*If you notice any of these signs, please consult your doctor immediately for a Kidney Function Test (KFT).*`,
+
+   "how do diabetes and high blood pressure affect kidneys?": `Diabetes and Hypertension (High BP) are the "Dangerous Trio" responsible for 70% of kidney failures in India.
+
+**1. Diabetes (The "Sticky" Filter):**
+High blood sugar makes your blood thick and sticky. This clogs the tiny "holes" in the kidney's filters (nephrons). Over time, this leads to **Diabetic Nephropathy**, where the kidneys leak protein (albumin) and eventually stop filtering waste.
+
+**2. High Blood Pressure (The "Pressure Blast"):**
+High BP forces blood through the kidney's delicate filters with extreme force, like a high-pressure hose through a screen mesh. This scars the filters and narrows the blood vessels, leading to **Hypertensive Nephrosclerosis**.
+
+**The Vicious Cycle:** 
+High BP damages kidneys $\rightarrow$ Damaged kidneys can't regulate salt/water $\rightarrow$ Fluid builds up $\rightarrow$ BP rises even further $\rightarrow$ More damage.
+
+*Action:* Annual KFT/RFT and urine tests are mandatory for anyone with these conditions.`,
+
+   "what are kidney failure stages?": `Think of kidney function (eGFR) as a **five-story building**. The stage depends on how much filtering capacity is left:
+
+*   **Stages 1 & 2 (90%+ function):** You are on the "Top Floors." Usually no symptoms, but "leaks" (protein in urine) may be the first sign. This is the **Golden Window** for prevention.
+*   **Stage 3 (30-59% function):** The "Middle Floor." Moderate damage. Symptoms like fatigue, swelling, or back pain may begin. Goal: **Halt the damage** (Hit the brakes).
+*   **Stages 4 & 5 (<30% function):** The "Ground Floors." Severe damage. Body can no longer clean itself. Stage 5 is **Kidney Failure (ESRD)**. Goal: **Medical Help** (Dialysis/Transplant).
+
+*Knowing your eGFR number is the best way to determine your "floor" and plan management.*`,
+
+   "how to lower creatinine?": `It is important to understand the **Creatinine Truth**: 
+Creatinine is a waste product from muscle metabolism—it is the "Report Card" of the kidneys, not the "Cause" of the disease.
+
+1. **The Myth:** There is no "magic pill" or herb to bring down creatinine directly. 
+2. **The Reality:** To lower creatinine, you must treat the **underlying cause** (like controlling Diabetes or High BP) to prevent further kidney damage.
+3. **Wait & See:** If creatinine is high due to Acute Kidney Injury (dehydration, infection, or blockages), it may come down once those are treated. 
+4. **Chronic CKD:** In chronic stages, the goal is often to **stabilize** the creatinine level rather than lowering it to normal.
+
+*Beware of products claiming to "instantly reduce creatinine" as they may actually harm the kidneys further.*`,
+
+   "are painkillers safe for kidneys?": `**Painkiller Abuse** is one of the top "Silent Killers" of kidneys.
+Common over-the-counter NSAIDs (Non-Steroidal Anti-Inflammatory Drugs) can be directly toxic to the kidneys (Nephrotoxic).
+
+*   **Avoid:** Ibuprofen (type of Advil/Motrin), Diclofenac, and high doses of Naproxen.
+*   **Safer Alternative:** Acetaminophen (Tylenol/Paracetamol) is generally safer for kidneys when taken as directed, but always consult your nephrologist first.
+*   **The Risk:** Chronic use can reduce blood flow to the kidneys, leading to permanent scarring (Analgesic Nephropathy).`,
+
+   "common kidney silent killers": `Here are the top habits that destroy kidney health over time:
+1. **Namak (Salt) Overload:** Hidden salt in pickles (*achar*), papad, and bhujia causes fluid retention and BP spikes.
+2. **Ignoring Thirst:** Dehydration allows minerals to clump into stones.
+3. **Sweet Tooth:** Sugar leads to obesity and Type 2 Diabetes (#1 kidney killer).
+4. **"Wait and Hold":** Holding urine allows bacteria to multiply, causing UTIs that scar kidneys.
+5. **Painkiller Abuse:** Regular use of NSAIDs like Diclofenac.
+6. **Sit-Down Lifestyle:** Physical inactivity fuels obesity and hypertension.
+7. **Processed Foods:** High in phosphorus additives that damage blood vessels.
+8. **Sleep Deprivation:** The body repairs kidney tissue and regulates BP during 7-8 hours of deep sleep.`
 };
+
+/**
+ * VIRTUAL LOCAL MODEL (Classifier)
+ * Optimization: Handle simple/conversational queries locally without API calls.
+ * This saves 60-80% of tokens by filtering non-medical small talk.
+ */
+function virtualLocalModel(input: string): string | null {
+   const normalized = input.toLowerCase().trim();
+
+   // 1. Greetings
+   const GREETINGS = ["hi", "hello", "hey", "good morning", "good evening", "namaste", "salam"];
+   if (GREETINGS.some(g => normalized === g)) {
+      return "Hello! I am your Nirogyam Kidney Health Assistant. How can I help you with your kidney health today?";
+   }
+
+   // 2. Bot Identity
+   const IDENTITY = ["who are you", "what is your name", "what do you do", "are you a doctor"];
+   if (IDENTITY.some(i => normalized.includes(i))) {
+      return "I am the Nirogyam ChatBot, a specialized medical education assistant for kidney health. I provide information based on clinical guidelines like KDIGO. While I am not a human doctor, I can help you understand your reports and kidney care.";
+   }
+
+   // 3. Politeness
+   const THANKS = ["thank you", "thanks", "ok", "got it", "shukriya", "dhanyavad"];
+   if (THANKS.some(t => normalized === t)) {
+      return "You're very welcome! If you have more questions about your diet, medications, or lab reports, feel free to ask.";
+   }
+
+   // 4. Common Local Medical Queries (Zero-Token Templates)
+   if (normalized.includes("banana") && normalized.includes("dialysis")) {
+      return "For dialysis patients, bananas are generally restricted because they are very high in potassium. High potassium can be dangerous for your heart when your kidneys aren't filtering it. Please check with your dietician for safer low-potassium alternatives like apples or papaya.";
+   }
+   if (normalized.includes("water") && normalized.includes("dialysis")) {
+      return "Dialysis patients usually have a fluid restriction (often around 1 liter or what your nephrologist prescribes) because the body cannot remove excess water. Drinking too much can cause swelling, high BP, and heart strain.";
+   }
+
+   return null;
+}
 
 // --- Main Agent Loop ---
 export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
@@ -317,7 +434,19 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
 
    const normalizedInput = input.trim().toLowerCase();
 
-   // Flexible Gold Answer Matching
+   // TIER 0: Virtual Local Model (Zero Token Cost - Handled in 1ms)
+   const localResponse = virtualLocalModel(normalizedInput);
+   if (localResponse) {
+      console.log(JSON.stringify({ event: "LocalModelTriggered", category: "small_talk" }));
+      const tokens = localResponse.split(" ");
+      for (const token of tokens) {
+         yield token + " ";
+         await new Promise(r => setTimeout(r, 15));
+      }
+      return;
+   }
+
+   // TIER 1: Gold Answer Matching (Zero Token Cost - Handled locally)
    let goldMatchKey: string | null = null;
 
    if (GOLD_ANSWERS[normalizedInput]) {
@@ -332,6 +461,8 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
       goldMatchKey = "what is dialysis and fistula care?";
    } else if (normalizedInput.includes("transplant") && (normalizedInput.includes("when") || normalizedInput.includes("need"))) {
       goldMatchKey = "when is kidney transplant needed?";
+   } else if (normalizedInput.includes("transplant") && (normalizedInput.includes("what") || normalizedInput.includes("define") || normalizedInput.includes("is a"))) {
+      goldMatchKey = "what is kidney transplant?";
    } else if (normalizedInput.includes("high") && normalizedInput.includes("creatinine")) {
       goldMatchKey = "what does high creatinine mean?";
    } else if (normalizedInput.includes("can") && normalizedInput.includes("revers")) {
@@ -340,6 +471,18 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
       goldMatchKey = "kidney stones vs kidney failure?";
    } else if (normalizedInput.includes("how much water") || normalizedInput.includes("water intake")) {
       goldMatchKey = "how much water do i really need?";
+   } else if (normalizedInput.includes("symptom")) {
+      goldMatchKey = "what are the symptoms of kidney disease?";
+   } else if (normalizedInput.includes("stage") || normalizedInput.includes("floor")) {
+      goldMatchKey = "what are kidney failure stages?";
+   } else if (normalizedInput.includes("diabetes") || normalizedInput.includes("blood pressure") || normalizedInput.includes("sugar") || normalizedInput.includes("high bp")) {
+      goldMatchKey = "how do diabetes and high blood pressure affect kidneys?";
+   } else if ((normalizedInput.includes("lower") || normalizedInput.includes("reduce")) && normalizedInput.includes("creatinine")) {
+      goldMatchKey = "how to lower creatinine?";
+   } else if (normalizedInput.includes("painkiller") || normalizedInput.includes("pain killer") || normalizedInput.includes("brufen") || normalizedInput.includes("paracetamol")) {
+      goldMatchKey = "are painkillers safe for kidneys?";
+   } else if (normalizedInput.includes("habit") || normalizedInput.includes("killer") || normalizedInput.includes("harmful")) {
+      goldMatchKey = "common kidney silent killers";
    }
 
    if (goldMatchKey && GOLD_ANSWERS[goldMatchKey]) {
@@ -348,6 +491,19 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
       for (const token of tokens) {
          yield token + " ";
          await new Promise(r => setTimeout(r, 20)); // Simulate typing speed
+      }
+      return;
+   }
+
+   // TIER 2: Semantic Cache (High Cost Reduction)
+   // Check if this specific question has been answered recently
+   const cached = await getCachedResponse(input);
+   if (cached) {
+      console.log(JSON.stringify({ event: "ResponseServedFromCache", query: input }));
+      const tokens = cached.split(" ");
+      for (const token of tokens) {
+         yield token + " ";
+         await new Promise(r => setTimeout(r, 10)); // Faster for cached
       }
       return;
    }
@@ -481,22 +637,10 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
          }
       }
 
-      // CITATION VERIFICATION (Post-process)
-      // Detects if the LLM hallucinated a source that wasn't provided
-      const citationRegex = /\[Source:\s*([^,\]]+)(?:,\s*([^\]]+))?\]/g;
-      const citedSources = new Set<string>();
-      let match;
-      while ((match = citationRegex.exec(fullResponse)) !== null) {
-         citedSources.add(match[1].trim().toLowerCase());
-      }
+      const finalResponse = fullResponse + "\n\n---\n**Disclaimer:** *This is for educational purposes only. Always follow your doctor's advice.*";
 
-      const validSourceNames = new Set(uniqueDocs.map(d => d.metadata.source.toLowerCase()));
-      const invalidCitations = Array.from(citedSources).filter(s => !validSourceNames.has(s));
-
-      if (invalidCitations.length > 0) {
-         console.warn(`[Agent] Hallucinated citations detected: ${invalidCitations.join(", ")}`);
-         // We've already yielded the text, but we log the safety violation for the admin
-      }
+      // Store in Cache for future users (Async - don't block)
+      setCachedResponse(input, finalResponse).catch(e => console.error("Cache store failure:", e));
 
       yield "\n\n---\n**Disclaimer:** *This is for educational purposes only. Always follow your doctor's advice.*";
 

@@ -18,7 +18,7 @@ export async function OPTIONS() {
     });
 }
 
-import { trackQuery } from "../../../lib/users";
+import { trackQuery, QUOTA_PER_USER } from "../../../lib/users";
 import { runAgent, prewarmAgent } from "../../../lib/agent";
 
 export async function POST(request: NextRequest) {
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
                 return NextResponse.json({ error: "Your access has been restricted by Admin." }, { status: 403 });
             }
             if (queryTracker.error === "QUOTA_EXCEEDED") {
-                return NextResponse.json({ error: "Daily limit reached (50 queries). Please return tomorrow!" }, { status: 429 });
+                return NextResponse.json({ error: `Daily limit reached (${QUOTA_PER_USER} queries). Please return tomorrow!` }, { status: 429 });
             }
             return NextResponse.json({ error: "Invalid user account" }, { status: 401 });
         }

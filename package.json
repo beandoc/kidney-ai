@@ -11,9 +11,12 @@
   },
   "dependencies": {
     "@langchain/classic": "^1.0.15",
+    "@langchain/community": "^1.1.22",
     "@langchain/core": "^1.1.30",
     "@langchain/google-genai": "^2.1.15",
     "@langchain/groq": "^1.1.4",
+    "@langchain/mistralai": "^1.0.7",
+    "@langchain/openai": "^1.2.12",
     "@langchain/pinecone": "^1.0.1",
     "@langchain/textsplitters": "^1.0.1",
     "@pinecone-database/pinecone": "^5.1.2",

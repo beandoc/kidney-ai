@@ -1,6 +1,7 @@
-import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatGroq } from "@langchain/groq";
+import { ChatMistralAI } from "@langchain/mistralai";
+import { ChatOpenAI } from "@langchain/openai";
 
 export const CHUNK_SIZE = 1000;
 export const CHUNK_OVERLAP = 200;
@@ -17,34 +18,71 @@ export function getEmbeddings() {
 }
 
 /**
- * Get the LLM model (Gemini with Groq Fallback)
+ * Get the LLM model (4-Tier Free Strategy)
+ * Strategy: Gemini -> Mistral -> Groq -> Together
  */
 export function getChatModel(maxRetries?: number) {
   const geminiKey = (process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY)?.trim();
+  const mistralKey = process.env.MISTRAL_API_KEY?.trim();
   const groqKey = process.env.GROQ_API_KEY?.trim();
+  const togetherKey = process.env.TOGETHER_API_KEY?.trim();
 
-  // Primary LLM: Groq (Switched because of Gemini quota issues)
+  const models: any[] = [];
+
+  // TIER 1: Gemini (Primary - High Quota)
+  if (geminiKey) {
+    models.push(new ChatGoogleGenerativeAI({
+      model: "gemini-1.5-flash-latest",
+      temperature: 0.1,
+      apiKey: geminiKey,
+      maxRetries: maxRetries ?? 1,
+    }));
+  }
+
+  // TIER 2: Mistral (Secondary)
+  if (mistralKey) {
+    models.push(new ChatMistralAI({
+      model: "mistral-small-latest",
+      temperature: 0.1,
+      apiKey: mistralKey,
+    }));
+  }
+
+  // TIER 3: Groq (Fallback)
   if (groqKey) {
-    console.log("Using Primary LLM: Groq (Llama-3.3-70b)");
-    return new ChatGroq({
+    models.push(new ChatGroq({
       model: "llama-3.3-70b-versatile",
       temperature: 0.1,
       apiKey: groqKey,
       maxRetries: maxRetries ?? 0,
-    });
+    }));
   }
 
-  // Fallback LLM: Gemini
-  if (geminiKey) {
-    return new ChatGoogleGenerativeAI({
-      model: "gemini-1.5-flash-latest",
+  // TIER 4: Together AI (Backup)
+  if (togetherKey) {
+    models.push(new ChatOpenAI({
+      model: "meta-llama/Llama-Vision-Free", // Use their free models if possible
       temperature: 0.1,
-      apiKey: geminiKey,
-      maxRetries: maxRetries ?? 0,
+      apiKey: togetherKey,
+      configuration: {
+        baseURL: "https://api.together.xyz/v1",
+      },
+    }));
+  }
+
+  if (models.length === 0) {
+    throw new Error("No valid LLM API keys configured.");
+  }
+
+  // Chain fallbacks dynamically
+  let chatModel = models[0];
+  for (let i = 1; i < models.length; i++) {
+    chatModel = chatModel.withFallbacks({
+      fallbacks: [models[i]],
     });
   }
 
-  throw new Error("No valid LLM API keys configured. Please check your GOOGLE_API_KEY or GROQ_API_KEY.");
+  return chatModel;
 }
 
 /**
