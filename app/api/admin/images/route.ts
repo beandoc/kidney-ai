@@ -21,19 +21,34 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Only image files are allowed" }, { status: 400 });
         }
 
-        if (!process.env.BLOB_READ_WRITE_TOKEN) {
-            return NextResponse.json({ error: "Vercel Blob Storage is not configured. Please add BLOB_READ_WRITE_TOKEN." }, { status: 500 });
-        }
+        let imageUrl: string;
 
-        // Upload to Vercel Blob
-        const blob = await put(`knowledge_images/${file.name}`, file, {
-            access: 'public',
-        });
+        if (process.env.BLOB_READ_WRITE_TOKEN) {
+            // Upload to Vercel Blob
+            const blob = await put(`knowledge_images/${file.name}`, file, {
+                access: 'public',
+            });
+            imageUrl = blob.url;
+        } else {
+            // Fallback to local file system
+            const fs = await import('fs/promises');
+            const path = await import('path');
+
+            const uploadDir = path.join(process.cwd(), 'public', 'knowledge_images');
+            await fs.mkdir(uploadDir, { recursive: true });
+
+            const filePath = path.join(uploadDir, file.name);
+            const arrayBuffer = await file.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+
+            await fs.writeFile(filePath, buffer);
+            imageUrl = `/knowledge_images/${file.name}`;
+        }
 
         return NextResponse.json({
             success: true,
-            url: blob.url,
-            message: `Image uploaded successfully. You can use it in Gold Answers with markdown: ![${file.name}](${blob.url})`
+            url: imageUrl,
+            message: `Image uploaded successfully! Use this in Gold Answers: ![${file.name}](${imageUrl})`
         });
 
     } catch (error: any) {
