@@ -1,3 +1,9 @@
+export interface MessageOption {
+    label: string;
+    text: string;
+    icon?: string;
+}
+
 export interface Message {
     id: string;
     role: "user" | "assistant";
@@ -6,4 +12,5 @@ export interface Message {
     sources?: string[];
     timestamp: string;
     isStreaming?: boolean;
+    options?: MessageOption[];
 }

@@ -429,11 +429,29 @@ function virtualLocalModel(input: string): string | null {
    return null;
 }
 
+import { MAIN_MENU, DISEASE_MENU, LABS_MENU, getMenuPayload } from "./menu";
+
 // --- Main Agent Loop ---
 export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
    console.log(JSON.stringify({ event: "AgentStart", query: input, historyLength: chatHistory.length }));
 
    const normalizedInput = input.trim().toLowerCase();
+
+   // TIER -1: Navigation & Menus (Zero Tokens)
+   if (normalizedInput === "menu" || normalizedInput === "options" || normalizedInput === "show main menu" || normalizedInput === "hi" || normalizedInput === "hello") {
+      yield "Namaste! I am your Kidney Health Assistant. Tap below to explore my services!" + getMenuPayload(MAIN_MENU);
+      return;
+   }
+
+   if (normalizedInput === "show disease categories") {
+      yield "Please select a disease category to learn more from our verified guidelines:" + getMenuPayload(DISEASE_MENU);
+      return;
+   }
+
+   if (normalizedInput === "understanding kidney lab results") {
+      yield "Select a lab parameter to understand its meaning and impact on kidney health:" + getMenuPayload(LABS_MENU);
+      return;
+   }
 
    // TIER 0: Virtual Local Model (Zero Token Cost - Handled in 1ms)
    const localResponse = virtualLocalModel(normalizedInput);

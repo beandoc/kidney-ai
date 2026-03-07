@@ -6,9 +6,10 @@ import ReactMarkdown from "react-markdown";
 
 interface ChatMessageProps {
     message: Message;
+    onOptionClick?: (optionText: string) => void;
 }
 
-export default function ChatMessage({ message }: ChatMessageProps) {
+export default function ChatMessage({ message, onOptionClick }: ChatMessageProps) {
     const isAssistant = message.role === "assistant";
 
     const renderText = (text: string) => {
@@ -93,6 +94,21 @@ export default function ChatMessage({ message }: ChatMessageProps) {
                         renderText(message.content)
                     )}
                 </div>
+
+                {isAssistant && message.options && message.options.length > 0 && (
+                    <div className="mt-3 flex flex-col gap-2 border-t border-[#f0f2f5] pt-3 animate-fadeIn">
+                        {message.options.map((option, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => onOptionClick?.(option.text)}
+                                className="flex items-center gap-2 px-3 py-2 bg-[#f0f2f5] hover:bg-[#e7e9ed] text-[#075e54] text-[13px] font-medium rounded-lg transition-colors border border-transparent hover:border-[#075e54]/20 active:scale-[0.98]"
+                            >
+                                {option.icon && <span>{option.icon}</span>}
+                                <span>{option.label}</span>
+                            </button>
+                        ))}
+                    </div>
+                )}
 
                 <div className="flex items-center justify-end gap-1 mt-1 h-3">
                     <span className="text-[11px] text-[#667781] uppercase font-medium mr-1 tracking-tighter">

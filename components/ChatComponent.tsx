@@ -28,6 +28,11 @@ Learn more about our services, or get more information. I'm here to help you eve
 ---
 ⚠️ *This is an automated chatbot response. The responses are for information purpose only, and should not be construed as medical advice! In case of an emergency or urgent care please come to **MI Room/ Emergency***`;
 
+const WELCOME_OPTIONS = [
+    { label: "🔍 Explore Options", text: "Menu", icon: "🔍" },
+    { label: "🛡️ Prevention Tips", text: "How to prevent kidney disease?", icon: "🛡️" },
+];
+
 export default function ChatComponent() {
     const [mounted, setMounted] = useState(false);
     const [user, setUser] = useState<{ id: string; username: string } | null>(null);
@@ -68,7 +73,8 @@ export default function ChatComponent() {
                     ...newMessages[0],
                     content: nextContent,
                     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                    isStreaming: i < WELCOME_MESSAGE.length
+                    isStreaming: i < WELCOME_MESSAGE.length,
+                    options: i >= WELCOME_MESSAGE.length ? WELCOME_OPTIONS : undefined
                 };
                 return newMessages;
             });
@@ -223,9 +229,28 @@ export default function ChatComponent() {
 
                     if (chunkStr) {
                         fullContent += chunkStr;
+
+                        // Parse options if present
+                        let cleanVisibleContent = fullContent;
+                        let extractedOptions = undefined;
+
+                        const optionsMatch = fullContent.match(/<options>(.*?)<\/options>/s);
+                        if (optionsMatch) {
+                            cleanVisibleContent = fullContent.replace(/<options>.*?<\/options>/s, "").trim();
+                            try {
+                                extractedOptions = JSON.parse(optionsMatch[1]);
+                            } catch (e) {
+                                console.error("Failed to parse options JSON", e);
+                            }
+                        }
+
                         setMessages((prev) =>
                             prev.map((m) =>
-                                m.id === assistantId ? { ...m, content: fullContent } : m
+                                m.id === assistantId ? {
+                                    ...m,
+                                    content: cleanVisibleContent,
+                                    options: extractedOptions || m.options
+                                } : m
                             )
                         );
                         // Hide loading indicator the moment the first token arrives
@@ -287,7 +312,11 @@ export default function ChatComponent() {
                         </div>
 
                         {messages.map((message) => (
-                            <ChatMessage key={message.id} message={message} />
+                            <ChatMessage
+                                key={message.id}
+                                message={message}
+                                onOptionClick={handleSuggestedQuestion}
+                            />
                         ))}
 
                         <SuggestedQuestions
