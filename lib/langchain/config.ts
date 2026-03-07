@@ -33,12 +33,12 @@ export function getChatModel(maxRetries?: number) {
 
   const models: any[] = [];
 
-  // TIER 3: Gemini (Currently hitting quota)
-  if (geminiKey) {
-    models.push(new ChatGoogleGenerativeAI({
-      model: "gemini-2.0-flash",
+  // TIER 1: Groq (Recommended Primary)
+  if (groqKey) {
+    models.push(new ChatGroq({
+      model: "llama-3.3-70b-versatile",
       temperature: 0.1,
-      apiKey: geminiKey,
+      apiKey: groqKey,
       maxRetries: 0,
     }));
   }
@@ -52,12 +52,12 @@ export function getChatModel(maxRetries?: number) {
     }));
   }
 
-  // TIER 1: Groq (Recommended Primary)
-  if (groqKey) {
-    models.push(new ChatGroq({
-      model: "llama-3.3-70b-versatile",
+  // TIER 3: Gemini (Currently hitting quota)
+  if (geminiKey) {
+    models.push(new ChatGoogleGenerativeAI({
+      model: "gemini-2.0-flash",
       temperature: 0.1,
-      apiKey: groqKey,
+      apiKey: geminiKey,
       maxRetries: 0,
     }));
   }

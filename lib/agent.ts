@@ -430,7 +430,13 @@ function virtualLocalModel(input: string): string | null {
 }
 
 // --- Main Agent Loop ---
+import * as fs from 'fs';
 export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
+   const log = (msg: string) => {
+      console.log(msg);
+      try { fs.appendFileSync('/tmp/agent_debug.log', `${new Date().toISOString()} ${msg}\n`); } catch (e) { }
+   };
+   log(`[Agent] runAgent started: "${input}"`);
    console.log(JSON.stringify({ event: "AgentStart", query: input, historyLength: chatHistory.length }));
 
    const normalizedInput = input.trim().toLowerCase();
@@ -507,8 +513,10 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
    yield " ";
 
    try {
-      // CONVERSATION-AWARE QUERY ENRICHMENT
+      log("[Agent] Building context aware query...");
       const enrichedInput = buildContextAwareQuery(input, chatHistory);
+      log(`[Agent] Enriched input: "${enrichedInput}"`);
+
       // STEP 1: PARALLEL HYBRID RETRIEVAL (with 10s Fail-Safe)
       // Local fast search is guaranteed; External APIs (Pinecone/Google) are wrapped in timeouts.
       const timeoutPromise = <T>(promise: Promise<T>, timeoutMs: number, name: string): Promise<T | null> =>
@@ -516,15 +524,19 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
             promise,
             new Promise<null>((resolve) => setTimeout(() => {
                console.warn(`[Agent] ${name} timed out after ${timeoutMs}ms`);
+               log(`[Agent] ${name} timed out after ${timeoutMs}ms`);
                resolve(null);
             }, timeoutMs))
          ]);
 
-      const [keywordDocs, semanticDocs, refinedInput] = await Promise.all([
+      log("[Agent] Starting Parallel Hybrid Retrieval...");
+      const [keywordDocs, semanticDocs] = await Promise.all([
          searchPageIndex(enrichedInput), // Local fast search
-         timeoutPromise(searchSemantic(enrichedInput, 8), 10000, "Pinecone Search"),
-         timeoutPromise(refineQuery(enrichedInput), 5000, "Query Refinement")
+         timeoutPromise(searchSemantic(enrichedInput, 8), 10000, "Pinecone Search")
       ]);
+      const refinedInput = null; // Disable refinement for stability
+      log("[Agent] Hybrid Retrieval finished.");
+
 
       // Handle nulls (timeouts)
       const safeSemanticDocs = semanticDocs || [];
@@ -533,6 +545,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
 
       // If translated (Hindi -> English), we run a second quick targeted search
       let translatedDocs: any[] = [];
+      /*
       const isTranslated = safeRefinedInput.toLowerCase() !== enrichedInput.toLowerCase();
 
       if (isTranslated) {
@@ -543,6 +556,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
          ]);
          translatedDocs = [...(tKeyword || []), ...(tSemantic || [])];
       }
+      */
 
       // Collect for merge
       const allSemantic = safeSemanticDocs;
@@ -574,13 +588,20 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
          .sort((a, b) => b.score - a.score)
          .map(item => docMap.get(item.id)!);
 
-      // STEP 1.2: CONDITIONAL RERANKING
+      log(`[Agent] RRF complete. ${uniqueDocs.length} docs found.`);
+
+      // STEP 1.2: CONDITIONAL RERANKING (Disabled for stability)
       let finalDocs = uniqueDocs;
+      /*
       if (uniqueDocs.length > 1) {
          const topCandidates = uniqueDocs.slice(0, 6);
          const remainingDocs = uniqueDocs.slice(6);
-         finalDocs = [...await rerankDocuments(safeRefinedInput, topCandidates), ...remainingDocs];
+         log(`[Agent] Reranking ${topCandidates.length} candidates...`);
+         const reranked = await timeoutPromise(rerankDocuments(safeRefinedInput, topCandidates), 10000, "Reranking");
+         finalDocs = [...(reranked || topCandidates), ...remainingDocs];
+         log("[Agent] Reranking finished.");
       }
+      */
 
       console.log(JSON.stringify({
          event: "AgentRetrievalComplete",
@@ -636,8 +657,10 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
          new HumanMessage(prompt)
       ];
 
+      log("[Agent] Triggering final medical model stream...");
       const finalStream = await model.stream(messages);
       let fullResponse = "";
+      log("[Agent] Stream started, receiving chunks...");
 
       for await (const chunk of finalStream) {
          if (chunk.content) {
