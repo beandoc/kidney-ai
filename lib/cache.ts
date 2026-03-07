@@ -23,7 +23,10 @@ export async function getCachedResponse(question: string): Promise<string | null
     // 1. EXACT Text Match Cache (Redis) - FASTEST
     const exactKey = `cache:v2:response:${normQ}`;
     try {
-        const cached = await redis.get(exactKey);
+        const cached = await Promise.race([
+            redis.get(exactKey),
+            new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000))
+        ]);
         if (cached) {
             console.log(JSON.stringify({ event: "CacheHit_Exact", query: question }));
             return cached;
@@ -39,18 +42,23 @@ export async function getCachedResponse(question: string): Promise<string | null
             const index = pc.Index(PINECONE_INDEX_NAME).namespace(CACHE_NAMESPACE);
 
             const embeddings = getEmbeddings();
-            const vector = await embeddings.embedQuery(question);
+            // Wrap semantic cache lookup in a 5s timeout
+            const results = (await Promise.race([
+                (async () => {
+                    const vector = await embeddings.embedQuery(question);
+                    return await index.query({
+                        vector,
+                        topK: 1,
+                        includeMetadata: true
+                    });
+                })(),
+                new Promise<null>((resolve) => setTimeout(() => {
+                    console.warn("[Cache] Semantic lookup timed out");
+                    resolve(null);
+                }, 5000))
+            ])) as any;
 
-            // Debug dimension issues
-            console.log(`[Cache] Semantic query vector dimension: ${vector.length}`);
-
-            const results = await index.query({
-                vector,
-                topK: 1,
-                includeMetadata: true
-            });
-
-            if (results.matches && results.matches.length > 0) {
+            if (results && results.matches && results.matches.length > 0) {
                 const bestMatch = results.matches[0];
                 // 0.94 cosine similarity is a very strong match for similar intent
                 if (bestMatch.score && bestMatch.score > 0.94) {
@@ -93,16 +101,23 @@ export async function setCachedResponse(question: string, response: string): Pro
             const index = pc.Index(PINECONE_INDEX_NAME).namespace(CACHE_NAMESPACE);
 
             const embeddings = getEmbeddings();
-            const vector = await embeddings.embedQuery(question);
 
-            const safeResponse = response.length > 30000 ? response.substring(0, 30000) : response;
-            const uniqueId = `cache-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+            // Wrap in 10s timeout
+            await Promise.race([
+                (async () => {
+                    const vector = await embeddings.embedQuery(question);
+                    const safeResponse = response.length > 30000 ? response.substring(0, 30000) : response;
+                    const uniqueId = `cache-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-            await index.upsert([{
-                id: uniqueId,
-                values: vector,
-                metadata: { response: safeResponse, original_query: question }
-            }]);
+                    await index.upsert([{
+                        id: uniqueId,
+                        values: vector,
+                        metadata: { response: safeResponse, original_query: question }
+                    }]);
+                })(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error("Semantic Cache Store Timeout")), 10000))
+            ]);
+
             console.log(JSON.stringify({ event: "CacheStored_Semantic", query: question }));
         }
     } catch (e) {
