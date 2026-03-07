@@ -118,14 +118,14 @@ export async function processFileBuffer(buffer: Buffer, filename: string): Promi
     return validDocs;
 }
 
-/**
- * Search Pinecone for relevant documents using Vector Similarity
- */
 export async function searchSemantic(query: string, limit = 5): Promise<Document[]> {
+    console.log(`[Pinecone] searchSemantic started: "${query}"`);
     try {
         const store = await getPineconeStore();
+        console.log(`[Pinecone] Store ready, starting similaritySearch...`);
         // search result with scores (similarity)
         const results = await store.similaritySearchWithScore(query, limit);
+        console.log(`[Pinecone] Search finished. Matches: ${results.length}`);
 
         // Filter out results with low similarity scores if needed, but for now just return top 5
         return results.map(([doc, score]) => {
@@ -359,6 +359,7 @@ let cachedStore: PineconeStore | null = null;
 export async function getPineconeStore() {
     // Force re-initialization once if it's the first call in this process
     if (!isIndexReady) {
+        console.log("[Pinecone] getPineconeStore: index not ready, initializing...");
         isIndexReady = await initializePinecone();
         isInitialized = false; // Reset initialized flag to force store recreation
     }
@@ -375,9 +376,11 @@ export async function getPineconeStore() {
     const pinecone = getPineconeClient();
     const index = pinecone.Index(indexName);
 
+    console.log("[Pinecone] Loading existing index into store...");
     cachedStore = await PineconeStore.fromExistingIndex(getEmbeddings(), {
         pineconeIndex: index,
     });
+    console.log("[Pinecone] Store initialized successfully.");
 
     isInitialized = true;
     return cachedStore;

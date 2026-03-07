@@ -34,6 +34,7 @@ export async function refineQuery(query: string): Promise<string> {
  */
 export async function rerankDocuments(query: string, documents: Document[]): Promise<Document[]> {
     if (documents.length === 0) return [];
+    console.log(`[Reranker] Starting rerank of ${documents.length} docs for: "${query}"`);
 
     try {
         const model = getChatModel();
