@@ -314,6 +314,8 @@ A kidney transplant can significantly improve the quality of life and longevity 
 
    "kidney stones vs kidney failure?": `Kidney stones and kidney failure are very different conditions, although both involve the kidneys:
 
+![Kidney Diagram](https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Kidney_Cross_Section.png/300px-Kidney_Cross_Section.png)
+
 - **Kidney Stones:** Think of a stone as a **pebble stuck in a pipe**. It causes intense pain as it moves through the urinary tract, but it is typically a mechanical blockage. Once the stone is passed or removed, the kidney function usually remains normal.
 - **Kidney Failure:** This is when the **entire plumbing system (filters)** breaks down. The kidneys can no longer filter waste products from the blood. This is a much more serious, systemic condition that requires long-term management or dialysis.
 
