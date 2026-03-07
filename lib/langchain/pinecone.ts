@@ -308,15 +308,15 @@ export async function initializePinecone() {
     try {
         const index = await pc.describeIndex(indexName);
 
-        // Gemini Embedding 001 is 768. If index is 3072 (OpenAI size), we MUST recreate it.
-        if (index.dimension !== 768) {
-            console.log(`Dimension mismatch: Index is ${index.dimension}, Gemini needs 768. Recreating...`);
+        // Updated for Gemini 1.5 Embeddings which now default to 3072 dimensions
+        if (index.dimension !== 3072) {
+            console.log(`Dimension mismatch: Index is ${index.dimension}, needs 3072. Recreating...`);
             await pc.deleteIndex(indexName);
             // Wait for deletion
-            await new Promise(r => setTimeout(r, 5000));
+            await new Promise(r => setTimeout(r, 10000)); // Increased wait for larger indices
             await pc.createIndex({
                 name: indexName,
-                dimension: 768,
+                dimension: 3072,
                 metric: 'cosine',
                 spec: {
                     serverless: {
@@ -325,7 +325,7 @@ export async function initializePinecone() {
                     }
                 }
             });
-            console.log("Index recreated with 768 dimensions.");
+            console.log("Index recreated with 3072 dimensions.");
             return true;
         }
         return true;
@@ -334,7 +334,7 @@ export async function initializePinecone() {
         try {
             await pc.createIndex({
                 name: indexName,
-                dimension: 768,
+                dimension: 3072,
                 metric: 'cosine',
                 spec: {
                     serverless: {

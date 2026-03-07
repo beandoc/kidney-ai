@@ -16,7 +16,7 @@ export function getEmbeddings() {
   }
 
   return new GoogleGenerativeAIEmbeddings({
-    modelName: "text-embedding-004", // Newer model, consistently 768 tokens by default
+    modelName: "gemini-embedding-001", // Verified 3072 dimensions for this key
     apiKey: apiKey,
   });
 }
