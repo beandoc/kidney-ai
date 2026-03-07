@@ -3,6 +3,7 @@ import { searchPageIndex, formatPageIndexContext } from "./pageindex/retrieval";
 import { getChatModel } from "./langchain/config";
 import { refineQuery, rerankDocuments } from "./langchain/vectorStore";
 import { getCachedResponse, setCachedResponse } from "./cache";
+import { MAIN_MENU, DISEASE_MENU, LABS_MENU, TRANSPLANT_MENU, VACCINE_MENU, getMenuPayload } from "./menu";
 
 
 import { searchSemantic } from "./langchain/pinecone";
@@ -146,41 +147,6 @@ For those following the usual Indian diet, protein restriction is generally not 
 
 *Always consult your treating nephrologist for tailored dietary advice specific to your health condition.*`,
 
-   "vaccinations for kidney patients": `Vaccinations are crucial for kidney patients, especially those undergoing dialysis or who have had a kidney transplant. Here are the key vaccinations recommended:
-
-1. **Hepatitis B Vaccine**
-   - **Importance:** Reduces the risk of Hepatitis B infection during dialysis or after kidney transplantation.
-   - **Schedule:** Four double doses of the recombinant Hepatitis B vaccine are given at 0, 1, 2, and 6 months, intramuscularly in the deltoid region.
-
-2. **Influenza Vaccine**
-   - **Importance:** Protects against seasonal flu, which can lead to serious complications.
-   - **Schedule:** Recommended annually, especially before flu season.
-
-3. **Pneumococcal Vaccine**
-   - **Importance:** Provides protection against pneumonia and other infections caused by Streptococcus pneumoniae.
-   - **Schedule:** Administered at least once, with a booster recommended for high-risk patients.
-
-4. **Tetanus-Diphtheria-Pertussis (Tdap) Vaccine**
-   - **Importance:** Protects against tetanus, diphtheria, and pertussis (whooping cough).
-   - **Schedule:** A booster is recommended every 10 years.
-
-5. **COVID-19 Vaccine**
-   - **Importance:** Essential for protecting against severe illness from COVID-19.
-   - **Schedule:** Follow current guidance from health authorities regarding initial doses and boosters.
-
-6. **Varicella (Chickenpox) Vaccine**
-   - **Importance:** Recommended for patients who have not had chickenpox or the vaccine in the past.
-   - **Schedule:** Generally given in two doses.
-
-7. **Meningococcal Vaccine**
-   - **Importance:** Protects against meningitis, especially in patients with weakened immune systems.
-   - **Schedule:** Administered as per current health guidelines.
-
-**General Precautions:**
-- **Consult Your Healthcare Provider:** Always discuss vaccinations with your nephrologist to tailor the schedule based on your specific health needs.
-- **Stay Updated:** Keep track of vaccination records and ensure you are up-to-date with all recommended vaccines.
-
-*These vaccinations are crucial to protect kidney patients from infections that could complicate their health. Always consult your treating nephrologist for personalized advice.*`,
 
    "what is dialysis and fistula care?": `Dialysis and fistula care are essential components of treatment for individuals with kidney failure. Here’s a breakdown of both:
 
@@ -381,6 +347,77 @@ Common over-the-counter NSAIDs (Non-Steroidal Anti-Inflammatory Drugs) can be di
 *   **Safer Alternative:** Acetaminophen (Tylenol/Paracetamol) is generally safer for kidneys when taken as directed, but always consult your nephrologist first.
 *   **The Risk:** Chronic use can reduce blood flow to the kidneys, leading to permanent scarring (Analgesic Nephropathy).`,
 
+   "precautions after kidney transplant": `Post-transplant care is vital for the longevity of your new kidney. Key precautions include:
+
+1. **Medication Adherence:** Take immunosuppressants exactly as prescribed, without missing any doses, to prevent rejection.
+2. **Infection Prevention:** Avoid crowded places and sick individuals, especially in the first few months. Wash hands frequently.
+3. **Fluid Intake:** Stay well-hydrated (usually 2-3 liters depending on doctor's advice) to keep the new kidney flushing well.
+4. **Blood Pressure & Sugar Control:** Monitor these daily as they can damage the new graft.
+5. **Physical Activity:** Start with gentle walking. Avoid heavy lifting or contact sports for at least 6-8 weeks.
+6. **Diet:** Follow a "heart-healthy" diet. Avoid raw or undercooked foods (sushi, runny eggs) and unpasteurized dairy due to infection risk.
+
+*Always report any fever, swelling at the transplant site, or sudden decrease in urine output to your transplant center immediately.*`,
+
+   "who can donate a kidney?": `A kidney donor can be either a living person or a deceased individual:
+
+**1. Living Donors:**
+- **Relatives:** Siblings, parents, or children are often the best matches.
+- **Unrelated Donors:** Spouses, friends, or "altruistic" donors.
+- **Criteria:** Must be at least 18 years old, in good physical and mental health, and have normal kidney function. They are screened for diabetes, high BP, and cancer.
+
+**2. Deceased Donors:**
+- Individuals who have recently passed away and expressed a wish to donate organs (or their family gave consent).
+
+**Key Factor: Compatibility**
+The donor and recipient must have compatible blood types (though "ABO-incompatible" transplants are now possible with special treatment) and a negative "Crossmatch" test.
+
+*Living donation is a noble act. If you are considering it, you will undergo a rigorous "Donor Evaluation" to ensure your own health won't be compromised.*`,
+
+   "vaccinations for kidney patients": `Vaccinations are critical for kidney patients because their immune systems are often weakened by CKD or medications.
+
+**1. Recommended Vaccines:**
+- **Hepatitis B:** High priority for those on or nearing dialysis.
+- **Influenza (Flu):** Given annually.
+- **Pneumococcal:** Protects against pneumonia.
+- **COVID-19:** As per current boosters.
+
+**2. Crucial Rule: No "Live" Vaccines**
+Most kidney patients (especially transplant recipients or those on Prednisolone) should **avoid live-attenuated vaccines** (like Yellow Fever or Oral Polio) as they could actually cause the disease.
+
+*Check your vaccination status with your nephrologist early in the CKD journey to ensure maximum protection.*`,
+
+   "hepatitis b vaccine for dialysis": `Hepatitis B is a serious risk in dialysis units due to potential blood-to-blood contact.
+
+- **The Schedule:** For dialysis patients, the dose is usually **double** the standard adult dose (40mcg instead of 20mcg).
+- **The Series:** Typically given at 0, 1, 2, and 6 months intramuscularly.
+- **Antibody Testing:** Your doctor will check your "anti-HBs" levels annually to see if you need a "booster" dose to stay protected.
+
+*Protection against Hep-B is a mandatory safety step for anyone starting long-term hemodialysis.*`,
+
+   "flu vaccine for kidney patients": `The Flu (Influenza) can lead to severe pneumonia in people with kidney disease.
+
+- **Annual Requirement:** The flu virus changes every year, so you need a new shot every autumn/winter.
+- **Injectable Only:** Use the "killed" (inactivated) injectable flu shot. **Do not use the nasal spray flu vaccine**, as it contains live virus.
+- **Safety:** It is safe to take even if you are on dialysis or have a transplant (using the inactivated version).
+
+*A simple flu shot can prevent a hospital admission for fluid overload or lung infection.*`,
+
+   "what foods to avoid in high potassium?": `When your potassium is high (Hyperkalemia), you must avoid "Potassium Bombs" to protect your heart:
+
+**1. High Potassium Fruits (AVOID):**
+- Bananas, Mangoes, Oranges/Juice, Pomegranates, and Kiwis.
+- Dried fruits like dates (*khajoor*) and raisins (*kismis*).
+
+**2. High Potassium Vegetables (AVOID):**
+- Potatoes (unless leached), Spinach (*palak*), Tomatoes, and Sweet Potatoes.
+
+**3. Other Sources to Avoid:**
+- Coconut Water (*nariyal pani*) - This is a very high "Potassium Burst".
+- "Low Sodium" Salts (these use Potassium Chloride instead of Sodium).
+- Whole Wheat/Multigrain bread (higher in K than white bread).
+
+*Safe Alternatives:* Apples, papaya, guava (without seeds), and cabbage. *Leaching (soaking) vegetables in water can also help reduce potassium content.*`,
+
    "common kidney silent killers": `Here are the top habits that destroy kidney health over time:
 1. **Namak (Salt) Overload:** Hidden salt in pickles (*achar*), papad, and bhujia causes fluid retention and BP spikes.
 2. **Ignoring Thirst:** Dehydration allows minerals to clump into stones.
@@ -429,7 +466,7 @@ function virtualLocalModel(input: string): string | null {
    return null;
 }
 
-import { MAIN_MENU, DISEASE_MENU, LABS_MENU, getMenuPayload } from "./menu";
+
 
 // --- Main Agent Loop ---
 export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
@@ -450,6 +487,16 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
 
    if (normalizedInput === "understanding kidney lab results") {
       yield "Select a lab parameter to understand its meaning and impact on kidney health:" + getMenuPayload(LABS_MENU);
+      return;
+   }
+
+   if (normalizedInput === "show transplant menu") {
+      yield "Kidney Transplant is a life-changing procedure. Explore these topics to understand the process:" + getMenuPayload(TRANSPLANT_MENU);
+      return;
+   }
+
+   if (normalizedInput === "show vaccine menu") {
+      yield "Vaccinations protect kidney patients from serious infections. Select a category below:" + getMenuPayload(VACCINE_MENU);
       return;
    }
 
@@ -539,11 +586,14 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
             }, timeoutMs))
          ]);
 
+      const retrievalTimerStart = Date.now();
       const [keywordDocs, semanticDocs, refinedInput] = await Promise.all([
          searchPageIndex(enrichedInput), // Local fast search
          timeoutPromise(searchSemantic(enrichedInput, 8), 10000, "Pinecone Search"),
          timeoutPromise(refineQuery(enrichedInput), 5000, "Query Refinement")
       ]);
+      const retrievalDuration = Date.now() - retrievalTimerStart;
+      console.log(JSON.stringify({ event: "RetrievalFinished", durationMs: retrievalDuration }));
 
 
 
@@ -632,6 +682,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
 
       // Step 2: Direct Streaming Response
       const model = getChatModel();
+      console.log(JSON.stringify({ event: "LLMStreamStarted", model: model.constructor.name }));
       const prompt = `
             You are a Kidney Health Assistant. 
             
@@ -673,7 +724,9 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
       // Store in Cache for future users (Async - don't block)
       setCachedResponse(input, finalResponse).catch(e => console.error("Cache store failure:", e));
 
-      yield "\n\n---\n**Disclaimer:** *This is for educational purposes only. Always follow your doctor's advice.*";
+      // yield already done in the loop if we want it there, but usually it's better to yield once at the end or just in the loop.
+      // The disclaimer is already appended to finalResponse for storage.
+      // We don't need a second yield here if the loop finished correctly.
 
    } catch (globalError: any) {
       console.error("[Agent] CRITICAL FAILURE:", globalError);

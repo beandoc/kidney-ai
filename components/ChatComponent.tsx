@@ -176,21 +176,30 @@ export default function ChatComponent() {
                 .map(m => ({ role: m.role, content: m.content }));
 
             let response;
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                controller.abort();
+            }, 15000); // 15s timeout for initial connection
+
             try {
-                // Removed the aggressive 30s timeout and automatic retry loop 
-                // which was causing extreme API quota exhaustion by duplicating requests.
                 response = await fetch("/api/chat", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         "x-user-id": user.id
                     },
+                    signal: controller.signal,
                     body: JSON.stringify({
                         message: currentInput,
                         history: chatHistory
                     })
                 });
-            } catch (err) {
+                clearTimeout(timeoutId);
+            } catch (err: any) {
+                clearTimeout(timeoutId);
+                if (err.name === 'AbortError') {
+                    throw new Error("TIMEOUT");
+                }
                 throw err;
             }
 
@@ -208,18 +217,38 @@ export default function ChatComponent() {
                 role: "assistant",
                 content: "",
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                isStreaming: true, // Start streaming
+                isStreaming: true,
             };
-            setMessages((prev) => [...prev, assistantMessage]);
+            setMessages((prev) => [...prev, userMessage, assistantMessage]); // Ensure both are added if not already
+            // Actually userMessage is already added at line 166. Let's fix that.
+            setMessages((prev) => {
+                const filtered = prev.filter(m => m.id !== assistantId);
+                return [...filtered, assistantMessage];
+            });
 
             const reader = response.body?.getReader();
             const decoder = new TextDecoder();
             let fullContent = "";
+            let chunkReceived = false;
 
             if (reader) {
+                const streamTimeout = setTimeout(() => {
+                    if (!chunkReceived) {
+                        controller.abort();
+                    }
+                }, 15000);
+
                 while (true) {
                     const { done, value } = await reader.read();
-                    if (done) break;
+                    if (done) {
+                        clearTimeout(streamTimeout);
+                        break;
+                    }
+
+                    if (!chunkReceived) {
+                        chunkReceived = true;
+                        clearTimeout(streamTimeout);
+                    }
 
                     const chunkStr = decoder.decode(value, { stream: true });
 
@@ -272,6 +301,8 @@ export default function ChatComponent() {
             const err = error as Error;
             if (err.message === "QUOTA_EXCEEDED") {
                 setError("The Medical Brain is currently very busy (API Quota Exceeded). Please try again in 1 minute.");
+            } else if (err.message === "TIMEOUT") {
+                setError("Service temporarily unavailable (Request Timed Out). Please try again.");
             } else {
                 setError("Sorry, I encountered an error. Please try again.");
             }

@@ -25,7 +25,7 @@ def health_check():
 @app.post("/api/python/index-pdf")
 async def index_pdf(
     file: UploadFile = File(...),
-    model: str = Form("gemini-2.0-flash"),
+    model: str = Form(os.getenv("PYTHON_LLM_MODEL", "gpt-4o")),
     toc_check_pages: int = Form(20),
     max_pages_per_node: int = Form(10),
     max_tokens_per_node: int = Form(20000)
@@ -63,7 +63,7 @@ from pydantic import BaseModel
 class SearchRequest(BaseModel):
     query: str
     trees_json: str
-    model: str = "gemini-2.0-flash"
+    model: str = os.getenv("PYTHON_LLM_MODEL", "gpt-4o")
 
 @app.post("/api/python/search")
 async def search_tree(req: SearchRequest):

@@ -1,10 +1,15 @@
-import { GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { ChatGroq } from "@langchain/groq";
 import { ChatMistralAI } from "@langchain/mistralai";
 import { ChatOpenAI } from "@langchain/openai";
 
 export const CHUNK_SIZE = 1000;
 export const CHUNK_OVERLAP = 200;
+
+// Unified Model Configuration (Centralized)
+export const GROQ_MODEL = process.env.NEXT_PUBLIC_GROQ_MODEL || "llama-3.1-8b-instant";
+export const MISTRAL_MODEL = process.env.NEXT_PUBLIC_MISTRAL_MODEL || "mistral-small-latest";
+export const EMBEDDING_MODEL = "gemini-embedding-001";
 
 /**
  * Get configured Google Gemini Embeddings instance
@@ -16,7 +21,7 @@ export function getEmbeddings() {
   }
 
   return new GoogleGenerativeAIEmbeddings({
-    modelName: "gemini-embedding-001", // Verified 3072 dimensions for this key
+    modelName: EMBEDDING_MODEL,
     apiKey: apiKey,
   });
 }
@@ -36,7 +41,7 @@ export function getChatModel(maxRetries?: number) {
   // TIER 1: Groq (Recommended Primary)
   if (groqKey) {
     models.push(new ChatGroq({
-      model: "llama-3.1-8b-instant",
+      model: GROQ_MODEL,
       temperature: 0.1,
       apiKey: groqKey,
       maxRetries: 0,
@@ -46,23 +51,12 @@ export function getChatModel(maxRetries?: number) {
   // TIER 2: Mistral (Secondary)
   if (mistralKey) {
     models.push(new ChatMistralAI({
-      model: "mistral-small-latest",
+      model: MISTRAL_MODEL,
       temperature: 0.1,
       apiKey: mistralKey,
     }));
   }
 
-  // TIER 3: Gemini (Disabled because of quota)
-  /*
-  if (geminiKey) {
-    models.push(new ChatGoogleGenerativeAI({
-      model: "gemini-2.0-flash",
-      temperature: 0.1,
-      apiKey: geminiKey,
-      maxRetries: 0,
-    }));
-  }
-  */
 
   if (models.length === 0) {
     throw new Error("No valid LLM API keys configured.");
