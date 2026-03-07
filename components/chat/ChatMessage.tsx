@@ -31,9 +31,9 @@ export default function ChatMessage({ message }: ChatMessageProps) {
                             ol: ({ children }) => <ol className="list-decimal pl-5 mb-2 space-y-0.5">{children}</ol>,
                             li: ({ children }) => <li className="text-[13.8px] leading-[1.5]">{children}</li>,
                             img: ({ src, alt }) => (
-                                <div className="my-3 rounded-lg overflow-hidden shadow-sm border border-slate-200 bg-white">
+                                <div className="my-3 rounded-lg overflow-hidden shadow-sm border border-slate-200 bg-white inline-block">
                                     <img src={src} alt={alt || "Medical Reference"} className="w-full h-auto object-contain max-h-[300px]" loading="lazy" />
-                                    {alt && <p className="text-[11px] text-center text-slate-500 p-1.5 bg-slate-50 border-t border-slate-100">{alt}</p>}
+                                    {alt && <div className="text-[11px] text-center text-slate-500 p-1.5 bg-slate-50 border-t border-slate-100">{alt}</div>}
                                 </div>
                             ),
                         }}
