@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 import { invalidateIndex } from "@/lib/pageindex/retrieval";
-import { processFileBuffer } from "@/lib/langchain/pinecone";
+import { processFileBuffer, syncKnowledgeBase } from "@/lib/langchain/pinecone";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { CHUNK_SIZE, CHUNK_OVERLAP } from "@/lib/langchain/config";
 
@@ -28,7 +28,8 @@ export async function POST(request: Request) {
 
             try {
                 const kbPath = path.join(process.cwd(), 'knowledge_base');
-                const pageIndexPath = path.join(kbPath, 'pageindex');
+                // On Vercel, newly generated PageIndex files MUST go to /tmp/pageindex
+                const pageIndexPath = process.env.VERCEL ? '/tmp/pageindex' : path.join(kbPath, 'pageindex');
                 if (!fs.existsSync(pageIndexPath)) fs.mkdirSync(pageIndexPath, { recursive: true });
 
                 const files = specificFile
@@ -90,9 +91,19 @@ export async function POST(request: Request) {
                 // Refresh the search index
                 invalidateIndex();
 
+                // 3. SYNC TO PINECONE (The Semantic Database)
+                send({ type: 'progress', status: `Syncing to Semantic Vector DB (Pinecone)...`, percent: 90 });
+                try {
+                    const pineconeResult = await syncKnowledgeBase();
+                    console.log("[Sync] Pinecone Sync Complete:", pineconeResult);
+                } catch (pcErr) {
+                    console.error("[Sync] Pinecone Sync Failed:", pcErr);
+                    send({ type: 'progress', status: `⚠️ Semantic Sync Failed - check logs` });
+                }
+
                 send({
                     type: 'done',
-                    message: `Successfully indexed ${successCount} files using PageIndex Architecture.`,
+                    message: `Successfully indexed ${successCount} files using PageIndex and Semantic Vector DB.`,
                     fileCount: successCount
                 });
             } catch (error) {
