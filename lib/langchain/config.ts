@@ -11,8 +11,12 @@ export const CHUNK_OVERLAP = 200;
  */
 export function getEmbeddings() {
   const apiKey = (process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY)?.trim();
+  if (!apiKey) {
+    throw new Error("Missing Google/Gemini API key for embeddings");
+  }
+
   return new GoogleGenerativeAIEmbeddings({
-    modelName: "gemini-embedding-001",
+    modelName: "text-embedding-004", // Newer model, consistently 768 tokens by default
     apiKey: apiKey,
   });
 }

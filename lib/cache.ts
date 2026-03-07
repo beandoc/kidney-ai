@@ -6,7 +6,7 @@ const redis = new Redis(process.env.REDIS_URL || "");
 
 const PINECONE_API_KEY = process.env.PINECONE_API_KEY;
 const PINECONE_INDEX_NAME = process.env.PINECONE_INDEX_NAME || "kidney-rag-chatbot";
-const CACHE_NAMESPACE = "semantic-cache";
+const CACHE_NAMESPACE = "semantic-cache-v2";
 
 function normalizeText(text: string): string {
     return text
@@ -21,7 +21,7 @@ export async function getCachedResponse(question: string): Promise<string | null
     const normQ = normalizeText(question);
 
     // 1. EXACT Text Match Cache (Redis) - FASTEST
-    const exactKey = `cache:response:${normQ}`;
+    const exactKey = `cache:v2:response:${normQ}`;
     try {
         const cached = await redis.get(exactKey);
         if (cached) {
@@ -34,12 +34,15 @@ export async function getCachedResponse(question: string): Promise<string | null
 
     // 2. SEMANTIC Cache Match (Pinecone) - SMART
     try {
-        if (PINECONE_API_KEY && normQ.length > 10) {
+        if (PINECONE_API_KEY && normQ.length > 5) {
             const pc = new Pinecone({ apiKey: PINECONE_API_KEY });
             const index = pc.Index(PINECONE_INDEX_NAME).namespace(CACHE_NAMESPACE);
 
             const embeddings = getEmbeddings();
             const vector = await embeddings.embedQuery(question);
+
+            // Debug dimension issues
+            console.log(`[Cache] Semantic query vector dimension: ${vector.length}`);
 
             const results = await index.query({
                 vector,
@@ -69,10 +72,16 @@ export async function getCachedResponse(question: string): Promise<string | null
 export async function setCachedResponse(question: string, response: string): Promise<void> {
     const normQ = normalizeText(question);
 
+    // DO NOT cache failure responses or extremely short ones
+    if (!response || response.includes("I don't know") || response.includes("don't know the answer") || response.length < 50) {
+        console.log(`[Cache] Skipping storage of low-quality or error response for: "${question}"`);
+        return;
+    }
+
     // 1. Save Exact Match (Redis)
-    const exactKey = `cache:response:${normQ}`;
+    const exactKey = `cache:v2:response:${normQ}`;
     try {
-        await redis.set(exactKey, response, "EX", 604800); // 7 days
+        await redis.set(exactKey, response, "EX", 172800); // reduced to 2 days for stability
     } catch (e) {
         console.error("Redis Write Error:", e);
     }
