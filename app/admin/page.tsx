@@ -85,7 +85,7 @@ export default function AdminDashboard() {
     const [progress, setProgress] = useState<ProgressInfo | null>(null);
 
     // New states for Pasted Text
-    const [uploadMode, setUploadMode] = useState<'file' | 'text'>('file');
+    const [uploadMode, setUploadMode] = useState<'file' | 'image' | 'text'>('file');
     const [pastedText, setPastedText] = useState("");
     const [sourceLabel, setSourceLabel] = useState("");
 
@@ -595,6 +595,13 @@ export default function AdminDashboard() {
                                                 >
                                                     Paste Text
                                                 </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setUploadMode('image')}
+                                                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${uploadMode === 'image' ? 'bg-white text-[#128C7E] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                                >
+                                                    Upload Image
+                                                </button>
                                             </div>
 
                                             {uploadMode === 'file' ? (
@@ -623,6 +630,36 @@ export default function AdminDashboard() {
                                                             </p>
                                                             <p className="text-xs text-emerald-600 mt-2 font-medium bg-emerald-50 py-1 px-3 rounded-full inline-block">
                                                                 ⚡ Gemini automatically builds a multi-step reasoning tree for this data
+                                                            </p>
+                                                        </div>
+                                                    </label>
+                                                </div>
+                                            ) : uploadMode === 'image' ? (
+                                                <div className="border-2 border-dashed border-[#D1D7DB] rounded-xl p-8 text-center hover:border-[#128C7E] transition-colors group relative bg-[#F8F9FA]">
+                                                    <input
+                                                        type="file"
+                                                        id="image-upload"
+                                                        multiple={false}
+                                                        onChange={handleFileChange}
+                                                        accept="image/*"
+                                                        className="hidden"
+                                                    />
+                                                    <label
+                                                        htmlFor="image-upload"
+                                                        className="cursor-pointer flex flex-col items-center gap-3"
+                                                    >
+                                                        <div className="w-16 h-16 rounded-full bg-white shadow-sm border border-[#D1D7DB] flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                            <Upload className="w-8 h-8 text-[#128C7E]" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-slate-700 font-semibold text-lg">
+                                                                Upload Image for Chatbot
+                                                            </p>
+                                                            <p className="text-slate-500 text-sm mt-1">
+                                                                JPG, PNG, GIF
+                                                            </p>
+                                                            <p className="text-xs text-emerald-600 mt-2 font-medium bg-emerald-50 py-1 px-3 rounded-full inline-block">
+                                                                Produces a Markdown link you can paste into Gold Answers
                                                             </p>
                                                         </div>
                                                     </label>
