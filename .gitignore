@@ -41,3 +41,4 @@ yarn-error.log*
 next-env.d.ts
 models.json
 .env*.local
+public/knowledge_images/*
