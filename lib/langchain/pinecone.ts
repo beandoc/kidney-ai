@@ -306,6 +306,7 @@ function getPineconeClient() {
 export async function initializePinecone() {
     const pc = getPineconeClient();
     try {
+        console.log(`[Pinecone] Checking index: ${indexName}`);
         const index = await pc.describeIndex(indexName);
 
         // Updated for Gemini 1.5 Embeddings which now default to 3072 dimensions

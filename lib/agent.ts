@@ -509,7 +509,6 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
    try {
       // CONVERSATION-AWARE QUERY ENRICHMENT
       const enrichedInput = buildContextAwareQuery(input, chatHistory);
-
       // STEP 1: PARALLEL HYBRID RETRIEVAL (with 10s Fail-Safe)
       // Local fast search is guaranteed; External APIs (Pinecone/Google) are wrapped in timeouts.
       const timeoutPromise = <T>(promise: Promise<T>, timeoutMs: number, name: string): Promise<T | null> =>
@@ -521,13 +520,11 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
             }, timeoutMs))
          ]);
 
-      console.time("[Agent] Hybrid Retrieval");
       const [keywordDocs, semanticDocs, refinedInput] = await Promise.all([
          searchPageIndex(enrichedInput), // Local fast search
          timeoutPromise(searchSemantic(enrichedInput, 8), 10000, "Pinecone Search"),
          timeoutPromise(refineQuery(enrichedInput), 5000, "Query Refinement")
       ]);
-      console.timeEnd("[Agent] Hybrid Retrieval");
 
       // Handle nulls (timeouts)
       const safeSemanticDocs = semanticDocs || [];
