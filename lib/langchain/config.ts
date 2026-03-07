@@ -32,7 +32,7 @@ export function getChatModel(maxRetries?: number) {
   // TIER 1: Gemini (Primary - High Quota)
   if (geminiKey) {
     models.push(new ChatGoogleGenerativeAI({
-      model: "gemini-1.5-flash-latest",
+      model: "gemini-1.5-flash",
       temperature: 0.1,
       apiKey: geminiKey,
       maxRetries: maxRetries ?? 1,
@@ -55,18 +55,6 @@ export function getChatModel(maxRetries?: number) {
       temperature: 0.1,
       apiKey: groqKey,
       maxRetries: maxRetries ?? 0,
-    }));
-  }
-
-  // TIER 4: Together AI (Backup)
-  if (togetherKey) {
-    models.push(new ChatOpenAI({
-      model: "meta-llama/Llama-Vision-Free", // Use their free models if possible
-      temperature: 0.1,
-      apiKey: togetherKey,
-      configuration: {
-        baseURL: "https://api.together.xyz/v1",
-      },
     }));
   }
 
