@@ -36,7 +36,7 @@ export function getChatModel(maxRetries?: number) {
   // TIER 1: Groq (Recommended Primary)
   if (groqKey) {
     models.push(new ChatGroq({
-      model: "llama-3.3-70b-versatile",
+      model: "llama-3.1-8b-instant",
       temperature: 0.1,
       apiKey: groqKey,
       maxRetries: 0,
@@ -52,7 +52,8 @@ export function getChatModel(maxRetries?: number) {
     }));
   }
 
-  // TIER 3: Gemini (Currently hitting quota)
+  // TIER 3: Gemini (Disabled because of quota)
+  /*
   if (geminiKey) {
     models.push(new ChatGoogleGenerativeAI({
       model: "gemini-2.0-flash",
@@ -61,6 +62,7 @@ export function getChatModel(maxRetries?: number) {
       maxRetries: 0,
     }));
   }
+  */
 
   if (models.length === 0) {
     throw new Error("No valid LLM API keys configured.");
