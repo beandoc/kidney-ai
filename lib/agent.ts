@@ -314,13 +314,12 @@ A kidney transplant can significantly improve the quality of life and longevity 
 
    "kidney stones vs kidney failure?": `Kidney stones and kidney failure are very different conditions, although both involve the kidneys:
 
-![Kidney Diagram](https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Kidney_Cross_Section.png/300px-Kidney_Cross_Section.png)
+![Kidney Diagram](https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Kidneys_location_in_body.png/300px-Kidneys_location_in_body.png)
 
 - **Kidney Stones:** Think of a stone as a **pebble stuck in a pipe**. It causes intense pain as it moves through the urinary tract, but it is typically a mechanical blockage. Once the stone is passed or removed, the kidney function usually remains normal.
 - **Kidney Failure:** This is when the **entire plumbing system (filters)** breaks down. The kidneys can no longer filter waste products from the blood. This is a much more serious, systemic condition that requires long-term management or dialysis.
 
 *While stones are painful, kidney failure is a silent condition that requires regular check-ups to detect early.*`,
-
    "how much water do i really need?": `Hydration needs are not the same for everyone, especially for kidney patients:
 
 1. **For Kidney Stone Prevention:**
@@ -440,11 +439,8 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
    const localResponse = virtualLocalModel(normalizedInput);
    if (localResponse) {
       console.log(JSON.stringify({ event: "LocalModelTriggered", category: "small_talk" }));
-      const tokens = localResponse.split(" ");
-      for (const token of tokens) {
-         yield token + " ";
-         await new Promise(r => setTimeout(r, 15));
-      }
+      // Yield entire string at once to prevent jittering, the UI will handle smooth appearance
+      yield localResponse;
       return;
    }
 
@@ -489,11 +485,8 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
 
    if (goldMatchKey && GOLD_ANSWERS[goldMatchKey]) {
       console.log(JSON.stringify({ event: "GoldAnswerTriggered", query: goldMatchKey }));
-      const tokens = GOLD_ANSWERS[goldMatchKey].split(" ");
-      for (const token of tokens) {
-         yield token + " ";
-         await new Promise(r => setTimeout(r, 20)); // Simulate typing speed
-      }
+      // Yield the entire pre-compiled answer to avoid UI jittering from fake streaming delays
+      yield GOLD_ANSWERS[goldMatchKey];
       return;
    }
 
