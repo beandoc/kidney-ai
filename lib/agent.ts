@@ -510,28 +510,46 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
       // CONVERSATION-AWARE QUERY ENRICHMENT
       const enrichedInput = buildContextAwareQuery(input, chatHistory);
 
-      // STEP 1: PARALLEL RETRIEVAL & REFINEMENT
-      // We start searching with the enriched input immediately.
-      // For Hindi/Marathi, this might miss keyword hits, so we wait for Refinement to translate.
-      const [keywordDocs, semanticDocs, refinedInput] = await Promise.all([
-         searchPageIndex(enrichedInput),
-         searchSemantic(enrichedInput, 8),
-         refineQuery(enrichedInput)
-      ]);
+      // STEP 1: PARALLEL HYBRID RETRIEVAL (with 10s Fail-Safe)
+      // Local fast search is guaranteed; External APIs (Pinecone/Google) are wrapped in timeouts.
+      const timeoutPromise = <T>(promise: Promise<T>, timeoutMs: number, name: string): Promise<T | null> =>
+         Promise.race([
+            promise,
+            new Promise<null>((resolve) => setTimeout(() => {
+               console.warn(`[Agent] ${name} timed out after ${timeoutMs}ms`);
+               resolve(null);
+            }, timeoutMs))
+         ]);
 
-      let finalUniqueDocs = [];
-      const isTranslated = refinedInput.toLowerCase() !== enrichedInput.toLowerCase();
+      console.time("[Agent] Hybrid Retrieval");
+      const [keywordDocs, semanticDocs, refinedInput] = await Promise.all([
+         searchPageIndex(enrichedInput), // Local fast search
+         timeoutPromise(searchSemantic(enrichedInput, 8), 10000, "Pinecone Search"),
+         timeoutPromise(refineQuery(enrichedInput), 5000, "Query Refinement")
+      ]);
+      console.timeEnd("[Agent] Hybrid Retrieval");
+
+      // Handle nulls (timeouts)
+      const safeSemanticDocs = semanticDocs || [];
+      const safeRefinedInput = refinedInput || enrichedInput;
+      const safeKeywordDocs = keywordDocs || [];
 
       // If translated (Hindi -> English), we run a second quick targeted search
       let translatedDocs: any[] = [];
+      const isTranslated = safeRefinedInput.toLowerCase() !== enrichedInput.toLowerCase();
+
       if (isTranslated) {
-         console.log(`[Agent] Cross-lingual search triggered: ${refinedInput}`);
+         console.log(`[Agent] Cross-lingual search triggered: ${safeRefinedInput}`);
          const [tKeyword, tSemantic] = await Promise.all([
-            searchPageIndex(refinedInput),
-            searchSemantic(refinedInput, 4)
+            searchPageIndex(safeRefinedInput),
+            timeoutPromise(searchSemantic(safeRefinedInput, 4), 8000, "Translated Semantic Search")
          ]);
-         translatedDocs = [...tKeyword, ...tSemantic];
+         translatedDocs = [...(tKeyword || []), ...(tSemantic || [])];
       }
+
+      // Collect for merge
+      const allSemantic = safeSemanticDocs;
+      const allKeyword = safeKeywordDocs;
 
       // HYBRID MERGE: Reciprocal Rank Fusion (RRF)
       const K = 60;
@@ -547,8 +565,8 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
          });
       };
 
-      applyRRF(keywordDocs, 1.0);
-      applyRRF(semanticDocs, 1.2);
+      applyRRF(allKeyword, 1.0);
+      applyRRF(allSemantic, 1.2);
       if (translatedDocs.length > 0) {
          applyRRF(translatedDocs, 1.5); // Boost translated hits as they are likely high quality
       }
@@ -564,7 +582,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
       if (uniqueDocs.length > 1) {
          const topCandidates = uniqueDocs.slice(0, 6);
          const remainingDocs = uniqueDocs.slice(6);
-         finalDocs = [...await rerankDocuments(refinedInput, topCandidates), ...remainingDocs];
+         finalDocs = [...await rerankDocuments(safeRefinedInput, topCandidates), ...remainingDocs];
       }
 
       console.log(JSON.stringify({
