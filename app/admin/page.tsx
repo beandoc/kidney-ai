@@ -423,6 +423,28 @@ export default function AdminDashboard() {
                     setStatus(prev => prev || { type: 'error', message: "All uploads failed." });
                 }
                 setFiles([]);
+            } else if (uploadMode === 'image') {
+                const file = files[0];
+                if (!file) throw new Error("No image selected");
+
+                setCurrentlyProcessing(`⬆️ Uploading Image ${file.name}...`);
+                const formData = new FormData();
+                formData.append("file", file);
+
+                const response = await fetch("/api/admin/images", {
+                    method: "POST",
+                    body: formData,
+                    headers: { "x-admin-password": password }
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || "Image upload failed");
+
+                setStatus({
+                    type: 'success',
+                    message: data.message
+                });
+                setFiles([]);
             } else {
                 setCurrentlyProcessing(sourceLabel);
                 const response = await fetch("/api/admin/upload", {
