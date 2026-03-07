@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { AIMessage, HumanMessage } from "@langchain/core/messages";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60; // Increase timeout for RAG + Reranking
 
 export async function GET() {
     return NextResponse.json({ message: "Chat API is active" });
