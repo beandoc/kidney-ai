@@ -77,10 +77,9 @@ export async function processFileBuffer(buffer: Buffer, filename: string): Promi
         }
     } else if (ext === ".pdf") {
         try {
-            // pdf-parse v2.x uses a class-based API
-            const { PDFParse } = await import("pdf-parse");
-            const parser = new PDFParse({ data: buffer });
-            const result = await parser.getText();
+            const pdfModule = (await import("pdf-parse")) as any;
+            const pdf = pdfModule.default || pdfModule;
+            const result = await pdf(buffer);
             documents.push(
                 new Document({
                     pageContent: result.text,
@@ -195,10 +194,9 @@ export async function loadLocalDocuments(specificFile?: string): Promise<Documen
                         documents.push(new Document({ pageContent: result.value, metadata: { source: file, type: "docx" } }));
                         console.log(`Loaded Word file: ${file}`);
                     } else if (ext === ".pdf") {
-                        const { PDFParse } = await import("pdf-parse");
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        const parser = new (PDFParse as any)({ data: buffer });
-                        const result = await parser.getText();
+                        const pdfModule = (await import("pdf-parse")) as any;
+                        const pdf = pdfModule.default || pdfModule;
+                        const result = await pdf(buffer);
                         documents.push(new Document({ pageContent: result.text, metadata: { source: file, type: "pdf" } }));
                         console.log(`Loaded PDF file: ${file}`);
                     } else if (ext === ".json") {
@@ -244,7 +242,7 @@ export async function syncKnowledgeBase(
 
     const pineconeStore = await getPineconeStore();
 
-    const BATCH_SIZE = 100; // MUCH more efficient for Quota (1000 chunks = 10 calls)
+    const BATCH_SIZE = 50; // Smaller batches for free-tier embedding rate limits
     const DELAY_MS = 2000;   // Safe delay between large batches
     const MAX_RETRIES = 3;
     const totalBatches = Math.ceil(validDocs.length / BATCH_SIZE);
@@ -273,8 +271,8 @@ export async function syncKnowledgeBase(
                     throw batchError;
                 }
                 const backoff = DELAY_MS * Math.pow(2, retries - 1);
-                onProgress?.({ batch: batchNum, totalBatches, chunksIndexed: i, totalChunks: validDocs.length, percent: Math.round((i / validDocs.length) * 100), status: `Retry ${retries} for batch ${batchNum}...` });
-                console.warn(`  Sync batch ${batchNum} failed, retrying in ${backoff}ms...`);
+                onProgress?.({ batch: batchNum, totalBatches, chunksIndexed: i, totalChunks: validDocs.length, percent: Math.round((i / validDocs.length) * 100), status: `Retry ${retries} for batch ${batchNum}: ${batchError instanceof Error ? batchError.message : String(batchError)}` });
+                console.warn(`  Sync batch ${batchNum} failed, retrying in ${backoff}ms:`, batchError);
                 await new Promise(r => setTimeout(r, backoff));
             }
         }
@@ -309,12 +307,12 @@ export async function initializePinecone() {
         console.log(`[Pinecone] Checking index: ${indexName}`);
         const index = await pc.describeIndex(indexName);
 
-        // Updated for Gemini 1.5 Embeddings which now default to 3072 dimensions
+        // Revert to 3072 as per successful live testing of gemini-embedding-001
         if (index.dimension !== 3072) {
             console.log(`Dimension mismatch: Index is ${index.dimension}, needs 3072. Recreating...`);
             await pc.deleteIndex(indexName);
             // Wait for deletion
-            await new Promise(r => setTimeout(r, 10000)); // Increased wait for larger indices
+            await new Promise(r => setTimeout(r, 10000));
             await pc.createIndex({
                 name: indexName,
                 dimension: 3072,
@@ -344,6 +342,21 @@ export async function initializePinecone() {
                     }
                 }
             });
+
+            // Wait until index is ready before returning
+            console.log("[Pinecone] Waiting for index to be ready...");
+            let ready = false;
+            let attempts = 0;
+            while (!ready && attempts < 20) {
+                const desc = await pc.describeIndex(indexName);
+                if (desc.status.ready) {
+                    ready = true;
+                    console.log("[Pinecone] Index is ready.");
+                } else {
+                    attempts++;
+                    await new Promise(r => setTimeout(r, 5000));
+                }
+            }
             return true;
         } catch (createErr) {
             console.error("Error creating Pinecone index:", createErr);

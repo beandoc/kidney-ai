@@ -48,7 +48,7 @@ async function buildIndex(): Promise<IndexEntry[]> {
     const index: IndexEntry[] = [];
 
     // 1. Check for Pre-computed Merged Index (build time optimization)
-    const mergedPath = path.join(PAGEINDEX_KB_PATH, "pageindex_merged.json");
+    const mergedPath = path.join(path.dirname(PAGEINDEX_KB_PATH), "pageindex_merged.json");
     if (fs.existsSync(mergedPath)) {
         console.log("[SearchIndex] Found pre-computed pageindex_merged.json - loading...");
         try {
@@ -211,7 +211,8 @@ export async function searchPageIndex(query: string): Promise<Document[]> {
         "sugar": ["diabetes", "glucose"],
         "ckd": ["chronic", "disease"],
         "akd": ["acute", "disease"],
-        "aki": ["acute", "injury"]
+        "aki": ["acute", "injury"],
+        "lupus": ["sle", "systemic lupus erythematosus"]
     };
 
     const expandedQuery = new Set<string>();
@@ -289,7 +290,7 @@ export function formatPageIndexContext(documents: Document[]): string {
     }
 
     let fullContext = "";
-    const LIMIT = 15000;
+    const LIMIT = 30000; // Increased to 30k for deeper guidelines coverage
 
     for (const doc of documents) {
         if (fullContext.length >= LIMIT) break;

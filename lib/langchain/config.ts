@@ -1,4 +1,5 @@
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+import { CustomGoogleEmbeddings } from "./CustomEmbeddings";
 import { ChatGroq } from "@langchain/groq";
 import { ChatMistralAI } from "@langchain/mistralai";
 import { ChatOpenAI } from "@langchain/openai";
@@ -20,7 +21,7 @@ export function getEmbeddings() {
     throw new Error("Missing Google/Gemini API key for embeddings");
   }
 
-  return new GoogleGenerativeAIEmbeddings({
+  return new CustomGoogleEmbeddings({
     modelName: EMBEDDING_MODEL,
     apiKey: apiKey,
   });
