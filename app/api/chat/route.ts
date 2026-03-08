@@ -21,7 +21,7 @@ export async function OPTIONS() {
 
 import { trackQuery, QUOTA_PER_USER } from "../../../lib/users";
 import { runAgent, prewarmAgent } from "../../../lib/agent";
-import { getMenuPayload } from "../../../lib/menu";
+import { getMenuPayload, MAIN_MENU } from "../../../lib/menu";
 
 export async function POST(request: NextRequest) {
     console.log(JSON.stringify({ event: "ChatAPIRequest", method: "POST", message: "Received request" }));
@@ -47,11 +47,7 @@ export async function POST(request: NextRequest) {
             }
             if (queryTracker.error === "QUOTA_EXCEEDED") {
                 // SMART STRATEGY: Guide user to free menus instead of just failing
-                const menuPayload = "I appreciate your curiosity! You've reached your daily limit for new questions, but you can still explore these verified guides for free:" + getMenuPayload([
-                    { label: "🔍 Explore Options", text: "Show Disease Categories", icon: "🔍" },
-                    { label: "🛡️ Prevention Tips", text: "How to prevent kidney disease?", icon: "🛡️" },
-                    { label: "⬅️ Show Main Menu", text: "menu", icon: "⬅️" }
-                ]);
+                const menuPayload = "Namaste! I am your Kidney Health Assistant. You've reached your daily limit for new questions, but you can still tap below to explore my verified guides for free!" + getMenuPayload(MAIN_MENU);
                 return new NextResponse(menuPayload, { status: 200 }); // Return as normal message but with limit info
             }
             return NextResponse.json({ error: "Invalid user account" }, { status: 401 });

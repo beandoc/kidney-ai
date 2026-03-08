@@ -2,159 +2,185 @@ export const BASICS_ANSWERS: Record<string, string> = {
     "how to prevent kidney disease?": `You can protect your kidneys by preventing or managing health conditions that cause kidney damage, such as diabetes and high blood pressure.
 
 **Key Steps to Keep Your Kidneys Healthy:**
-1. **Choose Healthy Foods:** Focus on fresh fruits, vegetables, whole grains, and low-fat dairy. The **DASH eating plan** is highly recommended for lowering blood pressure.
-2. **Limit Salt and Sugar:** Aim for less than 2,300 mg of sodium per day. Less than 10% of daily calories should come from added sugars.
+1. **Choose Healthy Foods:** Focus on fresh fruits, vegetables, whole grains, and low-fat dairy.
+2. **Limit Salt and Sugar:** Aim for less than 2,300 mg of sodium per day. 
 3. **Be Active:** Aim for 30 minutes or more of physical activity on most days.
 4. **Healthy Weight:** Work with your team to reach or stay at a healthy weight.
 5. **Sleep:** Aim for 7 to 8 hours of sleep each night.
 6. **Stop Smoking:** Quitting smoking is one of the best things you can do for your heart and kidneys.
-7. **Limit Alcohol:** Stick to 1 drink per day (women) or 2 drinks per day (men).
-8. **Manage Conditions:** Keep your blood glucose and blood pressure close to your target goals.
+7. **Limit Alcohol:** Stick to 1 drink per day (women) or 2 (men).
+8. **Manage Conditions:** Keep your blood glucose and blood pressure close to goals.
 9. **Be Cautious with Meds:** Avoid regular use of NSAIDs like Ibuprofen/Naproxen. 
-10. **Stress Management:** Explore meditation, yoga, or tai chi to improve emotional and physical health.
-11. **Ask Your Doctor:** Know your GFR and Urine Albumin numbers.
+10. **Stress Management:** Explore meditation, yoga, or laughter therapy.
 
-**⚠️ Health Warning:** See a provider right away if you develop a **Urinary Tract Infection (UTI)**, as untreated infections can lead to serious kidney damage.
+*Early kidney disease has no symptoms. Getting tested is the only way to know.*`,
 
-*Early kidney disease has no symptoms. Getting tested is the only way to know your kidneys are healthy.*`,
+    "what is ckd?": `**Chronic Kidney Disease (CKD)** means your kidneys are damaged or have a structural problem and can’t filter blood the way they should. 
 
-    "what is ckd?": `**Chronic Kidney Disease (CKD)** means your kidneys are damaged or have a problem with their structure and can’t filter blood the way they should. 
+**Key Points:**
+- **Causes:** Usually caused by diabetes or high blood pressure.
+- **Diagnosis:** Testing (blood and urine) is often the only way to know early on.
+- **Management:** You can slow its progression through BP control, healthy diet, and medicines.
+- **Failure:** If function drops below 15%, it is considered kidney failure, requiring dialysis or a transplant.`,
 
-**Key Points About CKD:**
-* **Risk Factors & Causes:** The most common causes in adults are diabetes and high blood pressure. Heart disease and a family history of kidney disease are also major risk factors.
-* **Diagnosis:** Testing may be the only way to know if you have kidney disease, especially early on. Get checked if you have diabetes, high blood pressure, heart disease, or a family history of kidney failure. The sooner you know, the sooner you can get treatment.
-* **Management:** You can take steps to protect your kidneys. The most important step is to control your blood pressure. Healthy habits, such as choosing healthy foods and drinks, being more active, and aiming for a healthy weight, can help you feel better and keep your kidneys healthier longer. Work with a registered dietitian to create a kidney-friendly meal plan.
-* **Kidney Failure:** If kidneys lose most of their ability to function, you will need to work with your healthcare team to consider options to replace your lost kidney function, such as dialysis or a transplant.
+    "common causes of ckd": `The two biggest causes of kidney failure are:
+1. **Diabetes:** High blood sugar damages the kidneys' tiny filters over time.
+2. **High Blood Pressure:** Puts extra pressure on kidney blood vessels, wearing them out.
 
-*Source: National Institute of Diabetes and Digestive and Kidney Diseases (NIDDK)*`,
+*Other causes include autoimmune diseases (Lupus), genetic conditions (PKD), and recurring kidney stones.*`,
 
-    "common causes of ckd": `The most common causes of chronic kidney disease (CKD) in adults are **diabetes** and **high blood pressure**.
+    "what are kidney failure stages?": `Kidney health is assessed through two tests: **eGFR** (filtering rate) and **uACR** (urine protein).
 
-**1. Diabetes**
-High blood glucose levels (blood sugar) can damage the kidneys' filters over time. When damaged, the kidneys can no longer efficiently filter waste and extra fluid from the blood. They may also allow essential proteins to leak into the urine. This condition is known as **diabetic kidney disease**.
+| Stage | Description | eGFR |
+| :--- | :--- | :--- |
+| **Stage 1** | Normal function with damage | 90+ |
+| **Stage 2** | Mild loss of function | 60-89 |
+| **Stage 3** | Moderate loss of function | 30-59 |
+| **Stage 4** | Severe loss of function | 15-29 |
+| **Stage 5** | Kidney Failure (ESRD) | <15 |
 
-**2. High Blood Pressure**
-Uncontrolled high blood pressure can damage the blood vessels and the filtering system within the kidneys. This impair's the kidneys' ability to remove waste and fluid. In turn, the extra fluid in the body can raise blood pressure even further, creating a dangerous cycle of damage.
+*Stage 1 & 2 is the "Golden Window" for prevention. Stage 3 is where you must "Hit the Brakes" to avoid dialysis.*`,
 
-*Early detection and managing these conditions are the best ways to protect your kidney health.*`,
+    "your kidneys explained: guide to health and failure": `Our kidneys are the body's super-efficient cleaning system, working 24/7 to filter waste, balance fluids, and keep blood pressure in check.
 
-    "other causes of ckd": `Besides diabetes and high blood pressure, other causes of Chronic Kidney Disease (CKD) in adults include:
-* **Medical Conditions:** Polycystic Kidney Disease (PKD), Glomerular diseases (like IgA nephropathy), Systemic Lupus Erythematosus (SLE), and Multiple Myeloma.
-* **Organ Interface Issues:** Hepatorenal (liver) or Cardiorenal (heart) syndrome.
-* **Blockages & Physical Health:** Kidney stones with complications, renal artery stenosis, and severe obesity.
-* **Other Factors:** Acute Kidney Injury (AKI), drugs toxic to kidneys, infections, metabolic syndrome, and sickle cell disease.
+**Two Main Types of Kidney Trouble:**
+1. **Acute Kidney Injury (AKI):** Sudden damage occurring over hours or days. Often **reversible** if treated quickly. Causes include severe dehydration, heart problems, or infections.
+2. **Chronic Kidney Disease (CKD):** A slow, gradual loss of function over months or years, usually caused by long-term conditions like **Diabetes** and **High Blood Pressure**.
 
-*Knowing the exact cause helps your healthcare team develop a specific protection plan for your kidneys.*`,
+**Warning Signs:**
+- Changes in urination (frequency, foam, or blood).
+- Swelling (puffy eyes, swollen hands/feet).
+- Constant fatigue and weakness.
+- Loss of appetite, nausea, or vomiting.
 
-    "what are kidney failure stages?": `Think of kidney function (eGFR) as a **five-story building**. The stage depends on how much filtering capacity is left:
+**How Doctors Diagnose:**
+- **Blood Tests:** Checking creatinine and calculating your **eGFR** (the filtering score).
+- **Urine Tests:** Looking for protein (albumin).
+- **Imaging:** Ultrasounds or CT scans to check for blockages.
+- **Biopsy:** Taking a tiny sample of tissue for microscopic study.`,
 
-*   **Stages 1 & 2 (90%+ function):** You are on the "Top Floors." Usually no symptoms, but "leaks" (protein in urine) may be the first sign. This is the **Golden Window** for prevention.
-*   **Stage 3 (30-59% function):** The "Middle Floor." Moderate damage. Symptoms like fatigue, swelling, or back pain may begin. Goal: **Halt the damage** (Hit the brakes).
-*   **Stages 4 & 5 (<30% function):** The "Ground Floors." Severe damage. Body can no longer clean itself. Stage 5 is **Kidney Failure (ESRD)**. Goal: **Medical Help** (Dialysis/Transplant).
+    "hitting the brakes on ckd": `Being diagnosed with CKD can feel overwhelming, but today we have more tools and knowledge than ever before to "hit the brakes" and slow down its progression.
 
-*Knowing your eGFR number is the best way to determine your "floor" and plan management.*`,
+### 1. The Power of Lifestyle
+- **Eat for Your Kidneys:** Focus on fresh fruits, vegetables, and whole grains. Limit salt to control blood pressure.
+- **Get Moving:** Aim for 30 minutes of moderate activity (walking, swimming, cycling) on most days.
+- **Harmful Habits:** Quitting smoking and limiting alcohol reduce significant kidney strain.
+- **Mind Your Mind:** Stress management through yoga, meditation, or **laughter therapy and prayer** are vital for BP control.
 
-    "what if my kidneys fail?": `Kidney failure mean your kidneys have lost most of their ability to function—less than 15 percent of normal kidney function. If your kidney function drops to this level, you may have symptoms from the buildup of waste products and extra water in your body.
+### 2. Modern Medicines (The Game-Changer)
+Breakthroughs like **SGLT2 inhibitors** provide **direct protection** to both the heart and kidneys, significantly slowing CKD progression beyond just managing symptoms.
 
-**Your Treatment Options:**
-1. **Hemodialysis:** Uses a machine to filter waste and extra fluid from your blood.
-2. **Peritoneal Dialysis:** Uses the lining of your abdomen to filter your blood inside your body.
-3. **Kidney Transplant:** A healthy kidney from a donor is placed in your body. This is often the preferred treatment.
-4. **Conservative Management:** Some people choose not to have dialysis or a transplant but continue to receive care to manage symptoms through medicine and lifestyle.
+### 3. Smarter Healthcare
+- **Precision Medicine:** Tailored treatment plans based on your individual profile.
+- **Telemedicine:** Remote monitoring allows for closer care from home.
+- **AI Risk Prediction:** Analytics help doctors predict who is at higher risk for proactive intervention.`,
 
-*Work with your healthcare team and family to choose the treatment that is right for you.*`,
+    "high bp's secret victim: the kidneys": `High blood pressure is one of the top causes of kidney failure. It is often a "silent killer" because you may not feel anything until serious damage is done.
 
-    "can kidney damage be reversed?": `The answer depends on whether the damage is acute or chronic:
+**The Filter Under Pressure:**
+Imagine your kidneys are advanced water purifiers. High BP is like forcing water through those fine filters with extreme force every day. Over time, the fragile filtering units wear out and break down. 
 
-1. **Acute Kidney Injury (AKI):**
-   - **Reversibility:** AKI is a sudden decline in kidney function often caused by dehydration, severe infection, or certain medications.
-   - **Outcome:** If caught early and the underlying cause is treated, kidneys can often return to their normal function.
+**Small Steps to Protect Your Kidneys:**
+1. **Go Easy on Salt:** Limit packaged snacks (chips, pickles/achar).
+2. **Hydrate:** Drink 6-8 glasses of water daily to flush waste.
+3. **Move:** 30 minutes of brisk walking is powerful medicine.
+4. **Know Your Numbers:** Check your BP regularly and get a yearly Kidney Function Test (KFT).`,
 
-2. **Chronic Kidney Disease (CKD):**
-   - **Reversibility:** CKD is generally permanent and progressive. However, its progression can be significantly slowed or even "braked" with modern medical treatments and lifestyle changes.
-   - **Goal:** The focus is on protecting the remaining kidney function to avoid long-term complications or dialysis.
+    "are you unknowingly harming your kidneys? 10 habits": `Many everyday habits can silently cause kidney damage over time.
 
-*Always consult your treating nephrologist for a personalized assessment of your kidney health.*`,
+1. **Ignoring Thirst:** Dehydration increases stone and UTI risk.
+2. **Too Much Salt (Namak):** Found in pickles, papad, and chips; raises BP.
+3. **Sweet Tooth:** Sugar fuels diabetes, the #1 cause of kidney failure.
+4. **'Wait and Hold':** Holding urine encourages bacterial growth/infections.
+5. **Painkiller Abuse:** Overuse of NSAIDs (Ibuprofen/Diclofenac) harms kidney tissue.
+6. **Processed Foods:** High in sodium and phosphorus additives.
+7. **Excess Alcohol:** Dehydrates the body and strains filtering.
+8. **Smoking:** Damages blood vessels and reduces kidney blood flow.
+9. **Sit-Down Lifestyle:** Physical inactivity fuels obesity and hypertension.
+10. **Lack of Sleep:** The body repairs kidney tissue during deep sleep.`,
 
-    "common kidney silent killers": `Here are the top habits that destroy kidney health over time:
-1. **Namak (Salt) Overload:** Hidden salt in pickles (*achar*), papad, and bhujia causes fluid retention and BP spikes.
-2. **Ignoring Thirst:** Dehydration allows minerals to clump into stones.
-3. **Sweet Tooth:** Sugar leads to obesity and Type 2 Diabetes (#1 kidney killer).
-4. **"Wait and Hold":** Holding urine allows bacteria to multiply, causing UTIs that scar kidneys.
-5. **Painkiller Abuse:** Regular use of NSAIDs like Diclofenac.
-6. **Sit-Down Lifestyle:** Physical inactivity fuels obesity and hypertension.
-7. **Processed Foods:** High in phosphorus additives that damage blood vessels.
-8. **Sleep Deprivation:** The body repairs kidney tissue and regulates BP during 7-8 hours of deep sleep.`,
+    "kidney damage: is it possible to reverse?": `Whether kidney damage can be reversed depends on the stage and the cause.
 
-    "how much water do i really need?": `Hydration needs are not the same for everyone, especially for kidney patients:
+**1. Early Stages (Hope for Reversal):**
+In Stage 1 or 2, if damage is from a temporary cause (infection, dehydration, medicine), the kidneys can often return to normal function by treating the root cause.
 
-1. **For Kidney Stone Prevention:**
-   - **Recommendation:** Drinking plenty of water (about **2.5 to 3 liters** per day) is essential to dilute urine and prevent stones.
+**2. Middle Stage (Halt the Damage):**
+In Stage 3, complete reversal is rare, but you can "Hit the Brakes." The goal is to slow or stop the disease from getting worse through diet and medication.
 
-2. **For Advanced CKD or Dialysis Patients:**
-   - **Recommendation:** You may actually need **fluid restriction**. If the kidneys cannot flush enough water, excess fluid builds up, causing swelling (edema), high blood pressure, and heart strain.
-   - **Goal:** Follow the specific fluid chart provided by your nephrologist.
+**3. Late Stages (Help is Needed):**
+In Stages 4 & 5, damage is usually irreversible. Focus shifts to medical support like dialysis or preparing for a transplant.
 
-*The "drink 8 glasses" rule doesn't apply to everyone. Always follow the personalized fluid allowance set by your treating nephrologist.*`,
+*Early detection is everything. Proactive management can help you preserve function for many years.*`,
 
-    "what are the symptoms of kidney disease?": `Kidney disease is often called a "Silent Killer" because symptoms may not appear until 90% of kidney function is lost. However, common warning signs include:
+    "weight and blood pressure: the twin threats": `Obesity (being overweight) and Hypertension (high BP) are closely linked and act as "twin threats" to your kidneys.
 
-1. **Changes in Urination:** Urinating more or less often, foamy or bubbly urine (suggesting protein leak), and blood in urine.
-2. **Swelling (Edema):** Puffiness around the eyes, and swelling in the hands, feet, or ankles due to fluid retention.
-3. **Fatigue and Weakness:** Constant tiredness because kidneys aren't producing the hormone (EPO) that tells the body to make red blood cells, leading to anemia.
-4. **Shortness of Breath:** Caused by fluid buildup in the lungs or anemia.
-5. **Skin Issues:** Persistent itching or rashes when waste products build up in the blood (uremia).
-6. **Metallic Taste or Bad Breath:** Ammonia-like breath or a metallic taste in food.
-7. **Nausea and Vomiting:** A build-up of waste in the blood can also cause these symptoms.
+**How Extra Weight Raises BP:**
+- **More Work:** The heart has to pump harder to reach more body tissue.
+- **Chemical Signals:** Body fat releases chemicals that cause inflammation.
+- **Hormone Imbalance:** Being overweight can lead to insulin resistance.
 
-*If you notice any of these signs, please consult your doctor immediately for a Kidney Function Test (KFT).*`,
+**Taking Control Naturally:**
+- **Eat Smart:** Fill half your plate with colorful vegetables. Use whole grains like whole wheat roti.
+- **Move Every Day:** A 30-minute brisk walk or yoga (Pranayama) is highly effective.
+- **Prioritize Sleep:** 7-8 hours helps regulate weight-inducing stress hormones.`,
 
-    "what is anca vasculitis?": `ANCA Vasculitis is a type of autoimmune disease that causes inflammation of the blood vessels, which can lead to various health complications, particularly affecting the kidneys. Here's a breakdown of the condition:
+    "how much water do i really need?": `Hydration needs follow different rules for different people:
+1. **For Stone Prevention:** Drink plenty (2.5 to 3 liters) to dilute minerals.
+2. **For Advanced CKD:** You may need **fluid restriction**. If kidneys can't flush water, it builds up, causing heart strain and swelling.
 
-**Key Points About ANCA Vasculitis:**
-* **Definition:** ANCA (Antineutrophil Cytoplasmic Antibodies) vasculitis refers to a group of disorders characterized by the presence of ANCAs in the blood, which mistakenly target and attack the body's own blood vessels.
-* **Types:** There are several forms of ANCA vasculitis, including:
-  - **Granulomatosis with Polyangiitis (GPA):** Often affects the respiratory tract and kidneys.
-  - **Microscopic Polyangiitis (MPA):** Primarily impacts the kidneys and lungs.
-  - **Eosinophilic Granulomatosis with Polyangiitis (EGPA):** Also known as Churg-Strauss syndrome, it can affect the lungs, skin, and kidneys.
+*Always follow the specific fluid chart provided by your nephrologist.*`,
 
-**Symptoms:**
-* Kidney damage (which can lead to kidney failure)
-* Respiratory issues (like cough or shortness of breath)
-* Skin rashes
-* Fatigue and fever
+    "what are the symptoms of kidney disease?": `Kidney disease is a "Silent Killer," but watch for these warning signs:
+- **Changes in Peeing:** Foamy urine, blood in urine, or peeing more at night.
+- **Swelling (Edema):** Puffy eyes, swollen ankles or hands.
+- **Fatigue:** Feeling weak because of anemia (low red blood cells).
+- **Breath Issues:** Fluid in the lungs or anemia.
+- **Skin Itching:** Waste buildup (uremia) in the blood.
+- **Metallic Taste:** Ammonia-like breath or bad taste in food.`,
 
-**Diagnosis & Treatment:** ANCA vasculitis is diagnosed through blood tests that look for the presence of ANCA antibodies, alongside imaging and kidney function tests. Treatment typically involves immunosuppressive medications to reduce inflammation and prevent further damage to the kidneys and other organs.
+    "kidney stones vs kidney failure?": `They are very different conditions:
+- **Kidney Stones:** A temporary "pebble in the pipe" causing intense pain. Once passed, function usually remains normal.
+- **Kidney Failure:** The entire "filter system" breaks down. A silent, systemic condition that requires long-term care.`,
 
-**Importance of Early Detection:**
-Early diagnosis and management are crucial to prevent serious complications, including kidney failure. If you suspect any symptoms or have concerns, it's essential to consult a healthcare professional.
+    "preparing for doctor visit": `Better planning leads to better care:
+- **Ask:** What is my GFR? What is my urine protein? 
+- **Treatment:** Do I need to change my diet? Should I see a dietitian?
+- **Support:** Bring a friend or family member to help take notes and remember instructions.`,
 
-*For more detailed information, please consult your treating nephrologist.*`,
+    "who is on my healthcare team?": `Kidney care is a team effort involving:
+- **Nephrologist:** Kidney specialist.
+- **Primary Doctor:** Manages BP and diabetes.
+- **Renal Dietitian:** Creates custom eating plans.
+- **Social Worker:** Helps with costs and dialysis applications.
+- **Pharmacist:** Checks for kidney-safe medicines.`,
 
-    "kidney stones vs kidney failure?": `Kidney stones and kidney failure are very different conditions, although both involve the kidneys:
+    "how do kidneys work?": `Kidneys are your body's "Master Chemists":
+1. **Filters:** Over 1 million **nephrons** clean about a liter of blood every minute.
+2. **Water Balance:** They remove excess water or retain it when needed.
+3. **Minerals:** They balance sodium, potassium, and calcium for heart and bone health.
+4. **Hormones:** They produce hormones for blood pressure and red blood cell production.`,
 
-![Kidney Diagram](https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Kidneys_location_in_body.png/300px-Kidneys_location_in_body.png)
+    "the dangerous trio: diabetes, high bp, and kidneys": `In India, diabetes and high blood pressure (BP) are the leading causes of kidney failure, responsible for about 7 out of 10 cases.
 
-- **Kidney Stones:** Think of a stone as a **pebble stuck in a pipe**. It causes intense pain as it moves through the urinary tract, but it is typically a mechanical blockage. Once the stone is passed or removed, the kidney function usually remains normal.
-- **Kidney Failure:** This is when the **entire plumbing system (filters)** breaks down. The kidneys can no longer filter waste products from the blood. This is a much more serious, systemic condition that requires long-term management or dialysis.
+**How They Attack:**
+- **Diabetes:** High blood sugar acts like a "sugary syrup" that clogs and damages the tiny holes in your kidney's filters.
+- **High BP:** Like blasting water through a fine strainer with too much force, weakening the delicate mesh over time.
+- **The Double Attack:** Having both can double the risk of kidney failure, creating a vicious cycle where damaged kidneys raise BP further.
 
-*While stones are painful, kidney failure is a silent condition that requires regular check-ups to detect early.*`,
+**5-Point Protection Plan:**
+1. **Control Your Numbers:** Keep HbA1c and BP within targets.
+2. **Yearly Check-Up:** Get a blood (KFT) and urine test every year.
+3. **Kidney-Friendly Diet:** Limit salt (bhujia/pickles), sugar, and fried foods.
+4. **Stay Active:** 30 mins of daily walking or yoga.
+5. **Medicine Safety:** Avoid overuse of painkillers and unverified local remedies.`,
 
-    "preparing for doctor visit": `Better planning leads to better care. Here is how to prepare:
+    "the silent worker: yearly kidney check-up": `Kidneys are "silent workers" that rarely complain until damage is severe. A yearly check-up is the only way to catch issues early.
 
-**What to Ask Your Doctor:**
-* **About Tests:** What is my GFR? What is my urine albumin? Have they changed since last time? Is my kidney disease getting worse?
-* **About Treatment:** What can I do to keep my disease from getting worse? Do I need to change my diet or medicines? Should I see a nephrologist or dietitian?
-* **About Complications:** What other health problems should I look out for?
+**What's in a Check-Up?**
+1. **Blood Test:** Measures how efficiently your filters clean the blood (eGFR).
+2. **Urine Test:** Looks for tiny amounts of protein leaking out (albuminuria).
+3. **BP Check:** High blood pressure is a top enemy of the kidneys.
 
-**Pro-Tip:** Bring a trusted friend or relative for support, as they can help take notes and remember what the provider said. Write down your questions before the appointment so you don't forget them!`,
-
-    "who is on my healthcare team?": `A team approach is best for managing kidney health:
-* **Primary Care Provider (PCP):** Manages routine care, BP, and diabetes.
-* **Nephrologist:** A kidney specialist for advanced or complicated cases.
-* **Nurse:** Helps with treatment education and monitoring.
-* **Registered Dietitian:** Creates a custom eating plan based on your kidney function.
-* **Pharmacist:** Reviews medicines to avoid unsafe combinations or kidney-toxic sets.
-* **Diabetes Educator:** Helps manage blood sugar if you have diabetes.
-* **Social Worker:** Helps navigate life changes, costs, and dialysis applications.`
+**Why Early Detection Matters:**
+Finding a problem early puts **you** in the driver's seat. You can often slow or stop damage with simple dietary changes or better sugar/BP control. Modern medicine is most effective when issues are found before symptoms appear.`
 };

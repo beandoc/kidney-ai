@@ -1,7 +1,8 @@
 "use client";
 
 import { Message } from "./types";
-import { CheckCheck, Sparkles } from "lucide-react";
+import { CheckCheck, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 
 interface ChatMessageProps {
@@ -11,6 +12,57 @@ interface ChatMessageProps {
 
 export default function ChatMessage({ message, onOptionClick }: ChatMessageProps) {
     const isAssistant = message.role === "assistant";
+    const [isSpeaking, setIsSpeaking] = useState(false);
+
+    // Stop speaking if the component unmounts
+    useEffect(() => {
+        return () => {
+            if (typeof window !== "undefined") {
+                window.speechSynthesis.cancel();
+            }
+        };
+    }, []);
+
+    const toggleSpeech = () => {
+        if (typeof window === "undefined") return;
+
+        if (isSpeaking) {
+            window.speechSynthesis.cancel();
+            setIsSpeaking(false);
+            return;
+        }
+
+        // Cancel previous speech
+        window.speechSynthesis.cancel();
+
+        // Remove thought traces and special markdown for cleaner speech
+        const cleanContent = message.content
+            .replace(/<thought>.*?<\/thought>/gs, "")
+            .replace(/[#*`_]/g, "")
+            .trim();
+
+        if (!cleanContent) return;
+
+        const utterance = new SpeechSynthesisUtterance(cleanContent);
+
+        // Language detection - Simple check for Devanagari script (Hindi/Marathi)
+        if (/[\u0900-\u097F]/.test(cleanContent)) {
+            // Check for Marathi-specific patterns or default to Hindi
+            // (Most TTS engines handle Hindi/Marathi with hi-IN if mr-IN is missing)
+            utterance.lang = "hi-IN";
+        } else {
+            utterance.lang = "en-IN";
+        }
+
+        utterance.rate = 0.95; // Slightly slower for clinical clarity
+        utterance.pitch = 1.0;
+
+        utterance.onend = () => setIsSpeaking(false);
+        utterance.onerror = () => setIsSpeaking(false);
+
+        window.speechSynthesis.speak(utterance);
+        setIsSpeaking(true);
+    };
 
     const renderText = (text: string) => {
         // Split by the custom divider we added in agent.ts
@@ -66,6 +118,15 @@ export default function ChatMessage({ message, onOptionClick }: ChatMessageProps
                     : "bg-white rounded-tl-none bubble-assistant"
                     }`}
             >
+                {isAssistant && !message.isStreaming && message.content && (
+                    <button
+                        onClick={toggleSpeech}
+                        className={`absolute top-2 right-2 p-1.5 rounded-full transition-all z-20 ${isSpeaking ? 'bg-red-50 text-red-500 animate-pulse' : 'text-[#667781] hover:bg-[#F0F2F5] hover:text-[#075e54]'}`}
+                        title={isSpeaking ? "Stop Reading" : "Read Aloud"}
+                    >
+                        {isSpeaking ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                    </button>
+                )}
                 {message.image && (
                     <div className="mb-2 rounded-md overflow-hidden border border-[#E9EDEF]">
                         <img src={message.image} alt="User upload" className="max-w-full h-auto object-cover" />

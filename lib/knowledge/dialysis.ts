@@ -1,206 +1,96 @@
 export const DIALYSIS_ANSWERS: Record<string, string> = {
-    "what is dialysis and fistula care?": `Dialysis and fistula care are essential components of treatment for individuals with kidney failure. Here’s a breakdown of both:
+  "dialysis vs transplant: two paths": `When your kidneys can no longer do their job, you and your family face a major decision. The two primary treatments—dialysis and a kidney transplant—are very different.
 
-### Dialysis
-Dialysis is a medical procedure that replicates some functions of healthy kidneys when they can no longer filter waste products from the blood effectively. There are two main types of dialysis:
+### 1. Daily Life Comparison
+- **Life on Dialysis:** Think of it as a regular, essential part of your schedule. Most people visit a clinic **2-3 times a week for about 4 hours**. This requires careful planning for work, home, and travel. You'll also need to follow a **very strict diet** (low salt, potassium, phosphorus, and liquids).
+- **Life After Transplant:** This often feels like a return to freedom. You are free from the fixed dialysis schedule and often experience a big boost in energy. Your diet becomes much more flexible. However, you must take **lifelong anti-rejection medicines** (immunosuppressants) exactly as prescribed.
 
-1. **Hemodialysis**
-   - **Process:** Blood is drawn from the body, filtered through a dialysis machine to remove waste and excess fluid, and then returned to the body.
-   - **Frequency:** Typically performed 3 times a week for about 3-5 hours per session.
-   - **Access Points:** Requires an access point, usually created through a fistula or graft.
+### 2. Long-Term Health
+- **Dialysis:** A life-saving treatment, but not a perfect substitute. It can't do everything a healthy kidney does, which can eventually lead to heart or bone issues over many years.
+- **Transplant:** Generally leads to better overall health and a longer life expectancy, similar to having healthy kidneys. The main risks are organ rejection and a higher risk of infections from the required medication.
 
-2. **Peritoneal Dialysis**
-   - **Process:** A special fluid is introduced into the abdomen through a catheter, allowing waste and excess fluids to be filtered through the abdominal lining (peritoneum).
-   - **Frequency:** Can be done manually several times a day or automatically using a machine at night.
+### 3. Emotional and Financial Side
+- **The Journey:** Dialysis can be emotionally tiring due to dependence on a machine. A transplant brings hope and gratitude but also new worries (fear of rejection).
+- **The Cost:** Dialysis is an ongoing, long-term expense. A transplant has a very high one-time cost for surgery but requires lifelong, costly medication after.
 
-### Fistula Care
-A fistula is a surgically created connection between an artery and a vein, usually in the arm, that provides access for hemodialysis. Proper care is crucial to ensure its functionality and prevent complications.
+*Choosing a path depends on your age, overall health, and lifestyle. Talk openly with your doctors and family to make the right choice for you.*`,
 
-**Care Guidelines:**
-- **Keep It Clean:** Regularly wash the area with soap and water before and after dialysis.
-- **Inspect for Changes:** Check for swelling, redness, or unusual warmth, which may indicate infection.
-- **Avoid Pressure:** Do not carry heavy objects or put pressure on the arm with the fistula.
-- **No Blood Pressure Measurements:** Avoid taking blood pressure or drawing blood from the arm with the fistula.
-- **Palpate for Thrill:** Gently feel the fistula to ensure it is functioning properly; it should have a buzzing sensation (thrill).
+  "understanding haemodialysis": `Haemodialysis is a life-sustaining treatment for kidney failure that cleans your blood using a machine.
 
-**Signs of Complications:**
-- **Infection:** Fever, chills, or increased redness and swelling around the fistula.
-- **Clots:** Sudden loss of blood flow or thrill in the fistula.
-- **Pain:** Unusual pain at the site of the fistula.
+**How it works:**
+The dialysis machine (dialyser) filters toxins and excess fluid from your blood. The clean blood is then returned to your body and the waste fluid is discarded.
 
-### Conclusion
-Both dialysis and fistula care are vital for kidney patients, particularly those with end-stage renal disease. Regular monitoring and proper care can significantly enhance the effectiveness of dialysis and improve the patient's quality of life.
+**How it helps:**
+- **Relieves Symptoms:** Reduces nausea, fatigue, and weakness.
+- **Fluid Management:** Helps with swelling (edema) and shortness of breath.
+- **Internal Balance:** Regulates potassium and phosphorus levels.`,
 
-*Always consult your treating nephrologist for personalized advice and management strategies.*`,
+  "side effects of haemodialysis": `Haemodialysis is an intensive treatment and can cause side effects related to fluid changes:
+- **Physical Fatigue:** Feeling "washed out" after a session.
+- **Muscle Cramps & Low BP:** Often from removing fluid too quickly.
+- **Infection Risk:** Dialysis lines or fistulas can develop infections.
 
-    "what is peritoneal dialysis": `**What is Peritoneal Dialysis?**
-Peritoneal dialysis (PD) is an effective treatment modality for kidney failure. It utilizes the peritoneum, a thin membrane lining the abdominal cavity, as a natural filter to purify the blood.
+**Fistula & Line Care:**
+- **The 'Buzz' (Thrill):** A healthy fistula vibrates constantly. **Notify your team immediately if this disappears.**
+- **Access Issues:** Bruising or needle pain. If the access fails, extra procedures may be needed.`,
 
-**How It Works:**
-1. **Dialysis Fluid:** A special solution called dialysate is infused into the abdominal cavity through a catheter.
-2. **Filtration:** The peritoneal membrane allows waste products and excess fluids to pass from the blood into the dialysate.
-3. **Draining:** After a set dwell time, the fluid containing waste is drained and replaced with fresh dialysate.
+  "staying healthy on dialysis": `Consistency is the foundation of staying healthy:
+1. **Attendance:** Never miss a dialysis session or skip an exchange.
+2. **Fluid & Diet:** Strictly follow your salt and fluid restrictions to protect your heart.
+3. **Monitoring:** Regularly check your blood pressure and stay active with light exercise.
+4. **Lifestyle:** Quitting smoking and limiting alcohol are essential for dialysis patients.`,
 
-**Types of Peritoneal Dialysis:**
-- **Continuous Ambulatory Peritoneal Dialysis (CAPD):**
-  - *Ambulatory:* Can be done by the patient at home without machines.
-  - *Process:* Involves filling the abdominal cavity with dialysate, allowing it to dwell for several hours, and then draining it.
-  - *Flexibility:* Patients can perform daily activities while undergoing treatment.
-- **Automated Peritoneal Dialysis (APD):**
-  - *Machine-Assisted:* Uses a cycler machine that automatically fills and drains dialysate.
-  - *Night Treatment:* Typically performed during the night while the patient sleeps.
-- **Intermittent Peritoneal Dialysis (IPD):**
-  - *Short-Term:* Used for short-term dialysis in hospitalized patients, particularly in emergencies.
+  "traveling while on dialysis": `Yes, you can still travel while on dialysis!
+- **Advance Planning:** Plan at least **three months in advance**.
+- **Arrangements:** Your team will find a local dialysis unit at your destination for haemodialysis or coordinate supply delivery for PD.
+- **Continuity:** Stick to your exact schedule while away to stay safe.`,
 
-**Advantages:**
-* **Home-Based:** Offers independence and flexibility as it can be done at home.
-* **Less Dietary Restriction:** Compared to hemodialysis, dietary and fluid restrictions are generally less stringent.
+  "understanding av fistulas": `The **AV Fistula** is the "Gold Standard" choice for long-term haemodialysis access.
 
-**Disadvantages:**
-* **Risk of Infection:** There is a risk of peritonitis (infection of the peritoneum) and catheter-related infections.
-* **Daily Commitment:** Requires strict adherence to hygiene and treatment schedules.
+**What is it?**
+A surgically created connection between an artery and a vein, usually in your non-dominant arm. This creates a stronger vessel for high-flow dialysis.
 
-**Important Notes:**
-* Patients should consult their nephrologist for personalized advice on managing peritoneal dialysis.
-* Regular follow-ups are essential to monitor the effectiveness and adjust treatment as necessary.
-* For more detailed information, or if you have specific concerns, please consult your treating nephrologist.`,
+**Key Benefits:**
+- **Efficiency:** Allows blood to flow quickly for thorough cleaning.
+- **Lower Risk:** Lowest risk of infection and clotting compared to grafts.
+- **Durability:** Can last for many years, often decades.
+- **Freedom:** Once healed, you can swim and bathe more easily than with a catheter.
 
-    "how is peritoneal dialysis performed": `**How is Peritoneal Dialysis Performed?**
-Peritoneal dialysis (PD) is a process that purifies the blood using the peritoneum, a membrane lining the abdominal cavity. Here’s a structured overview of how it’s performed:
+**The Maturation Process:**
+A new fistula needs about **10 weeks** to thicken and grow (mature). Exercises like squeezing a **stress ball** can help.`,
 
-**1. Preparation**
-* **Catheter Insertion:** A soft, flexible catheter is surgically placed into the abdomen, typically 10 to 14 days before starting PD.
-* **Access:** The catheter serves as the access point for introducing and draining the dialysis solution (dialysate).
+  "caring for your av fistula": `Your fistula is your "lifeline" and must be protected:
+- **Daily "Thrill" Check:** Feel for the constant buzzing vibration (the thrill). **Call the renal unit immediately if it stops.**
+- **Forbidden Arm Arm:** On the fistula arm, **AVOID** blood pressure cuffs, blood draws, IVs, tight jewelry, sleeping on it, or heavy lifting (>2kg).
+- **During Dialysis:** Ensure the site is visible. If bleeding starts later, apply pressure for 20 minutes.`,
 
-**2. Dialysis Process**
-The PD process consists of three main steps: **Fill, Dwell, and Drain.**
+  "av fistula risks and complications": `Watch for these potential issues:
+1. **Steal Syndrome:** Coldness, numbness, or pain in your hand (fistula is "stealing" too much blood).
+2. **Thrombosis (Clotting):** Sudden disappearance of the 'thrill' (buzz). **Medical Emergency.**
+3. **Infection:** Redness, warmth, or pus at the site.
+4. **Aneurysms:** "Bumps" over time if dialysis needles are inserted in the same spot too often.`,
 
-- **Fill:**
-  - *Infusion:* Sterile dialysate is infused into the abdominal cavity through the catheter by gravity. Usually, about 2 liters of fluid is used.
-  - *Storage:* Once filled, the bag is rolled up and kept securely until the next exchange.
+  "understanding peritoneal dialysis (pd)": `Peritoneal dialysis is a home-based treatment that uses the lining of your abdomen (peritoneum) as a natural filter.
 
-- **Dwell:**
-  - *Duration:* The dialysate remains in the abdominal cavity for a specific duration, typically between 4 to 6 hours during the day and 6 to 8 hours at night.
-  - *Filtration:* During this time, waste products, unwanted substances, and excess fluid pass from the blood through the peritoneal membrane into the dialysate.
+**How it Works:**
+A soft tube (catheter) is placed in your abdomen. A special fluid (dialysate) flows in, absorbs waste/water for several hours, and is then drained. This is called an **"exchange."**
 
-- **Drain:**
-  - *Draining:* After the dwell time is completed, the used dialysate is drained into a collection bag.
-  - *Time Frame:* This drainage process takes about 30 to 40 minutes. The drained fluid is usually clear.
+**Types of PD:**
+- **CAPD (Manual):** You perform 1-4 exchanges during the day.
+- **APD (Automated):** A machine called a **cycler** does it overnight while you sleep.
 
-**3. Frequency of Exchanges**
-Typically, 3 to 5 exchanges are performed daily, with one exchange overnight in Automated Peritoneal Dialysis (APD).
+**Benefits:**
+- **Flexibility:** Done at home, giving you control over your schedule.
+- **Independence:** Easier for work or school.`,
 
-**Important Considerations:**
-* **Aseptic Technique:** Strict hygiene practices are essential to prevent infections.
-* **Monitoring:** Regular follow-ups with your nephrologist are crucial for managing health during treatment.
+  "living with peritoneal dialysis": `PD requires space for supplies and surgical healing for the catheter.
+- **Daily Rules:** Maintain a clean area for exchanges.
+- **Training:** A nurse will teach you how to perform exchanges safely.
+- **Risks:** **Peritonitis** (infection inside the abdomen). Watch for **cloudy dialysate**, abdominal pain, or fever.
+- **Other Risks:** Hernias from the constant fluid pressure.`,
 
-*For more personalized advice, please consult your treating nephrologist.*`,
-
-    "precautions for peritoneal dialysis": `**Precautions for Peritoneal Dialysis Patients**
-Peritoneal dialysis (PD) patients need to follow specific precautions to ensure their safety and the effectiveness of the treatment.
-
-**1. Hygiene Practices**
-* **Hand Washing:** Always wash hands thoroughly with soap and water before and after handling the catheter or dialysate.
-* **Use of Masks:** Wearing a mask during the exchange process can reduce the risk of infection.
-* **Sterile Technique:** Maintain a sterile environment while performing exchanges to prevent infections.
-
-**2. Catheter Care**
-* **Daily Inspection:** Check the catheter exit site for signs of infection (redness, swelling, or drainage).
-* **Proper Dressing:** Keep the catheter site clean and covered with a sterile dressing.
-* **Avoid Tugging:** Be careful not to pull or tug on the catheter during daily activities.
-
-**3. Fluid Management**
-* **Weight Monitoring:** Weigh yourself daily to monitor fluid retention and adjust fluid intake accordingly.
-* **Dietary Restrictions:** Follow dietary recommendations, particularly regarding fluid and sodium intake.
-
-**4. Recognizing Symptoms (Emergency Signs)**
-* **Infection Signs:** Be alert for symptoms of **peritonitis** (abdominal pain, fever, **cloudy dialysate**) and report them immediately.
-* **Fluid Overload:** Watch for signs of edema, difficulty breathing, or sudden weight gain.
-
-**5. Lifestyle Adjustments**
-* **Avoid Heavy Lifting:** Refrain from strenuous activities that could stress the catheter.
-* **Travel Precautions:** Ensure you have all necessary supplies and discuss travel plans with your healthcare provider.
-
-**6. Emergency Protocols**
-* Have contact information for your healthcare provider and the nearest hospital ready.
-* **Emergency Room:** Seek immediate medical attention for severe abdominal pain or fever.
-
-*By following these precautions, PD patients can reduce the risk of complications. Always consult your treating nephrologist for personalized guidelines.*`,
-
-    "dialysis catheter care": `**Dialysis Catheter Care**
-Proper care of a dialysis catheter (tunneled or non-tunneled) is crucial to prevent infections and ensure the effectiveness of the treatment.
-
-**1. Hand Hygiene**
-* **Wash Hands:** Always wash your hands thoroughly with soap and water before and after touching the catheter or the dressing.
-* **Sanitize:** Use an alcohol-based hand sanitizer if soap is unavailable.
-
-**2. Dressing and Site Care**
-* **Frequency:** Change the dressing regularly (usually every 7 days) or as instructed by your team.
-* **Sterile Technique:** Use sterile supplies. Check for **redness, swelling, or drainage** during every change.
-* **Daily Cleaning:** Clean the insertion site daily with an antiseptic solution as directed.
-
-**3. Catheter Maintenance**
-* **Secure the Catheter:** Ensure it is securely taped to prevent accidental pulling or tugging.
-* **Keep it Dry:** Use protective waterproof coverings while showering. Never submerge the catheter in a bath or pool.
-
-**4. Monitoring for Complications (When to Call)**
-* **Infection:** Fever, chills, or pain at the site.
-* **Dislodgement:** If the catheter becomes loose or accidentally pulled out.
-* **Blockage:** If the catheter is not flowing properly during dialysis.
-
-**5. Activity Restrictions**
-* **Avoid Strenuous Activities:** Refrain from heavy lifting or contact sports that could stress the catheter site.
-
-*Following these guidelines is essential for maintaining your health. Always consult your healthcare provider for personalized advice.*`,
-
-    "post discharge care for aki": `**Post-Discharge Care for Acute Kidney Injury (AKI)**
-Recovery from AKI continues after you leave the hospital. The goal is to allow your kidneys to heal completely and prevent permanent damage.
-
-**1. Medication Safety (Critical)**
-* **Review your meds:** Some medications you took before may now be harmful. Check with your nephrologist before restarting any blood pressure pills or diuretics.
-* **Avoid NSAIDs:** Never take Ibuprofen (type of Advil/Motrin), Diclofenac, or Naproxen, as these can cause another AKI.
-
-**2. Hydration and Monitoring**
-* **Fluid Intake:** Drink fluids as directed (usually 2-3 liters unless you have swelling).
-* **Track Output:** Watch if your urine volume decreases suddenly.
-* **Weight:** Weigh yourself daily. A sudden gain of 1-2kg in a day suggests fluid buildup.
-
-**3. Follow-Up Tests**
-* You must get a **Repeat KFT (Creatinine)** within 1-2 weeks of discharge to ensure your kidneys are returning to their baseline.
-
-*If you experience decreased urination, swelling, or shortness of breath, contact your nephrologist immediately.*`,
-
-    "post discharge care for ckd": `**Post-Discharge Care for Chronic Kidney Disease (CKD)**
-Managing CKD at home is about slowing down the disease and preventing hospital readmission.
-
-**1. Blood Pressure is Priority One**
-* Keep your BP **below 130/80** (or your target). High BP is the biggest cause of CKD progression.
-* Measure and record your BP twice daily.
-
-**2. Kidney-Friendly Diet**
-* **Low Salt:** No pickles, papad, or added table salt.
-* **Potassium Check:** If your levels were high in the hospital, avoid bananas, coconut water, and juice.
-* **Protein:** Follow the specific protein allowance (usually 0.6-0.8g/kg) set by your dietitian.
-
-**3. Signs of Worsening**
-* Be alert for "uemic symptoms": Metallic taste, nausea, itching, or puffiness around the eyes.
-
-*Stability is the goal. Use your medication 'dosette' box to ensure you never miss a dose of your kidney protectors (ACE/ARB).*`,
-
-    "care after av fistula surgery": `**Care After AV Fistula Surgery (Post-Discharge)**
-A new fistula needs 6-8 weeks to "mature" before it can be used for dialysis. Protecting it during this time is vital.
-
-**1. The 48-Hour Rule**
-* Keep the surgical arm **elevated** on a pillow to reduce swelling.
-* Do not remove the initial dressing until instructed (usually 2 days).
-
-**2. Protecting the Access**
-* **No Pressure:** No blood pressure cuffs, blood draws, or tight clothing on the fistula arm. Ever.
-* **No Weight:** Do not lift anything heavier than a 1L water bottle with that arm for 2 weeks.
-* **Do Not Sleep on it:** Avoid lying on the fistula arm.
-
-**3. Check for the "Thrill"**
-* Every morning and night, feel the fistula site. You should feel a **constant buzzing (vibration)**. If it stops, go to the emergency room immediately.
-
-*The fistula is your lifeline. Treat it with extreme care.*`
+  "alternatives to dialysis": `Dialysis is a treatment, not a cure. Other options:
+1. **Kidney Transplant:** Often the preferred choice for long-term quality of life.
+2. **Conservative Care:** Managing symptoms without starting dialysis.
+3. **Switching:** Moving from PD to HD (or vice-versa) based on health changes.`
 };

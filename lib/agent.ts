@@ -4,7 +4,7 @@ import { searchPageIndex, formatPageIndexContext } from "./pageindex/retrieval";
 import { getChatModel } from "./langchain/config";
 import { refineQuery, rerankDocuments } from "./langchain/vectorStore";
 import { getCachedResponse, setCachedResponse } from "./cache";
-import { MAIN_MENU, DISEASE_MENU, LABS_MENU, TRANSPLANT_MENU, VACCINE_MENU, DISCHARGE_MENU, getMenuPayload } from "./menu";
+import { MAIN_MENU, DISEASE_MENU, LABS_MENU, TRANSPLANT_MENU, VACCINE_MENU, DISCHARGE_MENU, EXPLORE_MENU, BASICS_MENU, GN_MENU, DIALYSIS_MENU, STONES_MENU, DIET_MENU, getMenuPayload } from "./menu";
 import { searchSemantic } from "./langchain/pinecone";
 
 // Future-proofed modular imports
@@ -72,6 +72,41 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
 
    if (normalizedInput === "show discharge menu") {
       yield "Leaving the hospital is a critical time for kidney health. Select your condition or procedure for post-discharge instructions:" + getMenuPayload(DISCHARGE_MENU);
+      return;
+   }
+
+   if (normalizedInput === "show explore menu") {
+      yield "Explore our comprehensive library of clinician-verified kidney health topics:" + getMenuPayload(EXPLORE_MENU);
+      return;
+   }
+
+   if (normalizedInput === "show basics menu") {
+      yield "Foundational knowledge to help you understand and protect your kidneys:" + getMenuPayload(BASICS_MENU);
+      return;
+   }
+
+   if (normalizedInput === "show gn menu") {
+      yield "Detailed guidance on Glomerulonephritis (GN), its diagnosis, and modern treatments:" + getMenuPayload(GN_MENU);
+      return;
+   }
+
+   if (normalizedInput === "show dialysis menu") {
+      yield "Everything you need to know about starting and living well on dialysis:" + getMenuPayload(DIALYSIS_MENU);
+      return;
+   }
+
+   if (normalizedInput === "show stones menu") {
+      yield "Managing kidney stones, preventing infections, and keeping your urinary system healthy:" + getMenuPayload(STONES_MENU);
+      return;
+   }
+
+   if (normalizedInput === "diet and lifestyle advice" || normalizedInput === "show diet menu") {
+      yield "What you eat plays a huge role in kidney health. Explore these clinical dietary guidelines:" + getMenuPayload(DIET_MENU);
+      return;
+   }
+
+   if (normalizedInput === "stay connected on whatsapp") {
+      yield "Stay Connected on WhatsApp! \n\nJoin our community to get the latest health tips, medical guidelines, and community support directly on your mobile device. \n\n🔗 **Follow Our Channel:** [WhatsApp Channel](https://www.whatsapp.com/channel/0029Vb5gVK6A2pLFXRiHT23R)";
       return;
    }
 
