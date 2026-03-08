@@ -10,6 +10,7 @@ import { searchSemantic } from "./langchain/pinecone";
 import { GOLD_ANSWERS } from "./knowledge/index";
 import { virtualLocalModel } from "./agent/classifier";
 import { buildContextAwareQuery, prewarmAgent } from "./agent/utils";
+import { getDynamicGoldAnswers } from "./redis";
 
 export { prewarmAgent };
 
@@ -88,8 +89,11 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
 
    const isComparison = normalizedInput.includes("compare") || normalizedInput.includes(" vs ") || normalizedInput.includes("difference") || normalizedInput.includes("than") || (normalizedInput.includes("calculate") && normalizedInput.includes("stage"));
 
+   const dynamicGold = await getDynamicGoldAnswers();
+   const allGold = { ...GOLD_ANSWERS, ...dynamicGold };
+
    if (!isComparison) {
-      if (GOLD_ANSWERS[normalizedInput]) {
+      if (allGold[normalizedInput]) {
          goldMatchKey = normalizedInput;
       } else if (normalizedInput.includes("diet") || /\beat\b/.test(normalizedInput) || normalizedInput.includes("food") || normalizedInput.includes("nutrition") || normalizedInput.includes("phosphorus") || normalizedInput.includes("potassium") || normalizedInput.includes("salt") || normalizedInput.includes("sodium") || (/\bmnt\b/.test(normalizedInput) && !normalizedInput.includes("treatment")) || normalizedInput.includes("medical nutrition")) {
          goldMatchKey = "best diet for kidney patients";
@@ -208,8 +212,8 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
       }
    }
 
-   if (goldMatchKey && GOLD_ANSWERS[goldMatchKey]) {
-      const content = GOLD_ANSWERS[goldMatchKey];
+   if (goldMatchKey && allGold[goldMatchKey]) {
+      const content = allGold[goldMatchKey];
       console.log(JSON.stringify({ event: "GoldMatch", key: goldMatchKey, translated: isTranslationRequested }));
 
       if (isTranslationRequested) {

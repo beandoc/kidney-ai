@@ -1,14 +1,11 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
-
-const GOLD_FILE_PATH = path.join(process.cwd(), 'lib/knowledge/dynamic.json');
+import { getDynamicGoldAnswers, saveDynamicGoldAnswers } from '@/lib/redis';
 
 // GET all dynamic gold answers
 export async function GET() {
     try {
-        const data = await fs.readFile(GOLD_FILE_PATH, 'utf-8');
-        return NextResponse.json(JSON.parse(data));
+        const data = await getDynamicGoldAnswers();
+        return NextResponse.json(data);
     } catch (error) {
         return NextResponse.json({});
     }
@@ -24,20 +21,14 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Key and content are required' }, { status: 400 });
         }
 
-        let existingData: Record<string, string> = {};
-        try {
-            const data = await fs.readFile(GOLD_FILE_PATH, 'utf-8');
-            existingData = JSON.parse(data);
-        } catch (e) {
-            // File might not exist or be empty
-        }
+        const existingData = await getDynamicGoldAnswers();
 
         // Add or update the answer
-        existingData[key.toLowerCase()] = content;
+        existingData[key.toLowerCase().trim()] = content;
 
-        await fs.writeFile(GOLD_FILE_PATH, JSON.stringify(existingData, null, 4));
+        await saveDynamicGoldAnswers(existingData);
 
-        return NextResponse.json({ message: 'Gold Answer updated successfully', key: key.toLowerCase() });
+        return NextResponse.json({ message: 'Gold Answer updated successfully', key: key.toLowerCase().trim() });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
@@ -53,12 +44,11 @@ export async function DELETE(req: Request) {
             return NextResponse.json({ error: 'Key is required' }, { status: 400 });
         }
 
-        const data = await fs.readFile(GOLD_FILE_PATH, 'utf-8');
-        const existingData: Record<string, string> = JSON.parse(data);
+        const existingData = await getDynamicGoldAnswers();
 
-        if (existingData[key.toLowerCase()]) {
-            delete existingData[key.toLowerCase()];
-            await fs.writeFile(GOLD_FILE_PATH, JSON.stringify(existingData, null, 4));
+        if (existingData[key.toLowerCase().trim()]) {
+            delete existingData[key.toLowerCase().trim()];
+            await saveDynamicGoldAnswers(existingData);
             return NextResponse.json({ message: 'Gold Answer deleted successfully' });
         }
 
