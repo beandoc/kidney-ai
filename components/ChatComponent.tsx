@@ -45,6 +45,7 @@ export default function ChatComponent() {
         },
     ]);
     const [input, setInput] = useState("");
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [agentStatus, setAgentStatus] = useState<string | null>(null);
@@ -160,11 +161,14 @@ export default function ChatComponent() {
             id: Date.now().toString(),
             role: "user",
             content: currentInput,
+            image: selectedImage || undefined,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
 
         setMessages((prev) => [...prev, userMessage]);
         setInput("");
+        const imageToSubmit = selectedImage;
+        setSelectedImage(null);
         setIsLoading(true);
         setAgentStatus(null);
         setError(null);
@@ -191,8 +195,12 @@ export default function ChatComponent() {
                     signal: controller.signal,
                     body: JSON.stringify({
                         message: currentInput,
-                        history: chatHistory
-                    })
+                        image: imageToSubmit,
+                        history: messages.slice(-10).map((msg) => ({
+                            role: msg.role,
+                            content: msg.content,
+                        })),
+                    }),
                 });
                 clearTimeout(timeoutId);
             } catch (err: any) {
@@ -369,6 +377,8 @@ export default function ChatComponent() {
                 <ChatInput
                     input={input}
                     setInput={setInput}
+                    selectedImage={selectedImage}
+                    setSelectedImage={setSelectedImage}
                     isLoading={isLoading}
                     handleSubmit={handleSubmit}
                 />

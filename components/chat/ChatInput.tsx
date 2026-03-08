@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Plus, Send, Mic, MicOff } from "lucide-react";
+import { Plus, Send, Mic, MicOff, X, Image as ImageIcon } from "lucide-react";
 
 // TypeScript fallback for SpeechRecognition
 const SpeechRecognitionAPI = typeof window !== 'undefined' ?
@@ -10,6 +10,8 @@ const SpeechRecognitionAPI = typeof window !== 'undefined' ?
 interface ChatInputProps {
     input: string;
     setInput: (val: string) => void;
+    selectedImage: string | null;
+    setSelectedImage: (val: string | null) => void;
     isLoading: boolean;
     handleSubmit: (e: React.FormEvent) => void;
 }
@@ -17,11 +19,34 @@ interface ChatInputProps {
 export default function ChatInput({
     input,
     setInput,
+    selectedImage,
+    setSelectedImage,
     isLoading,
     handleSubmit,
 }: ChatInputProps) {
     const [isListening, setIsListening] = useState(false);
     const recognitionRef = useRef<any>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                alert("File is too large. Please select an image under 5MB.");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                setSelectedImage(event.target?.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const removeImage = () => {
+        setSelectedImage(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    };
 
     useEffect(() => {
         if (SpeechRecognitionAPI) {
@@ -69,8 +94,39 @@ export default function ChatInput({
 
     return (
         <footer className="relative z-20 px-4 py-4 flex flex-col gap-2 wa-input-container">
+            {selectedImage && (
+                <div className="max-w-[1200px] mx-auto w-full mb-2 animate-in slide-in-from-bottom-2">
+                    <div className="relative inline-block group">
+                        <img
+                            src={selectedImage}
+                            alt="Preview"
+                            className="h-20 w-20 object-cover rounded-xl border-2 border-white shadow-md cursor-pointer hover:opacity-90 transition-opacity"
+                        />
+                        <button
+                            onClick={removeImage}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors"
+                        >
+                            <X className="w-3 h-3" />
+                        </button>
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                            <ImageIcon className="text-white w-6 h-6 drop-shadow-md" />
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex items-center gap-2.5 max-w-[1200px] mx-auto w-full">
-                <div className="flex items-center text-[#54656F] bg-white rounded-full p-2.5 shadow-sm border border-slate-100 hover:text-[#128C7E] cursor-pointer transition-colors active:bg-slate-50">
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={onFileSelect}
+                    accept="image/*"
+                    className="hidden"
+                />
+                <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center text-[#54656F] bg-white rounded-full p-2.5 shadow-sm border border-slate-100 hover:text-[#128C7E] cursor-pointer transition-colors active:bg-slate-50"
+                >
                     <Plus className="w-6 h-6" />
                 </div>
 
@@ -86,7 +142,7 @@ export default function ChatInput({
                         />
                     </div>
 
-                    {!input.trim() ? (
+                    {(!input.trim() && !selectedImage) ? (
                         <button
                             type="button"
                             onClick={toggleListening}

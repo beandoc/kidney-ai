@@ -14,10 +14,33 @@ import { buildContextAwareQuery, prewarmAgent } from "./agent/utils";
 export { prewarmAgent };
 
 // --- Main Agent Loop ---
-export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
-   console.log(JSON.stringify({ event: "AgentStart", query: input, historyLength: chatHistory.length }));
+export async function* runAgent(input: string, chatHistory: BaseMessage[], image?: string) {
+   console.log(JSON.stringify({ event: "AgentStart", query: input, historyLength: chatHistory.length, hasImage: !!image }));
 
    const normalizedInput = input.trim().toLowerCase();
+
+   // TIER -2: Image Analysis (Multimodal OCR)
+   if (image) {
+      yield "Analyzing your medical report or image... <thought>Performing OCR and clinical pattern matching on the provided image.</thought>";
+
+      try {
+         const model = getChatModel();
+         const message = new HumanMessage({
+            content: [
+               { type: "text", text: input || "Please analyze this medical image or report." },
+               { type: "image_url", image_url: image }
+            ]
+         });
+
+         const response = await model.invoke([message]);
+         yield response.content as string;
+         return;
+      } catch (err: any) {
+         console.error("Image analysis failed:", err);
+         yield "⚠️ Failed to analyze image. Please ensure it is a clear medical report. Error: " + err.message;
+         return;
+      }
+   }
 
    // TIER -1: Navigation & Menus (Zero Tokens)
    if (normalizedInput === "menu" || normalizedInput === "options" || normalizedInput === "show main menu" || normalizedInput === "hi" || normalizedInput === "hello") {

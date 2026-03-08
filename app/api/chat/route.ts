@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
         const customStream = new ReadableStream({
             async start(controller) {
                 try {
-                    const agentStream = runAgent(message, historyMessages);
+                    const agentStream = runAgent(message, historyMessages, image);
 
                     for await (const chunk of agentStream) {
                         if (typeof chunk === 'string') {

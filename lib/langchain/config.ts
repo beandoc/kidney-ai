@@ -36,10 +36,20 @@ export function getChatModel(maxRetries?: number) {
   const mistralKey = process.env.MISTRAL_API_KEY?.trim();
   const groqKey = process.env.GROQ_API_KEY?.trim();
   const togetherKey = process.env.TOGETHER_API_KEY?.trim();
+  const openaiKey = process.env.OPENAI_API_KEY?.trim();
 
   const models: any[] = [];
 
-  // TIER 1: Groq (Recommended Primary)
+  // TIER 0: OpenAI (Primary if available, usually best at vision)
+  if (openaiKey) {
+    models.push(new ChatOpenAI({
+      modelName: "gpt-4o",
+      temperature: 0.1,
+      openAIApiKey: openaiKey,
+    }));
+  }
+
+  // TIER 1: Groq (Recommended Primary for speed)
   if (groqKey) {
     models.push(new ChatGroq({
       model: GROQ_MODEL,
