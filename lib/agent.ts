@@ -61,7 +61,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
    if (!isTranslationRequested) {
       if (GOLD_ANSWERS[normalizedInput]) {
          goldMatchKey = normalizedInput;
-      } else if (normalizedInput.includes("diet") || normalizedInput.includes("eat") || normalizedInput.includes("food") || normalizedInput.includes("nutrition") || normalizedInput.includes("phosphorus") || normalizedInput.includes("potassium") || normalizedInput.includes("salt") || normalizedInput.includes("sodium") || normalizedInput.includes("mnt") || normalizedInput.includes("medical nutrition")) {
+      } else if (normalizedInput.includes("diet") || /\beat\b/.test(normalizedInput) || normalizedInput.includes("food") || normalizedInput.includes("nutrition") || normalizedInput.includes("phosphorus") || normalizedInput.includes("potassium") || normalizedInput.includes("salt") || normalizedInput.includes("sodium") || (/\bmnt\b/.test(normalizedInput) && !normalizedInput.includes("treatment")) || normalizedInput.includes("medical nutrition")) {
          goldMatchKey = "best diet for kidney patients";
          if (normalizedInput.includes("mnt") || normalizedInput.includes("medical nutrition")) {
             goldMatchKey = "what is medical nutrition therapy?";
@@ -79,18 +79,18 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
          } else if (normalizedInput.includes("prevent") || normalizedInput.includes("delay") || normalizedInput.includes("lower risk")) {
             goldMatchKey = "preventing type 2 diabetes";
          } else if (normalizedInput.includes("test") || normalizedInput.includes("diagn") || normalizedInput.includes("a1c") || normalizedInput.includes("ogtt") || normalizedInput.includes("fpg")) {
-            if (normalizedInput.includes("abc")) {
+            if (/\babc\b/.test(normalizedInput)) {
                goldMatchKey = "what are the diabetes abcs?";
             } else if (normalizedInput.includes("home") || normalizedInput.includes("meter") || normalizedInput.includes("cgm")) {
                goldMatchKey = "checking blood glucose at home";
             } else {
                goldMatchKey = "diabetes tests and diagnosis";
             }
-         } else if (normalizedInput.includes("abc")) {
+         } else if (/\babc\b/.test(normalizedInput)) {
             goldMatchKey = "what are the diabetes abcs?";
          } else if (normalizedInput.includes("lifestyle") || normalizedInput.includes("meal") || normalizedInput.includes("exercise") || normalizedInput.includes("activity") || normalizedInput.includes("weight") || normalizedInput.includes("sleep")) {
             goldMatchKey = "how to manage diabetes with lifestyle?";
-         } else if (normalizedInput.includes("medicine") || normalizedInput.includes("medication") || normalizedInput.includes("insulin") || normalizedInput.includes("metformin") || normalizedInput.includes("pill") || normalizedInput.includes("pump") || normalizedInput.includes("pen") || normalizedInput.includes("glp")) {
+         } else if (normalizedInput.includes("medicine") || normalizedInput.includes("medication") || normalizedInput.includes("insulin") || normalizedInput.includes("metformin") || /\bpill\b/.test(normalizedInput) || /\bpump\b/.test(normalizedInput) || /\bpen\b/.test(normalizedInput) || /\bglp\b/.test(normalizedInput)) {
             goldMatchKey = "diabetes medications and insulin types";
          } else if (normalizedInput.includes("home") || normalizedInput.includes("meter") || normalizedInput.includes("cgm") || normalizedInput.includes("target") || normalizedInput.includes("low") || normalizedInput.includes("high") || normalizedInput.includes("ketone") || normalizedInput.includes("hypo") || normalizedInput.includes("hyper")) {
             goldMatchKey = "checking blood glucose at home";
