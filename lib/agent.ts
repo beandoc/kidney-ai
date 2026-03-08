@@ -88,7 +88,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
 
    const isComparison = normalizedInput.includes("compare") || normalizedInput.includes(" vs ") || normalizedInput.includes("difference") || normalizedInput.includes("than") || (normalizedInput.includes("calculate") && normalizedInput.includes("stage"));
 
-   if (!isTranslationRequested && !isComparison) {
+   if (!isComparison) {
       if (GOLD_ANSWERS[normalizedInput]) {
          goldMatchKey = normalizedInput;
       } else if (normalizedInput.includes("diet") || /\beat\b/.test(normalizedInput) || normalizedInput.includes("food") || normalizedInput.includes("nutrition") || normalizedInput.includes("phosphorus") || normalizedInput.includes("potassium") || normalizedInput.includes("salt") || normalizedInput.includes("sodium") || (/\bmnt\b/.test(normalizedInput) && !normalizedInput.includes("treatment")) || normalizedInput.includes("medical nutrition")) {
@@ -206,11 +206,30 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
             goldMatchKey = "care after av fistula surgery";
          }
       }
-   } // End of !isTranslationRequested block
+   }
 
    if (goldMatchKey && GOLD_ANSWERS[goldMatchKey]) {
-      console.log(JSON.stringify({ event: "GoldAnswerTriggered", query: goldMatchKey }));
-      yield GOLD_ANSWERS[goldMatchKey];
+      const content = GOLD_ANSWERS[goldMatchKey];
+      console.log(JSON.stringify({ event: "GoldMatch", key: goldMatchKey, translated: isTranslationRequested }));
+
+      if (isTranslationRequested) {
+         const targetLang = normalizedInput.includes("hindi") ? "Hindi" : normalizedInput.includes("marathi") ? "Marathi" : normalizedInput.includes("urdu") ? "Urdu" : "the requested language";
+         yield `Retrieved verified clinical answer. Translating to ${targetLang}... <thought>Found Gold Match for "${goldMatchKey}". Using lightweight translation model to preserve clinical accuracy while changing language.</thought>`;
+
+         try {
+            const model = getChatModel();
+            const translatePrompt = `Translate the following medical guidance exactly into ${targetLang}. Keep any medical terms (like creatinine, GFR, PD) in English in brackets if needed for clarity. Output ONLY the translated text.\n\nContent: ${content}`;
+            const response = await model.invoke([new HumanMessage(translatePrompt)]);
+            yield response.content as string;
+            return;
+         } catch (e) {
+            console.error("Translation of gold answer failed:", e);
+            yield content + "\n\n*(Translation failed, showing English version for safety)*";
+            return;
+         }
+      }
+
+      yield content;
       return;
    }
 

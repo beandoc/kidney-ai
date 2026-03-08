@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Upload, FileText, CheckCircle, AlertCircle, Loader2, ArrowLeft, BarChart3, Database, Files, Trash2, RefreshCcw, HardDrive, Users, Ban, UserCheck, Plus } from "lucide-react";
+import { Upload, FileText, CheckCircle, AlertCircle, Loader2, ArrowLeft, BarChart3, Database, Files, Trash2, RefreshCcw, HardDrive, Users, Ban, UserCheck, Plus, Zap, Save } from "lucide-react";
 import Link from "next/link";
 
 interface KnowledgeFile {
@@ -95,13 +95,20 @@ export default function AdminDashboard() {
     const [isSyncing, setIsSyncing] = useState(false);
 
     // New states for User Management
-    const [currentTab, setCurrentTab] = useState<'knowledge' | 'users'>('knowledge');
+    const [currentTab, setCurrentTab] = useState<'knowledge' | 'users' | 'gold'>('knowledge');
     const [users, setUsers] = useState<any[]>([]);
     const [isLoadingUsers, setIsLoadingUsers] = useState(false);
     const [newUsername, setNewUsername] = useState("");
     const [newMobile, setNewMobile] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [isCreatingUser, setIsCreatingUser] = useState(false);
+
+    // Dynamic Gold States
+    const [dynamicGold, setDynamicGold] = useState<Record<string, string>>({});
+    const [newGoldKey, setNewGoldKey] = useState("");
+    const [newGoldContent, setNewGoldContent] = useState("");
+    const [isLoadingGold, setIsLoadingGold] = useState(false);
+    const [isAddingGold, setIsAddingGold] = useState(false);
 
     const fetchStats = useCallback(async () => {
         if (!password) return;
@@ -156,6 +163,60 @@ export default function AdminDashboard() {
             setIsLoadingUsers(false);
         }
     }, [password]);
+
+    const fetchGold = useCallback(async () => {
+        if (!password) return;
+        setIsLoadingGold(true);
+        try {
+            const response = await fetch("/api/admin/gold");
+            if (response.ok) {
+                const data = await response.json();
+                setDynamicGold(data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch gold answers", error);
+        } finally {
+            setIsLoadingGold(false);
+        }
+    }, [password]);
+
+    const handleSaveGold = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newGoldKey || !newGoldContent || !password) return;
+        setIsAddingGold(true);
+        try {
+            const response = await fetch("/api/admin/gold", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ key: newGoldKey, content: newGoldContent })
+            });
+            if (response.ok) {
+                setNewGoldKey("");
+                setNewGoldContent("");
+                fetchGold();
+                setStatus({ type: 'success', message: "Gold Answer Updated!" });
+            }
+        } catch (error) {
+            console.error("Failed to save gold", error);
+        } finally {
+            setIsAddingGold(false);
+        }
+    };
+
+    const handleDeleteGold = async (key: string) => {
+        if (!password || !confirm(`Delete gold answer for "${key}"?`)) return;
+        try {
+            const response = await fetch(`/api/admin/gold?key=${encodeURIComponent(key)}`, {
+                method: "DELETE"
+            });
+            if (response.ok) {
+                fetchGold();
+                setStatus({ type: 'success', message: "Deleted Gold Answer" });
+            }
+        } catch (error) {
+            console.error("Failed to delete gold", error);
+        }
+    };
 
     const toggleBlockUser = async (userId: string, isBlocked: boolean) => {
         if (!password) return;
@@ -342,8 +403,9 @@ export default function AdminDashboard() {
             fetchStats();
             fetchInventory();
             fetchUsers();
+            fetchGold();
         }
-    }, [password, fetchStats, fetchInventory, fetchUsers]);
+    }, [password, fetchStats, fetchInventory, fetchUsers, fetchGold]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -501,6 +563,13 @@ export default function AdminDashboard() {
                     >
                         <Users className="w-4 h-4" />
                         User Management
+                    </button>
+                    <button
+                        onClick={() => setCurrentTab('gold')}
+                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all ${currentTab === 'gold' ? 'bg-[#128C7E] text-white shadow-md' : 'text-slate-500 hover:bg-white'}`}
+                    >
+                        <Zap className="w-4 h-4" />
+                        Flash-Gold Manager
                     </button>
                 </div>
 
@@ -934,9 +1003,10 @@ export default function AdminDashboard() {
                             )}
                         </div>
                     </div>
-                ) : (
+                ) : currentTab === 'users' ? (
                     /* User Management View */
                     <div className="bg-white rounded-2xl shadow-sm border border-[#D1D7DB] overflow-hidden animate-in fade-in duration-500">
+                        {/* ... existing User Management content ... */}
                         <div className="p-8 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between bg-slate-50 gap-4">
                             <div>
                                 <h1 className="text-2xl font-bold flex items-center gap-3 text-slate-800">
@@ -1147,6 +1217,98 @@ export default function AdminDashboard() {
                                     <p className="text-sm text-slate-500 mt-2">When people start using the chatbot, their activity will appear here.</p>
                                 </div>
                             )}
+                        </div>
+                    </div>
+                ) : (
+                    /* Flash-Gold Manager View */
+                    <div className="bg-white rounded-2xl shadow-sm border border-[#D1D7DB] overflow-hidden animate-in fade-in duration-500">
+                        <div className="p-8 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between bg-slate-50 gap-4">
+                            <div>
+                                <h1 className="text-2xl font-bold flex items-center gap-3 text-slate-800">
+                                    <Zap className="w-7 h-7 text-[#128C7E]" />
+                                    Flash-Gold Manager
+                                </h1>
+                                <p className="text-slate-500 mt-1">Add immediate clinical responses that bypass AI searching for maximum speed.</p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={fetchGold}
+                                    className="p-2.5 bg-white hover:bg-slate-50 rounded-xl border border-[#D1D7DB] shadow-sm transition-all shrink-0"
+                                    title="Refresh Knowledge"
+                                >
+                                    <RefreshCcw className={`w-5 h-5 text-slate-600 ${isLoadingGold ? 'animate-spin' : ''}`} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Add New Gold Form */}
+                        <div className="p-8 bg-white border-b border-slate-100">
+                            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <Plus className="w-4 h-4 text-[#128C7E]" />
+                                Add/Update Clinical Truth
+                            </h2>
+                            <form onSubmit={handleSaveGold} className="space-y-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-slate-500 ml-1">Trigger Question/Key (Exact Match)</label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. what is peritoneal dialysis"
+                                        value={newGoldKey}
+                                        onChange={(e) => setNewGoldKey(e.target.value)}
+                                        className="w-full px-4 py-3 rounded-xl border border-[#D1D7DB] text-sm focus:ring-2 focus:ring-[#128C7E] outline-none transition-all"
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-slate-500 ml-1">Verified Clinical Response (Markdown Allowed)</label>
+                                    <textarea
+                                        placeholder="Enter the professional, verified answer here..."
+                                        value={newGoldContent}
+                                        onChange={(e) => setNewGoldContent(e.target.value)}
+                                        className="w-full px-4 py-3 rounded-xl border border-[#D1D7DB] text-sm focus:ring-2 focus:ring-[#128C7E] outline-none transition-all min-h-[150px]"
+                                        required
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={isAddingGold || !newGoldKey || !newGoldContent || !password}
+                                    className="w-full h-[52px] bg-[#128C7E] hover:bg-[#0b6e63] text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98] disabled:bg-slate-200 disabled:shadow-none flex items-center justify-center gap-2"
+                                >
+                                    {isAddingGold ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                                    Save to Flash-Gold Registry
+                                </button>
+                            </form>
+                        </div>
+
+                        <div className="p-6">
+                            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Active Registry ({Object.keys(dynamicGold).length})</h2>
+                            <div className="grid gap-4">
+                                {Object.entries(dynamicGold).map(([key, content]) => (
+                                    <div key={key} className="p-4 rounded-xl border border-[#D1D7DB] hover:border-[#128C7E] transition-all bg-white relative group">
+                                        <div className="flex items-start justify-between">
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2">
+                                                    <Zap className="w-3 h-3 text-[#128C7E]" />
+                                                    <span className="text-sm font-black text-[#128C7E] uppercase tracking-wider">{key}</span>
+                                                </div>
+                                                <p className="text-sm text-slate-600 line-clamp-3 whitespace-pre-wrap">{content}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => handleDeleteGold(key)}
+                                                className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                                {Object.keys(dynamicGold).length === 0 && (
+                                    <div className="text-center py-10 text-slate-400">
+                                        <Zap className="w-10 h-10 mx-auto mb-2 opacity-20" />
+                                        <p className="text-sm">No dynamic gold answers yet.</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}
