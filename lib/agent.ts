@@ -7,7 +7,7 @@ import { MAIN_MENU, DISEASE_MENU, LABS_MENU, TRANSPLANT_MENU, VACCINE_MENU, DISC
 import { searchSemantic } from "./langchain/pinecone";
 
 // Future-proofed modular imports
-import { GOLD_ANSWERS } from "./knowledge/goldAnswers";
+import { GOLD_ANSWERS } from "./knowledge/index";
 import { virtualLocalModel } from "./agent/classifier";
 import { buildContextAwareQuery, prewarmAgent } from "./agent/utils";
 
