@@ -3,7 +3,7 @@ import Redis from "ioredis";
 // Use the existing REDIS_URL from .env.local
 const redis = new Redis(process.env.REDIS_URL || "");
 
-export const QUOTA_PER_USER = 20; // Lowered from 50 to safely support ~10 users/day on free tier
+export const QUOTA_PER_USER = 200; // Increased to 200 for better testing and user experience
 const KV_USERS_KEY = "kidney_ai_users";
 
 export interface UserRecord {

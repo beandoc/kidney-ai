@@ -219,12 +219,9 @@ export default function ChatComponent() {
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 isStreaming: true,
             };
-            setMessages((prev) => [...prev, userMessage, assistantMessage]); // Ensure both are added if not already
-            // Actually userMessage is already added at line 166. Let's fix that.
-            setMessages((prev) => {
-                const filtered = prev.filter(m => m.id !== assistantId);
-                return [...filtered, assistantMessage];
-            });
+
+            // Add the assistant message to the list
+            setMessages((prev) => [...prev, assistantMessage]);
 
             const reader = response.body?.getReader();
             const decoder = new TextDecoder();

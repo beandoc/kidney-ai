@@ -56,99 +56,103 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[]) {
    // TIER 1: Gold Answer Matching (Zero Token Cost - Handled locally)
    let goldMatchKey: string | null = null;
 
-   if (GOLD_ANSWERS[normalizedInput]) {
-      goldMatchKey = normalizedInput;
-   } else if (normalizedInput.includes("diet") || normalizedInput.includes("eat") || normalizedInput.includes("food") || normalizedInput.includes("nutrition") || normalizedInput.includes("phosphorus") || normalizedInput.includes("potassium") || normalizedInput.includes("salt") || normalizedInput.includes("sodium") || normalizedInput.includes("mnt") || normalizedInput.includes("medical nutrition")) {
-      goldMatchKey = "best diet for kidney patients";
-      if (normalizedInput.includes("mnt") || normalizedInput.includes("medical nutrition")) {
-         goldMatchKey = "what is medical nutrition therapy?";
-      }
-   } else if (normalizedInput.includes("prevent") && normalizedInput.includes("kidney")) {
-      goldMatchKey = "how to prevent kidney disease?";
-   } else if (normalizedInput.includes("kidney") && (normalizedInput.includes("fail") || normalizedInput.includes("stop working"))) {
-      goldMatchKey = "what if my kidneys fail?";
-   } else if (normalizedInput.includes("diabetes") || normalizedInput.includes("blood sugar") || normalizedInput.includes("glucose")) {
-      goldMatchKey = "what is diabetes?";
-      if (normalizedInput.includes("symptom") || normalizedInput.includes("sign")) {
-         goldMatchKey = "symptoms of diabetes";
-      } else if (normalizedInput.includes("risk") || normalizedInput.includes("cause") || normalizedInput.includes("how do i get")) {
-         goldMatchKey = "risk factors for diabetes";
-      } else if (normalizedInput.includes("prevent") || normalizedInput.includes("delay") || normalizedInput.includes("lower risk")) {
-         goldMatchKey = "preventing type 2 diabetes";
-      } else if (normalizedInput.includes("test") || normalizedInput.includes("diagn") || normalizedInput.includes("a1c") || normalizedInput.includes("ogtt") || normalizedInput.includes("fpg")) {
-         if (normalizedInput.includes("abc")) {
-            goldMatchKey = "what are the diabetes abcs?";
-         } else if (normalizedInput.includes("home") || normalizedInput.includes("meter") || normalizedInput.includes("cgm")) {
-            goldMatchKey = "checking blood glucose at home";
-         } else {
-            goldMatchKey = "diabetes tests and diagnosis";
+   const isTranslationRequested = normalizedInput.includes("hindi") || normalizedInput.includes("marathi") || normalizedInput.includes("translate") || normalizedInput.includes("urdu");
+
+   if (!isTranslationRequested) {
+      if (GOLD_ANSWERS[normalizedInput]) {
+         goldMatchKey = normalizedInput;
+      } else if (normalizedInput.includes("diet") || normalizedInput.includes("eat") || normalizedInput.includes("food") || normalizedInput.includes("nutrition") || normalizedInput.includes("phosphorus") || normalizedInput.includes("potassium") || normalizedInput.includes("salt") || normalizedInput.includes("sodium") || normalizedInput.includes("mnt") || normalizedInput.includes("medical nutrition")) {
+         goldMatchKey = "best diet for kidney patients";
+         if (normalizedInput.includes("mnt") || normalizedInput.includes("medical nutrition")) {
+            goldMatchKey = "what is medical nutrition therapy?";
          }
-      } else if (normalizedInput.includes("abc")) {
-         goldMatchKey = "what are the diabetes abcs?";
-      } else if (normalizedInput.includes("lifestyle") || normalizedInput.includes("meal") || normalizedInput.includes("exercise") || normalizedInput.includes("activity") || normalizedInput.includes("weight") || normalizedInput.includes("sleep")) {
-         goldMatchKey = "how to manage diabetes with lifestyle?";
-      } else if (normalizedInput.includes("medicine") || normalizedInput.includes("medication") || normalizedInput.includes("insulin") || normalizedInput.includes("metformin") || normalizedInput.includes("pill") || normalizedInput.includes("pump") || normalizedInput.includes("pen") || normalizedInput.includes("glp")) {
-         goldMatchKey = "diabetes medications and insulin types";
-      } else if (normalizedInput.includes("home") || normalizedInput.includes("meter") || normalizedInput.includes("cgm") || normalizedInput.includes("target") || normalizedInput.includes("low") || normalizedInput.includes("high") || normalizedInput.includes("ketone") || normalizedInput.includes("hypo") || normalizedInput.includes("hyper")) {
-         goldMatchKey = "checking blood glucose at home";
-      } else if (normalizedInput.includes("heart") || normalizedInput.includes("stroke") || normalizedInput.includes("attack") || normalizedInput.includes("chest pain") || normalizedInput.includes("statin") || normalizedInput.includes("aspirin") || normalizedInput.includes("angina")) {
-         goldMatchKey = "diabetes and heart health";
-      } else if (normalizedInput.includes("complication") || normalizedInput.includes("nerve") || normalizedInput.includes("eye") || normalizedInput.includes("foot") || normalizedInput.includes("gum") || normalizedInput.includes("mouth") || normalizedInput.includes("dentist") || normalizedInput.includes("bladder")) {
-         goldMatchKey = "diabetes complications and prevention";
-      } else if (normalizedInput.includes("kidney") || normalizedInput.includes("affect")) {
+      } else if (normalizedInput.includes("prevent") && normalizedInput.includes("kidney")) {
+         goldMatchKey = "how to prevent kidney disease?";
+      } else if (normalizedInput.includes("kidney") && (normalizedInput.includes("fail") || normalizedInput.includes("stop working"))) {
+         goldMatchKey = "what if my kidneys fail?";
+      } else if (normalizedInput.includes("diabetes") || normalizedInput.includes("blood sugar") || normalizedInput.includes("glucose")) {
+         goldMatchKey = "what is diabetes?";
+         if (normalizedInput.includes("symptom") || normalizedInput.includes("sign")) {
+            goldMatchKey = "symptoms of diabetes";
+         } else if (normalizedInput.includes("risk") || normalizedInput.includes("cause") || normalizedInput.includes("how do i get")) {
+            goldMatchKey = "risk factors for diabetes";
+         } else if (normalizedInput.includes("prevent") || normalizedInput.includes("delay") || normalizedInput.includes("lower risk")) {
+            goldMatchKey = "preventing type 2 diabetes";
+         } else if (normalizedInput.includes("test") || normalizedInput.includes("diagn") || normalizedInput.includes("a1c") || normalizedInput.includes("ogtt") || normalizedInput.includes("fpg")) {
+            if (normalizedInput.includes("abc")) {
+               goldMatchKey = "what are the diabetes abcs?";
+            } else if (normalizedInput.includes("home") || normalizedInput.includes("meter") || normalizedInput.includes("cgm")) {
+               goldMatchKey = "checking blood glucose at home";
+            } else {
+               goldMatchKey = "diabetes tests and diagnosis";
+            }
+         } else if (normalizedInput.includes("abc")) {
+            goldMatchKey = "what are the diabetes abcs?";
+         } else if (normalizedInput.includes("lifestyle") || normalizedInput.includes("meal") || normalizedInput.includes("exercise") || normalizedInput.includes("activity") || normalizedInput.includes("weight") || normalizedInput.includes("sleep")) {
+            goldMatchKey = "how to manage diabetes with lifestyle?";
+         } else if (normalizedInput.includes("medicine") || normalizedInput.includes("medication") || normalizedInput.includes("insulin") || normalizedInput.includes("metformin") || normalizedInput.includes("pill") || normalizedInput.includes("pump") || normalizedInput.includes("pen") || normalizedInput.includes("glp")) {
+            goldMatchKey = "diabetes medications and insulin types";
+         } else if (normalizedInput.includes("home") || normalizedInput.includes("meter") || normalizedInput.includes("cgm") || normalizedInput.includes("target") || normalizedInput.includes("low") || normalizedInput.includes("high") || normalizedInput.includes("ketone") || normalizedInput.includes("hypo") || normalizedInput.includes("hyper")) {
+            goldMatchKey = "checking blood glucose at home";
+         } else if (normalizedInput.includes("heart") || normalizedInput.includes("stroke") || normalizedInput.includes("attack") || normalizedInput.includes("chest pain") || normalizedInput.includes("statin") || normalizedInput.includes("aspirin") || normalizedInput.includes("angina")) {
+            goldMatchKey = "diabetes and heart health";
+         } else if (normalizedInput.includes("complication") || normalizedInput.includes("nerve") || normalizedInput.includes("eye") || normalizedInput.includes("foot") || normalizedInput.includes("gum") || normalizedInput.includes("mouth") || normalizedInput.includes("dentist") || normalizedInput.includes("bladder")) {
+            goldMatchKey = "diabetes complications and prevention";
+         } else if (normalizedInput.includes("kidney") || normalizedInput.includes("affect")) {
+            goldMatchKey = "how do diabetes and high blood pressure affect kidneys?";
+         }
+      } else if (normalizedInput.includes("vaccin")) {
+         goldMatchKey = "vaccinations for kidney patients";
+      } else if (normalizedInput.includes("fistula") || normalizedInput.includes("dialysis care")) {
+         goldMatchKey = "what is dialysis and fistula care?";
+      } else if (normalizedInput.includes("transplant") && (normalizedInput.includes("when") || normalizedInput.includes("need"))) {
+         goldMatchKey = "when is kidney transplant needed?";
+      } else if (normalizedInput.includes("transplant") && (normalizedInput.includes("what") || normalizedInput.includes("define") || normalizedInput.includes("is a"))) {
+         goldMatchKey = "what is kidney transplant?";
+      } else if (normalizedInput.includes("high") && normalizedInput.includes("creatinine")) {
+         goldMatchKey = "what does high creatinine mean?";
+      } else if (normalizedInput.includes("can") && normalizedInput.includes("revers")) {
+         goldMatchKey = "can kidney damage be reversed?";
+      } else if (normalizedInput.includes("stone") && normalizedInput.includes("failure")) {
+         goldMatchKey = "kidney stones vs kidney failure?";
+      } else if (normalizedInput.includes("how much water") || normalizedInput.includes("water intake")) {
+         goldMatchKey = "how much water do i really need?";
+      } else if (normalizedInput.includes("symptom")) {
+         goldMatchKey = "what are the symptoms of kidney disease?";
+      } else if (normalizedInput.includes("stage") || normalizedInput.includes("floor")) {
+         goldMatchKey = "what are kidney failure stages?";
+      } else if (normalizedInput.includes("diabetes") || normalizedInput.includes("blood pressure") || normalizedInput.includes("sugar") || normalizedInput.includes("high bp")) {
          goldMatchKey = "how do diabetes and high blood pressure affect kidneys?";
+      } else if ((normalizedInput.includes("lower") || normalizedInput.includes("reduce")) && normalizedInput.includes("creatinine")) {
+         goldMatchKey = "how to lower creatinine?";
+      } else if (normalizedInput.includes("painkiller") || normalizedInput.includes("pain killer") || normalizedInput.includes("brufen") || normalizedInput.includes("paracetamol")) {
+         goldMatchKey = "are painkillers safe for kidneys?";
+      } else if (normalizedInput.includes("habit") || normalizedInput.includes("killer") || normalizedInput.includes("harmful")) {
+         goldMatchKey = "common kidney silent killers";
+      } else if (normalizedInput.includes("anca") || (normalizedInput.includes("what is") && normalizedInput.includes("vasculitis"))) {
+         goldMatchKey = "what is anca vasculitis?";
+      } else if (normalizedInput.includes("ckd") || normalizedInput.includes("chronic kidney disease") || (normalizedInput.includes("what is") && normalizedInput.includes("kidney disease"))) {
+         goldMatchKey = "what is ckd?";
+      } else if (normalizedInput.includes("cause") && (normalizedInput.includes("ckd") || normalizedInput.includes("kidney disease"))) {
+         if (normalizedInput.includes("other") || normalizedInput.includes("else")) {
+            goldMatchKey = "other causes of ckd";
+         } else {
+            goldMatchKey = "common causes of ckd";
+         }
+      } else if (normalizedInput.includes("monitor") || normalizedInput.includes("getting worse") || (normalizedInput.includes("what") && normalizedInput.includes("test")) || normalizedInput.includes("diagnose")) {
+         goldMatchKey = "monitoring kidney disease";
+      } else if (normalizedInput.includes("gfr") || normalizedInput.includes("albumin") || normalizedInput.includes("uacr")) {
+         goldMatchKey = "interpreting kidney tests";
+      } else if (normalizedInput.includes("manage") || normalizedInput.includes("ways to help") || normalizedInput.includes("improve kidney") || normalizedInput.includes("sleep") || normalizedInput.includes("exercise") || normalizedInput.includes("activity") || normalizedInput.includes("smoking") || normalizedInput.includes("stress")) {
+         goldMatchKey = "how to manage kidney disease?";
+      } else if (normalizedInput.includes("doctor") || normalizedInput.includes("visit") || normalizedInput.includes("appointment") || normalizedInput.includes("ask")) {
+         goldMatchKey = "preparing for doctor visit";
+      } else if (normalizedInput.includes("team") || normalizedInput.includes("specialist") || normalizedInput.includes("dietitian") || normalizedInput.includes("nephrologist")) {
+         goldMatchKey = "who is on my healthcare team?";
+      } else if (normalizedInput.includes("medicine") || normalizedInput.includes("medication") || normalizedInput.includes("drug") || normalizedInput.includes("pill") || normalizedInput.includes("-pril") || normalizedInput.includes("-sartan")) {
+         goldMatchKey = "kidney medications guide";
       }
-   } else if (normalizedInput.includes("vaccin")) {
-      goldMatchKey = "vaccinations for kidney patients";
-   } else if (normalizedInput.includes("fistula") || normalizedInput.includes("dialysis care")) {
-      goldMatchKey = "what is dialysis and fistula care?";
-   } else if (normalizedInput.includes("transplant") && (normalizedInput.includes("when") || normalizedInput.includes("need"))) {
-      goldMatchKey = "when is kidney transplant needed?";
-   } else if (normalizedInput.includes("transplant") && (normalizedInput.includes("what") || normalizedInput.includes("define") || normalizedInput.includes("is a"))) {
-      goldMatchKey = "what is kidney transplant?";
-   } else if (normalizedInput.includes("high") && normalizedInput.includes("creatinine")) {
-      goldMatchKey = "what does high creatinine mean?";
-   } else if (normalizedInput.includes("can") && normalizedInput.includes("revers")) {
-      goldMatchKey = "can kidney damage be reversed?";
-   } else if (normalizedInput.includes("stone") && normalizedInput.includes("failure")) {
-      goldMatchKey = "kidney stones vs kidney failure?";
-   } else if (normalizedInput.includes("how much water") || normalizedInput.includes("water intake")) {
-      goldMatchKey = "how much water do i really need?";
-   } else if (normalizedInput.includes("symptom")) {
-      goldMatchKey = "what are the symptoms of kidney disease?";
-   } else if (normalizedInput.includes("stage") || normalizedInput.includes("floor")) {
-      goldMatchKey = "what are kidney failure stages?";
-   } else if (normalizedInput.includes("diabetes") || normalizedInput.includes("blood pressure") || normalizedInput.includes("sugar") || normalizedInput.includes("high bp")) {
-      goldMatchKey = "how do diabetes and high blood pressure affect kidneys?";
-   } else if ((normalizedInput.includes("lower") || normalizedInput.includes("reduce")) && normalizedInput.includes("creatinine")) {
-      goldMatchKey = "how to lower creatinine?";
-   } else if (normalizedInput.includes("painkiller") || normalizedInput.includes("pain killer") || normalizedInput.includes("brufen") || normalizedInput.includes("paracetamol")) {
-      goldMatchKey = "are painkillers safe for kidneys?";
-   } else if (normalizedInput.includes("habit") || normalizedInput.includes("killer") || normalizedInput.includes("harmful")) {
-      goldMatchKey = "common kidney silent killers";
-   } else if (normalizedInput.includes("anca") || (normalizedInput.includes("what is") && normalizedInput.includes("vasculitis"))) {
-      goldMatchKey = "what is anca vasculitis?";
-   } else if (normalizedInput.includes("ckd") || normalizedInput.includes("chronic kidney disease") || (normalizedInput.includes("what is") && normalizedInput.includes("kidney disease"))) {
-      goldMatchKey = "what is ckd?";
-   } else if (normalizedInput.includes("cause") && (normalizedInput.includes("ckd") || normalizedInput.includes("kidney disease"))) {
-      if (normalizedInput.includes("other") || normalizedInput.includes("else")) {
-         goldMatchKey = "other causes of ckd";
-      } else {
-         goldMatchKey = "common causes of ckd";
-      }
-   } else if (normalizedInput.includes("monitor") || normalizedInput.includes("getting worse") || (normalizedInput.includes("what") && normalizedInput.includes("test")) || normalizedInput.includes("diagnose")) {
-      goldMatchKey = "monitoring kidney disease";
-   } else if (normalizedInput.includes("gfr") || normalizedInput.includes("albumin") || normalizedInput.includes("uacr")) {
-      goldMatchKey = "interpreting kidney tests";
-   } else if (normalizedInput.includes("manage") || normalizedInput.includes("ways to help") || normalizedInput.includes("improve kidney") || normalizedInput.includes("sleep") || normalizedInput.includes("exercise") || normalizedInput.includes("activity") || normalizedInput.includes("smoking") || normalizedInput.includes("stress")) {
-      goldMatchKey = "how to manage kidney disease?";
-   } else if (normalizedInput.includes("doctor") || normalizedInput.includes("visit") || normalizedInput.includes("appointment") || normalizedInput.includes("ask")) {
-      goldMatchKey = "preparing for doctor visit";
-   } else if (normalizedInput.includes("team") || normalizedInput.includes("specialist") || normalizedInput.includes("dietitian") || normalizedInput.includes("nephrologist")) {
-      goldMatchKey = "who is on my healthcare team?";
-   } else if (normalizedInput.includes("medicine") || normalizedInput.includes("medication") || normalizedInput.includes("drug") || normalizedInput.includes("pill") || normalizedInput.includes("-pril") || normalizedInput.includes("-sartan")) {
-      goldMatchKey = "kidney medications guide";
-   }
+   } // End of !isTranslationRequested block
 
    if (goldMatchKey && GOLD_ANSWERS[goldMatchKey]) {
       console.log(JSON.stringify({ event: "GoldAnswerTriggered", query: goldMatchKey }));
