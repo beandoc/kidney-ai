@@ -12,6 +12,18 @@ export const MAIN_MENU: MenuOption[] = [
     { label: "Lab Results Guide", text: "Understanding kidney lab results", icon: "🧪" },
     { label: "Kidney Transplant", text: "Show Transplant Menu", icon: "🔄" },
     { label: "Vaccination Guide", text: "Show Vaccine Menu", icon: "💉" },
+    { label: "Post Discharge Advice", text: "Show Discharge Menu", icon: "🏠" },
+];
+
+export const DISCHARGE_MENU: MenuOption[] = [
+    { label: "Acute Kidney Injury (AKI)", text: "post discharge care for aki", icon: "🏥" },
+    { label: "Chronic Kidney Disease (CKD)", text: "post discharge care for ckd", icon: "📉" },
+    { label: "AV Fistula Care", text: "care after av fistula surgery", icon: "🧵" },
+    { label: "CAPD Catheter Care", text: "precautions for peritoneal dialysis", icon: "🧬" },
+    { label: "Tunneled Catheter Care", text: "dialysis catheter care", icon: "🩸" },
+    { label: "Kidney Biopsy Care", text: "precautions after a kidney biopsy", icon: "🔬" },
+    { label: "CKD5D (Hemodialysis)", text: "what is dialysis and fistula care?", icon: "🏥" },
+    { label: "⬅️ Back to Main", text: "Show Main Menu", icon: "⬅️" },
 ];
 
 export const DISEASE_MENU: MenuOption[] = [

@@ -31,14 +31,21 @@ export async function refineQuery(query: string): Promise<string> {
 /**
  * Cross-Encoder Reranker using LLM
  * Takes top candidates and re-scores them for semantic relevance
+ * Optimized: Uses Memory Insights (Summaries) instead of raw text for SPEED.
  */
 export async function rerankDocuments(query: string, documents: Document[]): Promise<Document[]> {
     if (documents.length === 0) return [];
     console.log(`[Reranker] Starting rerank of ${documents.length} docs for: "${query}"`);
 
     try {
-        const model = getChatModel();
-        const docSummaries = documents.map((doc, idx) => `[Doc ${idx}]: ${doc.pageContent.slice(0, 500)}...`).join('\n\n');
+        const model = getChatModel(0); // Use 0 retries to fail fast to primary model
+
+        // Optimize: Use summaries if they exist, else back off to slice of raw text.
+        // This makes the prompt much smaller and faster for the LLM to process.
+        const docSummaries = documents.map((doc, idx) => {
+            const insight = doc.metadata.summary ? `Summary: ${doc.metadata.summary}` : doc.pageContent.slice(0, 400);
+            return `[Doc ${idx}]: ${insight}`;
+        }).join('\n\n');
 
         const prompt = RERANKER_PROMPT
             .replace("{question}", query)

@@ -341,7 +341,13 @@ export function formatPageIndexContext(documents: Document[]): string {
         const source = doc.metadata.source || "Unknown";
         const title = doc.metadata.title ? ` - ${doc.metadata.title}` : "";
         const pages = doc.metadata.pages ? ` (Pages: ${doc.metadata.pages})` : "";
-        const chunk = `[Source: ${source}${title}${pages}]\n${doc.pageContent}\n\n---\n\n`;
+
+        // Active Memory Enrichment if available
+        const memoryInsight = doc.metadata.summary
+            ? `\n[MEMORY INSIGHT: ${doc.metadata.summary}]\n[KEY TAKEAWAYS: ${doc.metadata.takeaways}]\n`
+            : "";
+
+        const chunk = `[Source: ${source}${title}${pages}]${memoryInsight}\n${doc.pageContent}\n\n---\n\n`;
 
         fullContext += chunk;
     }

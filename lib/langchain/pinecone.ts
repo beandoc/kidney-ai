@@ -8,6 +8,7 @@ import * as path from "path";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
 import mammoth from "mammoth";
+import { MemoryAgent } from "../agent/memory";
 
 const KNOWLEDGE_BASE_PATH = path.join(process.cwd(), "knowledge_base");
 
@@ -228,6 +229,22 @@ export async function syncKnowledgeBase(
     let rawDocs = await loadLocalDocuments(specificFile);
     if (rawDocs.length === 0) return { totalChunks: 0, fileCount: 0 };
 
+    console.log(`[MemoryAgent] Analyzing ${rawDocs.length} files for active insights...`);
+
+    // Step 1: Enrich documents with Active Memory Insights
+    for (const doc of rawDocs) {
+        try {
+            const insight = await MemoryAgent.generateInsight(doc.pageContent, doc.metadata.source);
+            doc.metadata.summary = insight.summary;
+            doc.metadata.priority = insight.priority;
+            doc.metadata.category = insight.clinicalCategory;
+            doc.metadata.takeaways = insight.keyTakeaways.join(" | ");
+            console.log(`[MemoryAgent] Insight generated for ${doc.metadata.source}: ${insight.summary}`);
+        } catch (err) {
+            console.warn(`[MemoryAgent] Failed insight for ${doc.metadata.source}:`, err);
+        }
+    }
+
     const splitter = new RecursiveCharacterTextSplitter({
         chunkSize: 1000,
         chunkOverlap: 150,
@@ -398,4 +415,27 @@ export async function getPineconeStore() {
 
     isInitialized = true;
     return cachedStore;
+}
+
+/**
+ * Get statistics from the Pinecone index
+ */
+export async function getPineconeStats() {
+    try {
+        const pc = getPineconeClient();
+        const index = pc.Index(indexName);
+        const stats = await index.describeIndexStats();
+        return {
+            totalChunks: stats.totalRecordCount || 0,
+            namespaces: stats.namespaces || {},
+            indexName: indexName
+        };
+    } catch (error) {
+        console.error("[Pinecone] Error fetching index stats:", error);
+        return {
+            totalChunks: 0,
+            namespaces: {},
+            indexName: indexName
+        };
+    }
 }

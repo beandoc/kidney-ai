@@ -3,7 +3,7 @@ import { searchPageIndex, formatPageIndexContext } from "./pageindex/retrieval";
 import { getChatModel } from "./langchain/config";
 import { refineQuery, rerankDocuments } from "./langchain/vectorStore";
 import { getCachedResponse, setCachedResponse } from "./cache";
-import { MAIN_MENU, DISEASE_MENU, LABS_MENU, TRANSPLANT_MENU, VACCINE_MENU, getMenuPayload } from "./menu";
+import { MAIN_MENU, DISEASE_MENU, LABS_MENU, TRANSPLANT_MENU, VACCINE_MENU, DISCHARGE_MENU, getMenuPayload } from "./menu";
 import { searchSemantic } from "./langchain/pinecone";
 
 // Future-proofed modular imports
@@ -68,6 +68,11 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
       return;
    }
 
+   if (normalizedInput === "show discharge menu") {
+      yield "Leaving the hospital is a critical time for kidney health. Select your condition or procedure for post-discharge instructions:" + getMenuPayload(DISCHARGE_MENU);
+      return;
+   }
+
    // TIER 0: Virtual Local Model (Zero Token Cost - Handled in 1ms)
    const localResponse = virtualLocalModel(normalizedInput);
    if (localResponse) {
@@ -81,7 +86,9 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
 
    const isTranslationRequested = normalizedInput.includes("hindi") || normalizedInput.includes("marathi") || normalizedInput.includes("translate") || normalizedInput.includes("urdu");
 
-   if (!isTranslationRequested) {
+   const isComparison = normalizedInput.includes("compare") || normalizedInput.includes(" vs ") || normalizedInput.includes("difference") || normalizedInput.includes("than") || (normalizedInput.includes("calculate") && normalizedInput.includes("stage"));
+
+   if (!isTranslationRequested && !isComparison) {
       if (GOLD_ANSWERS[normalizedInput]) {
          goldMatchKey = normalizedInput;
       } else if (normalizedInput.includes("diet") || /\beat\b/.test(normalizedInput) || normalizedInput.includes("food") || normalizedInput.includes("nutrition") || normalizedInput.includes("phosphorus") || normalizedInput.includes("potassium") || normalizedInput.includes("salt") || normalizedInput.includes("sodium") || (/\bmnt\b/.test(normalizedInput) && !normalizedInput.includes("treatment")) || normalizedInput.includes("medical nutrition")) {
@@ -174,6 +181,30 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
          goldMatchKey = "who is on my healthcare team?";
       } else if (normalizedInput.includes("medicine") || normalizedInput.includes("medication") || normalizedInput.includes("drug") || normalizedInput.includes("pill") || normalizedInput.includes("-pril") || normalizedInput.includes("-sartan")) {
          goldMatchKey = "kidney medications guide";
+      } else if (normalizedInput.includes("peritoneal") || /\bpd\b/.test(normalizedInput)) {
+         if (normalizedInput.includes("how") || normalizedInput.includes("perform") || normalizedInput.includes("process") || normalizedInput.includes("steps")) {
+            goldMatchKey = "how is peritoneal dialysis performed";
+         } else if (normalizedInput.includes("precaution") || normalizedInput.includes("safe") || normalizedInput.includes("care") || normalizedInput.includes("infection")) {
+            goldMatchKey = "precautions for peritoneal dialysis";
+         } else {
+            goldMatchKey = "what is peritoneal dialysis";
+         }
+      } else if (normalizedInput.includes("biopsy")) {
+         if (normalizedInput.includes("precaution") || normalizedInput.includes("care") || normalizedInput.includes("after")) {
+            goldMatchKey = "precautions after a kidney biopsy";
+         } else {
+            goldMatchKey = "what is a kidney biopsy";
+         }
+      } else if (normalizedInput.includes("catheter") && (normalizedInput.includes("care") || normalizedInput.includes("precaution") || normalizedInput.includes("infection"))) {
+         goldMatchKey = "dialysis catheter care";
+      } else if (normalizedInput.includes("discharge") || normalizedInput.includes("after hospital")) {
+         if (normalizedInput.includes("aki")) {
+            goldMatchKey = "post discharge care for aki";
+         } else if (normalizedInput.includes("ckd")) {
+            goldMatchKey = "post discharge care for ckd";
+         } else if (normalizedInput.includes("fistula")) {
+            goldMatchKey = "care after av fistula surgery";
+         }
       }
    } // End of !isTranslationRequested block
 
@@ -202,7 +233,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
       const enrichedInput = buildContextAwareQuery(input, chatHistory);
       console.log(`[Agent] Enriched input: "${enrichedInput}"`);
 
-      // STEP 1: PARALLEL HYBRID RETRIEVAL
+      // STEP 1: SINGLE-PASS HYBRID RETRIEVAL (Optimized for Latency)
       const timeoutPromise = <T>(promise: Promise<T>, timeoutMs: number, name: string): Promise<T | null> =>
          Promise.race([
             promise,
@@ -212,27 +243,19 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
             }, timeoutMs))
          ]);
 
-      const [keywordDocs, semanticDocs, refinedInput] = await Promise.all([
-         searchPageIndex(enrichedInput),
-         timeoutPromise(searchSemantic(enrichedInput, 8), 10000, "Pinecone Search"),
-         timeoutPromise(refineQuery(enrichedInput), 5000, "Query Refinement")
+      // 1.1: Refine FIRST (2-3s) - Normalizes typos and translates to English
+      const refinedInput = await timeoutPromise(refineQuery(enrichedInput), 4000, "Refinement");
+      const finalSearchQuery = refinedInput || enrichedInput;
+
+      // 1.2: Single Focused Search (Parallel)
+      const [keywordDocs, semanticDocs] = await Promise.all([
+         searchPageIndex(finalSearchQuery),
+         timeoutPromise(searchSemantic(finalSearchQuery, 10), 8000, "Pinecone Search")
       ]);
 
       const safeSemanticDocs = semanticDocs || [];
-      const safeRefinedInput = refinedInput || enrichedInput;
       const safeKeywordDocs = keywordDocs || [];
-
-      // Handle translation
-      let translatedDocs: any[] = [];
-      const isTranslated = safeRefinedInput.toLowerCase() !== enrichedInput.toLowerCase();
-
-      if (isTranslated) {
-         const [tKeyword, tSemantic] = await Promise.all([
-            searchPageIndex(safeRefinedInput),
-            timeoutPromise(searchSemantic(safeRefinedInput, 4), 8000, "Translated Semantic Search")
-         ]);
-         translatedDocs = [...(tKeyword || []), ...(tSemantic || [])];
-      }
+      const allDocs = [...safeKeywordDocs, ...safeSemanticDocs];
 
       // HYBRID MERGE: Reciprocal Rank Fusion (RRF)
       const K = 60;
@@ -250,7 +273,6 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
 
       applyRRF(safeKeywordDocs, 1.0);
       applyRRF(safeSemanticDocs, 1.2);
-      if (translatedDocs.length > 0) applyRRF(translatedDocs, 1.5);
 
       const uniqueDocs = Array.from(rrfScores.keys())
          .map(id => ({ id, score: rrfScores.get(id)! }))
@@ -260,15 +282,16 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
       // STEP 1.2: CONDITIONAL RERANKING
       let finalDocs = uniqueDocs;
       if (uniqueDocs.length > 1) {
-         const topCandidates = uniqueDocs.slice(0, 6);
-         const remainingDocs = uniqueDocs.slice(6);
-         const reranked = await timeoutPromise(rerankDocuments(safeRefinedInput, topCandidates), 8000, "Reranking");
+         yield `<thought>High-level guidance says: ${uniqueDocs[0].metadata.summary?.slice(0, 100)}... Now reranking the most important 4 clinical chunks.</thought>`;
+         const topCandidates = uniqueDocs.slice(0, 4);
+         const remainingDocs = uniqueDocs.slice(4);
+         const reranked = await timeoutPromise(rerankDocuments(finalSearchQuery, topCandidates), 8000, "Reranking");
          finalDocs = [...(reranked || topCandidates), ...remainingDocs];
       }
 
-      // Context Truncation
+      // Context Truncation (Strict for TPM budgeting)
       let context = formatPageIndexContext(finalDocs);
-      if (context.length > 15000) context = context.slice(0, 15000) + "\n...[truncated]";
+      if (context.length > 8000) context = context.slice(0, 8000) + "\n...[truncated]";
 
       // SOURCE SHORTENING
       const cleanSourceName = (name: string) => {
@@ -309,7 +332,33 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
          }
       }
 
-      const finalResponseWithDisclaimer = fullResponse + "\n\n---\n**Disclaimer:** *This is for educational purposes only. Always follow your doctor's advice.*";
+      // 6. SMART GUIDANCE (Guided Exploration)
+      // Map retrieved clinical category to a specific follow-up menu
+      const topCategory = uniqueDocs[0]?.metadata?.category?.toLowerCase();
+      let suggestedMenu = MAIN_MENU;
+      let guidanceLabel = "\n\nExplore further clinical details:";
+
+      if (topCategory?.includes("transplant")) {
+         suggestedMenu = TRANSPLANT_MENU;
+         guidanceLabel = "\n\nExplore our special Transplant Guidelines:";
+      } else if (topCategory?.includes("lab") || topCategory?.includes("creatinine") || topCategory?.includes("gfr")) {
+         suggestedMenu = LABS_MENU;
+         guidanceLabel = "\n\nNeed help interpreting lab results?";
+      } else if (topCategory?.includes("vaccin")) {
+         suggestedMenu = VACCINE_MENU;
+         guidanceLabel = "\n\nRecommended vaccinations for kidney patients:";
+      } else if (topCategory?.includes("discharge") || topCategory?.includes("care plan") || topCategory?.includes("follow up") || topCategory?.includes("fistula care") || topCategory?.includes("catheter") || topCategory?.includes("biopsy")) {
+         suggestedMenu = DISCHARGE_MENU;
+         guidanceLabel = "\n\nNeed post-discharge guidance for specific procedures?";
+      } else if (topCategory?.includes("dialysis") || topCategory?.includes("disease") || topCategory?.includes("ckd") || topCategory?.includes("aki")) {
+         suggestedMenu = DISEASE_MENU;
+         guidanceLabel = "\n\nLearn more about this condition from verified guidelines:";
+      }
+
+      const finalResponseWithDisclaimer = fullResponse +
+         "\n\n---\n**Disclaimer:** *This is for educational purposes only. Always follow your doctor's advice.*" +
+         guidanceLabel + getMenuPayload(suggestedMenu);
+
       setCachedResponse(input, finalResponseWithDisclaimer).catch(e => console.error("Cache store failure:", e));
 
    } catch (globalError: any) {

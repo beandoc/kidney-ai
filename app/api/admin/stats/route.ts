@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import * as fs from "fs";
 import * as path from "path";
+import { getPineconeStats } from "../../../../lib/langchain/pinecone";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,8 @@ export async function GET(request: Request) {
         const kbPath = path.join(process.cwd(), 'knowledge_base', 'pageindex');
         let files: string[] = [];
         let totalNodes = 0;
+
+        const pineconeStats = await getPineconeStats();
 
         if (fs.existsSync(kbPath)) {
             files = fs.readdirSync(kbPath).filter(f => f.endsWith('.json') && !f.includes('merged'));
@@ -73,6 +76,11 @@ export async function GET(request: Request) {
             totalFiles: files.length,
             totalKnowledgeNodes: totalNodes,
             indexType: "PageIndex Hierarchical Tree",
+            activeMemory: {
+                status: pineconeStats.totalChunks > 0 ? "Active" : "Initializing",
+                totalChunks: pineconeStats.totalChunks,
+                indexName: pineconeStats.indexName
+            },
             files: files.map(f => f.replace('.json', ''))
         });
     } catch (error) {
