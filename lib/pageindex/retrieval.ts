@@ -81,14 +81,18 @@ async function buildIndex(): Promise<IndexEntry[]> {
         try {
             console.log("[SearchIndex] Fetching dynamic uploads from Redis...");
             const { createClient } = await import('redis');
-            const redis = await createClient({ url: process.env.REDIS_URL }).connect();
-            const keys = await redis.keys('pageindex:*');
+            const redisClient = await createClient({ url: process.env.REDIS_URL });
+            redisClient.on("error", (err: any) => {
+                // Ignore connection errors during initial build index
+            });
+            await redisClient.connect();
+            const keys = await redisClient.keys('pageindex:*');
 
             for (const key of keys) {
                 const fileName = key.replace('pageindex:', '');
-                // Skip if this file is already in the bundled index
+                // Skip if already in the bundled index
                 if (!index.some(i => i.fileName === fileName)) {
-                    const contentStr = await redis.get(key);
+                    const contentStr = await redisClient.get(key);
                     if (contentStr) {
                         try {
                             const content = JSON.parse(contentStr);
@@ -99,7 +103,7 @@ async function buildIndex(): Promise<IndexEntry[]> {
                     }
                 }
             }
-            await redis.quit();
+            await redisClient.quit();
         } catch (e) {
             console.error("[SearchIndex] Failed to fetch from Redis:", e);
         }

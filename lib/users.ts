@@ -2,6 +2,14 @@ import Redis from "ioredis";
 
 // Use the existing REDIS_URL from .env.local
 const redis = new Redis(process.env.REDIS_URL || "");
+redis.on("error", (err: any) => {
+    // Silence connection errors to prevent unhandled process crashes
+    if (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT') {
+        // Silently fail, getUsers/trackQuery will handle null/empty results gracefully
+    } else {
+        console.error("Redis Client Error:", err);
+    }
+});
 
 export const QUOTA_PER_USER = 200; // Increased to 200 for better testing and user experience
 const KV_USERS_KEY = "kidney_ai_users";
