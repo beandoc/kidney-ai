@@ -109,6 +109,7 @@ export default function AdminDashboard() {
     const [newGoldContent, setNewGoldContent] = useState("");
     const [isLoadingGold, setIsLoadingGold] = useState(false);
     const [isAddingGold, setIsAddingGold] = useState(false);
+    const [goldLang, setGoldLang] = useState<'en' | 'hi' | 'mr' | 'ur'>('en');
 
     const fetchStats = useCallback(async () => {
         if (!password) return;
@@ -185,10 +186,11 @@ export default function AdminDashboard() {
         if (!newGoldKey || !newGoldContent || !password) return;
         setIsAddingGold(true);
         try {
+            const finalKey = goldLang === 'en' ? newGoldKey : `${newGoldKey}:${goldLang}`;
             const response = await fetch("/api/admin/gold", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ key: newGoldKey, content: newGoldContent })
+                body: JSON.stringify({ key: finalKey, content: newGoldContent })
             });
             if (response.ok) {
                 setNewGoldKey("");
@@ -1248,16 +1250,31 @@ export default function AdminDashboard() {
                                 Add/Update Clinical Truth
                             </h2>
                             <form onSubmit={handleSaveGold} className="space-y-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-slate-500 ml-1">Trigger Question/Key (Exact Match)</label>
-                                    <input
-                                        type="text"
-                                        placeholder="e.g. what is peritoneal dialysis"
-                                        value={newGoldKey}
-                                        onChange={(e) => setNewGoldKey(e.target.value)}
-                                        className="w-full px-4 py-3 rounded-xl border border-[#D1D7DB] text-sm focus:ring-2 focus:ring-[#128C7E] outline-none transition-all"
-                                        required
-                                    />
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                    <div className="md:col-span-3 space-y-1.5">
+                                        <label className="text-xs font-bold text-slate-500 ml-1">Trigger Question/Key (Exact Match)</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. what is peritoneal dialysis"
+                                            value={newGoldKey}
+                                            onChange={(e) => setNewGoldKey(e.target.value)}
+                                            className="w-full px-4 py-3 rounded-xl border border-[#D1D7DB] text-sm focus:ring-2 focus:ring-[#128C7E] outline-none transition-all"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-slate-500 ml-1">Language</label>
+                                        <select
+                                            value={goldLang}
+                                            onChange={(e: any) => setGoldLang(e.target.value)}
+                                            className="w-full px-4 py-3 rounded-xl border border-[#D1D7DB] text-sm focus:ring-2 focus:ring-[#128C7E] outline-none bg-white font-bold text-[#128C7E]"
+                                        >
+                                            <option value="en">English (Default)</option>
+                                            <option value="hi">Hindi (हिन्दी)</option>
+                                            <option value="mr">Marathi (मराठी)</option>
+                                            <option value="ur">Urdu (اردو)</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-bold text-slate-500 ml-1">Verified Clinical Response (Markdown Allowed)</label>
