@@ -109,9 +109,13 @@ export const LABS_MENU: MenuOption[] = [
 ];
 
 export const TRANSPLANT_MENU: MenuOption[] = [
-    { label: "When is it needed?", text: "When do i need a kidney transplant?", icon: "❓" },
+    { label: "When is it needed?", text: "When is kidney transplant needed?", icon: "❓" },
+    { label: "Evaluation Process", text: "the transplant evaluation process", icon: "📋" },
+    { label: "Matching Science", text: "how are kidney transplants matched?", icon: "🔬" },
+    { label: "Surgery Day Guide", text: "what to expect on transplant surgery day", icon: "🏥" },
+    { label: "Transplant Pros/Cons", text: "what is a kidney transplant?", icon: "⚖️" },
+    { label: "Post-Transplant Care", text: "Precautions after kidney transplant", icon: "🏠" },
     { label: "Donor Information", text: "Who can donate a kidney?", icon: "🤝" },
-    { label: "Post-Transplant Care", text: "Precautions after kidney transplant", icon: "🏥" },
     { label: "⬅️ Back to Main", text: "Show Main Menu", icon: "⬅️" },
 ];
 

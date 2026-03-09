@@ -80,8 +80,20 @@ export const KEYWORD_REGISTRY: TriggerRule[] = [
     },
     { id: "vaccinations for kidney patients", any: ["vaccin"] },
     { id: "what is dialysis and fistula care?", any: ["fistula", "dialysis care"] },
-    { id: "when is kidney transplant needed?", all: ["transplant"], any: ["when", "need"] },
-    { id: "what is kidney transplant?", all: ["transplant"], any: ["what", "define", "is a"] },
+    {
+        id: "what is a kidney transplant?",
+        any: ["transplant"],
+        subRules: [
+            { id: "when is kidney transplant needed?", any: ["when", "need", "benchmark", "egfr"] },
+            { id: "when is a transplant not advised? (contraindications)", any: ["not advised", "not eligible", "contraindication", "risk", "danger"] },
+            { id: "the transplant evaluation process", any: ["evaluation", "process", "test", "audit", "ready"] },
+            { id: "how are kidney transplants matched?", any: ["match", "pairing", "hla", "crossmatch", "blood group", "science"] },
+            { id: "what to expect on transplant surgery day", any: ["surgery day", "operation", "happen during", "incision", "npo"] },
+            { id: "who can donate a kidney?", any: ["donor", "who can give", "living", "deceased", "cadaveric"] },
+            { id: "recovery and life after transplant", any: ["recovery", "life after", "how long in hospital"] },
+            { id: "precautions after kidney transplant", any: ["precaution", "care", "home care", "safeguard", "aftercare"] }
+        ]
+    },
     { id: "what does high creatinine mean?", all: ["high", "creatinine"] },
     { id: "can kidney damage be reversed?", all: ["can", "revers"] },
     { id: "kidney stones vs kidney failure?", all: ["stone", "failure"] },
