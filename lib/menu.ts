@@ -32,6 +32,8 @@ export const BASICS_MENU: MenuOption[] = [
     { label: "Yearly Check-Up", text: "the silent worker: yearly kidney check-up", icon: "📅" },
     { label: "Is it Reversible?", text: "kidney damage: is it possible to reverse?", icon: "⏳" },
     { label: "Hitting the Brakes", text: "hitting the brakes on ckd", icon: "🛑" },
+    { label: "Polycystic (PKD)", text: "what is polycystic kidney disease (pkd)?", icon: "🧬" },
+    { label: "Silent High BP", text: "high blood pressure overview", icon: "📈" },
     { label: "Kidney Cancer", text: "What is kidney cancer?", icon: "🎗️" },
     { label: "⬅️ Back to Explore", text: "Show Explore Menu", icon: "⬅️" },
 ];
@@ -57,6 +59,7 @@ export const DIALYSIS_MENU: MenuOption[] = [
 
 export const STONES_MENU: MenuOption[] = [
     { label: "Kidney Stones Guide", text: "management of kidney stones", icon: "💎" },
+    { label: "Stone Procedures", text: "lithotripsy, surgery and treatments", icon: "🏥" },
     { label: "UTI Symptoms", text: "symptoms of urinary tract infection", icon: "⚠️" },
     { label: "Urinary System Foods", text: "foods for a healthy urinary system", icon: "🥗" },
     { label: "Stones vs Failure", text: "kidney stones vs kidney failure?", icon: "🆚" },
@@ -79,7 +82,9 @@ export const DISCHARGE_MENU: MenuOption[] = [
     { label: "AV Fistula Care", text: "care after av fistula surgery", icon: "🧵" },
     { label: "CAPD Catheter Care", text: "precautions for peritoneal dialysis", icon: "🧬" },
     { label: "Tunneled Catheter Care", text: "dialysis catheter care", icon: "🩸" },
+    { label: "Urinary Catheter Care", text: "how to care for a urinary catheter at home?", icon: "🚽" },
     { label: "Kidney Biopsy Care", text: "precautions after a kidney biopsy", icon: "🔬" },
+    { label: "Flank Pain Relief", text: "treating flank pain and home care", icon: "🩹" },
     { label: "CKD5D (Hemodialysis)", text: "what is dialysis and fistula care?", icon: "🏥" },
     { label: "⬅️ Back to Main", text: "Show Main Menu", icon: "⬅️" },
 ];
@@ -95,6 +100,9 @@ export const DISEASE_MENU: MenuOption[] = [
 export const LABS_MENU: MenuOption[] = [
     { label: "Creatinine Levels", text: "What does high creatinine mean?", icon: "🧪" },
     { label: "eGFR Explained", text: "What are kidney failure stages?", icon: "📉" },
+    { label: "Urinalysis Guide", text: "what is a urinalysis?", icon: "🧫" },
+    { label: "Urine Cultures", text: "what is a urine culture?", icon: "🔬" },
+    { label: "24-hr Urine Test", text: "how to collect a 24-hour urine specimen", icon: "🕒" },
     { label: "High Potassium", text: "What foods to avoid in high potassium?", icon: "🍌" },
     { label: "⬅️ Back to Main", text: "Show Main Menu", icon: "⬅️" },
 ];

@@ -58,5 +58,27 @@ Many women regain fertility and can have successful pregnancies, though this req
 If a transplanted kidney fails, returning to dialysis and being evaluated for a second transplant are viable options.
 
 **When should I start thinking about a transplant?**
-The ideal time to discuss options is during **CKD Stages 3B, 4, or 5**. Preemptive transplants (before starting dialysis) often have the best results.`
+The ideal time to discuss options is during **CKD Stages 3B, 4, or 5**. Preemptive transplants (before starting dialysis) often have the best results.`,
+
+   "precautions after kidney transplant": `Post-transplant care is a lifelong commitment to protecting your new donor kidney.
+
+**1. Medication Adherence (Critical):**
+- **Lifelong Immunosuppressants:** You must take anti-rejection medicines exactly as prescribed. Missing even one dose can trigger rejection.
+- **No Self-Medication:** Never take herbal supplements, NSAIDs (like Ibuprofen/Diclofenac), or unregulated vitamins without checking with your transplant team.
+
+**2. Infection Prevention:**
+- **Hygiene:** Frequent handwashing and avoiding large crowds or sick individuals, especially in the first 6 months.
+- **Food Safety:** Avoid raw or undercooked meats, unpasteurized dairy (raw milk), and unwashed fruits/veg.
+
+**3. Monitoring "Red Flags":**
+Contact your transplant coordinator immediately if you experience:
+- **Fever** (even low-grade, above 100°F).
+- **Pain or tenderness** over the new kidney (lower abdomen).
+- **Sudden weight gain** or decreased urine output.
+- **Flu-like symptoms** (chills, body aches).
+
+**4. Activity & Hydration:**
+- **Avoid Heavy Lifting:** For 6-8 weeks to allow the incision to heal.
+- **Hydration:** Aim for 2-3 liters of water daily to keep the donor kidney well-perfused.
+- **Sun Safety:** Anti-rejection drugs increase skin cancer risk; use sunscreen and wear protective gear.`
 };

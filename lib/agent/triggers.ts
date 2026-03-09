@@ -391,6 +391,10 @@ export const KEYWORD_REGISTRY: TriggerRule[] = [
         id: "diet for kidney stones",
         any: ["stone", "oxalate", "uric acid"],
         all: ["diet", "food"]
+    },
+    {
+        id: "precautions after kidney transplant",
+        all: ["precaution", "after", "transplant"]
     }
 ];
 
