@@ -12,6 +12,7 @@ export const MAIN_MENU: MenuOption[] = [
     { label: "Lab Results Guide", text: "understanding kidney lab results", icon: "🧪" },
     { label: "Kidney Transplant", text: "Show Transplant Menu", icon: "🔄" },
     { label: "Post Discharge Advice", text: "Show Discharge Menu", icon: "🏠" },
+    { label: "Prepare for Clinic Visit", text: "prepare for clinic visit", icon: "📅" },
     { label: "Join WhatsApp", text: "Stay Connected on WhatsApp", icon: "📱" },
 ];
 

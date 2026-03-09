@@ -15,6 +15,7 @@ import { LUPUS_ANSWERS } from './lupus';
 import { PKD_ANSWERS } from './pkd';
 import { PAIN_ANSWERS } from './pain';
 import { HYPERTENSION_ANSWERS } from './hypertension';
+import { CLINIC_ANSWERS } from './clinic';
 
 export const GOLD_ANSWERS: Record<string, string> = {
     ...BASICS_ANSWERS,
@@ -33,5 +34,6 @@ export const GOLD_ANSWERS: Record<string, string> = {
     ...LUPUS_ANSWERS,
     ...PKD_ANSWERS,
     ...PAIN_ANSWERS,
-    ...HYPERTENSION_ANSWERS
+    ...HYPERTENSION_ANSWERS,
+    ...CLINIC_ANSWERS
 };

@@ -395,6 +395,11 @@ export const KEYWORD_REGISTRY: TriggerRule[] = [
     {
         id: "precautions after kidney transplant",
         all: ["precaution", "after", "transplant"]
+    },
+    {
+        id: "prepare for clinic visit",
+        any: ["clinic", "visit", "doctor meet", "appointment"],
+        all: ["prepare"]
     }
 ];
 
