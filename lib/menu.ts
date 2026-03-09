@@ -110,12 +110,12 @@ export const LABS_MENU: MenuOption[] = [
 
 export const TRANSPLANT_MENU: MenuOption[] = [
     { label: "When is it needed?", text: "When is kidney transplant needed?", icon: "❓" },
-    { label: "Evaluation Process", text: "the transplant evaluation process", icon: "📋" },
-    { label: "Matching Science", text: "how are kidney transplants matched?", icon: "🔬" },
-    { label: "Surgery Day Guide", text: "what to expect on transplant surgery day", icon: "🏥" },
-    { label: "Transplant Pros/Cons", text: "what is a kidney transplant?", icon: "⚖️" },
+    { label: "Surgery & Anesthesia", text: "what to expect on transplant surgery day", icon: "🏥" },
+    { label: "Rejection Info", text: "understanding transplant rejection", icon: "⚠️" },
+    { label: "Medication Strategy", text: "the importance of medication adherence", icon: "💊" },
+    { label: "Long-term Health", text: "long-term care and wellness", icon: "🌟" },
+    { label: "Diet & Exercise", text: "diet and exercise after transplant", icon: "🍎" },
     { label: "Post-Transplant Care", text: "Precautions after kidney transplant", icon: "🏠" },
-    { label: "Donor Information", text: "Who can donate a kidney?", icon: "🤝" },
     { label: "⬅️ Back to Main", text: "Show Main Menu", icon: "⬅️" },
 ];
 

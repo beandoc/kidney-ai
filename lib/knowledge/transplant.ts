@@ -67,18 +67,33 @@ Performed just before surgery.
 
 **Before the Operation:**
 - **NPO Status:** No eating or drinking after midnight.
-- **Final Checks:** Blood tests and a meeting with the anesthesiologist.
+- **Final Checks:** Blood tests and a meeting with the anesthesiologist to discuss your personalized plan.
 - **First Meds:** You will receive the first dose of anti-rejection meds to start protecting the kidney.
 
 **During the Surgery:**
-- You will be under general anesthesia (asleep).
-- The incision is made in the lower abdomen.
-- Your original kidneys are usually left in place unless they are causing pain or infection.
+- You will be under **general anesthesia** (asleep). Modern anesthesia is very safe.
+- The incision is made in the lower abdomen to connect the kidney to your blood vessels and bladder.
 
 **Immediately After:**
 - You wake up in the recovery room (**PACU**) under close monitoring.
-- You will have temporary IV lines, a bladder catheter, and possibly a surgical drain.
-- Pain will be managed with medication to keep you comfortable.`,
+- You will have temporary IV lines, a bladder catheter, and an **arterial line** (usually in the wrist) for beat-to-beat BP monitoring.`,
+
+   "risks of anesthesia for transplant": `While modern anesthesia is very safe, it's important to understand the potential side effects and rare risks:
+
+**Common (Temporary) Side Effects:**
+- Nausea or vomiting.
+- Shivering, headache, or dizziness.
+- Sore throat from the breathing tube.
+*These typically resolve within 1–2 days.*
+
+**Uncommon or Rare Risks:**
+- Minor dental trauma (chipped tooth) from the breathing tube.
+- Allergic reactions to medications.
+- Rare: Major cardiac event, stroke, or pneumonia.
+
+**Monitoring Lines:**
+To keep you safe, the team uses an **arterial line** (wrist BP) and a **central line** (neck/chest). Small risks include bruising or bleeding at the site.
+*Your anesthesiologist will meet you before surgery to answer all questions.*`,
 
    "who can donate a kidney?": `A kidney donor can be either a living person or a deceased individual.
 
@@ -90,29 +105,93 @@ Performed just before surgery.
 **2. Deceased (Cadaveric) Donors:**
 - Organs retrieved from individuals with family consent after they have been declared brain-stem dead.`,
 
-   "recovery and life after transplant": `Recovery is a lifelong journey.
+   "recovery and life after transplant": `Recovery is a gradual but rewarding process that unfolds in stages.
 
-**Immediate Recovery:**
-- **Hospital Stay:** Typically about one week for monitoring.
-- **Medication:** **Lifelong** use of immunosuppressive (anti-rejection) drugs is mandatory.
+**Phase 1: The Hospital Stay (1–2 weeks)**
+- **Monitoring:** Vitals, fluid counts, and daily blood tests.
+- **Mobility:** You'll be encouraged to walk as early as Day 1 to prevent blood clots.
+- **Education:** You will begin training on your lifelong medications and nutrition.
 
-**Success Rates:**
-One-year success rates for living donor transplants are typically **90-95%**. If a transplant fails, returning to dialysis or seeking a second transplant remain viable options.`,
+**Phase 2: Healing at Home (First 3 Months)**
+- **Heavy Lifting:** **Strict Rule:** Avoid lifting anything over **5 kg (11 lbs)** for 6–8 weeks to allow your incision to heal.
+- **Driving:** Restricted until your medical team gives you the green light.
+- **Infection Safety:** Because of anti-rejection meds, you must wear a mask in public, wash hands frequently, and avoid crowds.
+- **Follow-ups:** Frequent clinic visits (sometimes multiple times a week) to adjust medication doses.
 
-   "precautions after kidney transplant": `Post-transplant care is a lifelong commitment to protecting your new donor kidney.
+**Phase 3: Long-term Success**
+One-year success rates for living donor transplants are typically **90-95%**. Life after transplant is about maintaining healthy routines to protect your gift.`,
 
-**1. Medication Management (The Golden Rule):**
-- **Strict Schedule:** Take anti-rejection meds at the same time every day.
-- **Avoid NSAIDs:** Painkillers like **ibuprofen (Advil/Motrin)** can damage the kidney. Use Tylenol instead.
-- **Avoid Grapefruit & Pomegranate:** These (and pomelos) cause dangerous drug levels to build up in your blood.
+   "the importance of medication adherence": `Medications are the **cornerstone** of transplant success. Immunosuppressants (anti-rejection drugs) act as a "peace treaty" between your body and your new kidney.
 
-**2. Infection & Safety:**
-- **Hygiene:** Frequent handwashing is vital, especially in the first 6 months.
-- **Pet Safety:** Avoid cleaning cat litter boxes or bird cages.
-- **Lifting:** No lifting heavier than **10 lbs** for 6-8 weeks to prevent hernias.
+**Guiding Principles:**
+- **Lifelong Commitment:** This is not temporary. Stopping, even briefly, leads to organ loss.
+- **The Therapeutic Window:** Consistency keeps drug levels stable. Too high causes side effects; too low causes rejection.
+- **No Self-Adjusting:** Never change your dose without the team's instruction.
+
+**Proven Strategies for Success:**
+- **Pill Organizers:** Use a weekly AM/PM box. Make filling it a ritual.
+- **Multiple Alarms:** Set a primary alarm and a backup 5 minutes later on your phone.
+- **Anchor to Routines:** Take pills right after brushing teeth or before getting into bed.
+- **Refill Early:** Inventory your meds and request refills **7 days** before running out.
+- **Travel Smart:** Always carry meds in **hand luggage**, never checked bags, and pack extra.`,
+
+   "understanding transplant rejection": `Rejection is a manageable medical event, not a failure. It means your immune system recognizes the kidney as "foreign" and responds.
+
+**Types of Rejection:**
+- **Acute Rejection:** Common in the first few months. Often has **no symptoms** and is found via creatinine blood tests. Usually reversible with high-dose steroids or IV treatments.
+- **Chronic Rejection:** A slow, long-term process over years. Lifelong medication adherence is your best defense against this slow decline.
+
+**Warning Signs (Call Team Immediately):**
+- **Fever:** 100.4°F (38°C) or higher.
+- **Pain:** New tenderness over the transplant site (lower abdomen).
+- **Flu-like feelings:** Fatigue, body aches, or headache.
+- **Fluid Changes:** Decreased urine output, sudden weight gain, or new swelling (edema) in legs/hands.`,
+
+   "long-term care and wellness": `Transplant success is the beginning of a new chapter in health management.
+
+**1. Regular Follow-Ups:**
+Appointments are non-negotiable even if you feel fine. They allow the team to catch chronic rejection or medication side effects early.
+
+**2. Proactive Screenings:**
+- **Skin Cancer:** Risk is higher due to meds. Use **SPF 30+ sunscreen** daily and have an annual dermatologist check.
+- **Heart Health:** Manage blood pressure, cholesterol, and sugar. Heart disease is a leading concern for recipients.
+- **Bone Health:** Long-term steroid use can weaken bones (osteoporosis). Your doctor may recommend Vitamin D and DEXA (bone density) scans.`,
+
+   "diet after transplant": `Your diet changes from "restriction" (dialysis) to **"proactive health"** (protection).
+
+**Key Principles:**
+- **Control Sodium:** Minimize processed foods and canned soups to protect your blood pressure. Use herbs and lemon for flavor instead of salt.
+- **Healthy Fats:** Choose unsaturated fats (olive oil, avocados, nuts). Limit butter and fatty meats to protect your heart.
+- **Hydration:** Your new kidney needs flushing. Aim for **2–3 liters** of water daily (check your specific goal with your team).
+- **The Golden Rule: NO Grapefruit.** Never eat grapefruit, pomelos, or Seville oranges; they cause toxic levels of meds to build up in your blood.
+- **Food Safety:** Avoid raw/undercooked meat, sushi, and unpasteurized dairy. Wash all produce meticulously.`,
+
+   "exercise and activity after transplant": `Regular activity is vital for weight control, blood sugar management, and bone strength.
+
+**Safe Activities:**
+- **Walking:** Start slow on Day 1 and gradually increase distance.
+- **Cycling:** A stationary bike is a great, joint-friendly way to build stamina.
+- **Swimming:** Once your incision is fully healed and your team approves.
+
+**What to Avoid for Life:**
+- **Contact Sports:** Avoid football, boxing, or martial arts where you could receive a blow to the abdomen (your new kidney is not protected by ribs).
+- **Heavy Lifting:** Avoid very heavy lifting to prevent hernias at the incision site.
+*Listen to your body—stop if you feel sharp pain or dizziness.*`,
+
+   "precautions after kidney transplant": `Post-transplant care is a lifelong commitment to protecting your "gift."
+
+**1. Medication Management:**
+- **Perfect Adherence:** Take the right dose at the exact same time, every single time.
+- **Avoid NSAIDs:** Painkillers like **ibuprofen (Advil/Motrin)** can damage the kidney. Use Tylenol.
+- **Avoid Grapefruit:** Blocks your body's ability to process anti-rejection meds.
+
+**2. Infection & Activity:**
+- **Masking & Hygiene:** Essential in crowds and for the first 6 months.
+- **Pet Safety:** Avoid cleaning litter boxes or bird cages.
+- **Heavy Lifting:** **Strict Limit:** No more than **5 kg (11 lbs)** for 6–8 weeks.
 
 **⚠️ Call the Team If:**
-- Fever (100.4°F / 38°C or higher).
+- Fever (100.4°F / 38°C+).
 - Pain or redness over the incision.
-- Sudden drop in urine output or sudden weight gain.`
+- Sudden drop in urine output or weight gain.`,
 };

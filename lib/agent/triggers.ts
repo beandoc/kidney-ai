@@ -91,6 +91,11 @@ export const KEYWORD_REGISTRY: TriggerRule[] = [
             { id: "what to expect on transplant surgery day", any: ["surgery day", "operation", "happen during", "incision", "npo"] },
             { id: "who can donate a kidney?", any: ["donor", "who can give", "living", "deceased", "cadaveric"] },
             { id: "recovery and life after transplant", any: ["recovery", "life after", "how long in hospital"] },
+            { id: "understanding transplant rejection", any: ["rejection", "fail", "attack", "immune response"] },
+            { id: "the importance of medication adherence", any: ["medication", "pill", "adherence", "taking meds", "timing"] },
+            { id: "long-term care and wellness", any: ["long term", "wellness", "screening", "cancer", "heart", "bone"] },
+            { id: "diet after transplant", any: ["diet", "food", "eat", "grapefruit", "sodium", "salt"] },
+            { id: "exercise and activity after transplant", any: ["exercise", "activity", "walk", "sport", "lifting"] },
             { id: "precautions after kidney transplant", any: ["precaution", "care", "home care", "safeguard", "aftercare"] }
         ]
     },
