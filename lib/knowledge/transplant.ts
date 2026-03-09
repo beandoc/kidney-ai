@@ -62,23 +62,41 @@ The ideal time to discuss options is during **CKD Stages 3B, 4, or 5**. Preempti
 
    "precautions after kidney transplant": `Post-transplant care is a lifelong commitment to protecting your new donor kidney.
 
-**1. Medication Adherence (Critical):**
-- **Lifelong Immunosuppressants:** You must take anti-rejection medicines exactly as prescribed. Missing even one dose can trigger rejection.
-- **No Self-Medication:** Never take herbal supplements, NSAIDs (like Ibuprofen/Diclofenac), or unregulated vitamins without checking with your transplant team.
+**1. Medication Management (The Golden Rule):**
+Taking medications exactly as prescribed is the **single most important factor** in preventing organ rejection.
+- **Never miss a dose:** Take anti-rejection medications at the exact same time every day.
+- **Do not change the dosage:** Never stop or adjust your medications without your transplant team's explicit approval.
+- **Avoid NSAIDs:** Over-the-counter painkillers like **ibuprofen (Advil, Motrin)** and **naproxen (Aleve)** can damage the new kidney. Stick to **acetaminophen (Tylenol)**.
+- **Beware of supplements:** Herbal remedies can interact dangerously with anti-rejection drugs. Always clear them with your doctor first.
 
 **2. Infection Prevention:**
-- **Hygiene:** Frequent handwashing and avoiding large crowds or sick individuals, especially in the first 6 months.
-- **Food Safety:** Avoid raw or undercooked meats, unpasteurized dairy (raw milk), and unwashed fruits/veg.
+Anti-rejection meds lower the immune system's defenses, especially in the first 3 to 6 months.
+- **Hand hygiene:** Wash hands frequently with soap and water.
+- **Avoid sick people:** Stay away from anyone with contagious illnesses and avoid large crowds early on.
+- **Pet precautions:** Avoid cleaning cat litter boxes, bird cages, or fish tanks (they carry dangerous bacteria).
+- **Vaccines:** Do not get **"live" vaccines** (e.g., nasal flu spray, MMR, yellow fever) after a transplant.
 
-**3. Monitoring "Red Flags":**
-Contact your transplant coordinator immediately if you experience:
-- **Fever** (even low-grade, above 100°F).
-- **Pain or tenderness** over the new kidney (lower abdomen).
-- **Sudden weight gain** or decreased urine output.
-- **Flu-like symptoms** (chills, body aches).
+**3. Diet and Hydration:**
+- **Avoid Grapefruit & Pomegranate:** These (and their juices/pomelos) interfere with anti-rejection meds, causing dangerous drug levels to build up in your blood.
+- **Food Safety:** Avoid raw/undercooked meats, sushi, raw eggs, and unpasteurized dairy. Wash all fresh produce thoroughly.
+- **Limit Sodium:** A low-salt diet prevents fluid retention and keeps blood pressure stable.
+- **Hydration:** Drink **2 to 3 liters** of water daily to keep the kidney well-perfused.
 
-**4. Activity & Hydration:**
-- **Avoid Heavy Lifting:** For 6-8 weeks to allow the incision to heal.
-- **Hydration:** Aim for 2-3 liters of water daily to keep the donor kidney well-perfused.
-- **Sun Safety:** Anti-rejection drugs increase skin cancer risk; use sunscreen and wear protective gear.`
+**4. Daily Monitoring at Home:**
+Keep a daily log of:
+- **Temperature:** To check for early infection.
+- **Blood pressure:** To ensure stable kidney function.
+- **Weight:** Sudden gain can signal fluid retention.
+- **Output:** Track fluid intake and urine output for the first few weeks.
+
+**5. Activity and Lifestyle:**
+- **Lifting restrictions:** Avoid lifting anything heavier than **10 pounds** for at least 6 to 8 weeks to allow the incision to heal and prevent hernias.
+- **Sun protection:** Immunosuppressants significantly increase skin cancer risk. Wear sunscreen (SPF 30+), long sleeves, and wide hats.
+
+**⚠️ When to Call the Transplant Team:**
+Contact your coordinator immediately if you experience:
+- **Fever** (100.4°F / 38°C or higher).
+- **Pain, swelling, or redness** over the transplant incision site.
+- **Sudden decrease** in urine output or sudden weight gain.
+- **Nausea/Vomiting** that prevents you from keeping medications down.`
 };
