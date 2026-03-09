@@ -53,10 +53,19 @@ export const GN_MENU: MenuOption[] = [
 export const DIALYSIS_MENU: MenuOption[] = [
     { label: "Dialysis vs Transplant", text: "dialysis vs transplant: two paths", icon: "🆚" },
     { label: "Haemodialysis", text: "understanding haemodialysis", icon: "🏥" },
-    { label: "Peritoneal Dialysis", text: "understanding peritoneal dialysis", icon: "🏠" },
+    { label: "Peritoneal Dialysis", text: "Show PD Menu", icon: "🏠" },
     { label: "AV Fistula Care", text: "caring for your av fistula", icon: "🧵" },
     { label: "Side Effects", text: "side effects of haemodialysis", icon: "🤕" },
     { label: "⬅️ Back to Main", text: "Show Main Menu", icon: "⬅️" },
+];
+
+export const PD_MENU: MenuOption[] = [
+    { label: "How it Works", text: "understanding peritoneal dialysis", icon: "🔄" },
+    { label: "CAPD vs APD", text: "types of peritoneal dialysis: capd and apd", icon: "🆚" },
+    { label: "Benefits of PD", text: "benefits of peritoneal dialysis", icon: "🌟" },
+    { label: "Catheter Care", text: "peritoneal dialysis (pd) catheter: care and safety", icon: "🩹" },
+    { label: "Peritonitis Safety", text: "preventing peritonitis during pd", icon: "⚠️" },
+    { label: "⬅️ Back to Dialysis", text: "Show Dialysis Menu", icon: "⬅️" },
 ];
 
 export const STONES_MENU: MenuOption[] = [

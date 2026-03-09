@@ -16,6 +16,7 @@ import { PKD_ANSWERS } from './pkd';
 import { PAIN_ANSWERS } from './pain';
 import { HYPERTENSION_ANSWERS } from './hypertension';
 import { CLINIC_ANSWERS } from './clinic';
+import { PERITONEAL_ANSWERS } from './peritoneal';
 
 export const GOLD_ANSWERS: Record<string, string> = {
     ...BASICS_ANSWERS,
@@ -35,5 +36,6 @@ export const GOLD_ANSWERS: Record<string, string> = {
     ...PKD_ANSWERS,
     ...PAIN_ANSWERS,
     ...HYPERTENSION_ANSWERS,
-    ...CLINIC_ANSWERS
+    ...CLINIC_ANSWERS,
+    ...PERITONEAL_ANSWERS
 };

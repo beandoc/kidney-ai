@@ -4,7 +4,7 @@ import { searchPageIndex, formatPageIndexContext } from "./pageindex/retrieval";
 import { getChatModel } from "./langchain/config";
 import { refineQuery, rerankDocuments } from "./langchain/vectorStore";
 import { getCachedResponse, setCachedResponse } from "./cache";
-import { MAIN_MENU, DISEASE_MENU, LABS_MENU, TRANSPLANT_MENU, VACCINE_MENU, DISCHARGE_MENU, EXPLORE_MENU, BASICS_MENU, GN_MENU, DIALYSIS_MENU, STONES_MENU, DIET_MENU, getMenuPayload } from "./menu";
+import { MAIN_MENU, DISEASE_MENU, LABS_MENU, TRANSPLANT_MENU, VACCINE_MENU, DISCHARGE_MENU, EXPLORE_MENU, BASICS_MENU, GN_MENU, DIALYSIS_MENU, PD_MENU, STONES_MENU, DIET_MENU, getMenuPayload } from "./menu";
 import { searchSemantic } from "./langchain/pinecone";
 
 // Future-proofed modular imports
@@ -93,6 +93,11 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
 
    if (normalizedInput === "show dialysis menu") {
       yield "Everything you need to know about starting and living well on dialysis:" + getMenuPayload(DIALYSIS_MENU);
+      return;
+   }
+
+   if (normalizedInput === "show pd menu") {
+      yield "Peritoneal Dialysis is a home-based treatment. Explore these topics to manage your care effectively:" + getMenuPayload(PD_MENU);
       return;
    }
 

@@ -145,13 +145,16 @@ export const KEYWORD_REGISTRY: TriggerRule[] = [
     { id: "who is on my healthcare team?", any: ["team", "specialist", "dietitian", "nephrologist"] },
     { id: "kidney medications guide", any: ["medicine", "medication", "drug", "pill", "-pril", "-sartan"] },
     {
-        id: "what is peritoneal dialysis",
-        any: ["peritoneal"],
+        id: "understanding peritoneal dialysis",
+        any: ["peritoneal", " pd "],
         regex: [/\bpd\b/],
         subRules: [
-            { id: "how is peritoneal dialysis performed", any: ["how", "perform", "process", "steps"] },
-            { id: "living with peritoneal dialysis", any: ["daily", "precaution", "safe", "care", "infection", "activity"] },
-            { id: "peritoneal dialysis (pd) catheter: care and safety", any: ["catheter", "tube", "cleaning", "exit site", "wash", "shower"] }
+            { id: "understanding peritoneal dialysis", any: ["how it works", "basics", "exchange", "dialysate", "fill", "dwell", "drain"] },
+            { id: "types of peritoneal dialysis: capd and apd", any: ["capd", "apd", "cycler", "manual", "overnight", "machine"] },
+            { id: "benefits of peritoneal dialysis", any: ["benefit", "why choice", "advantage", "freedom", "flexible"] },
+            { id: "peritoneal dialysis (pd) catheter: care and safety", any: ["catheter", "tube", "cleaning", "exit site", "wash", "shower"] },
+            { id: "preventing peritonitis during pd", any: ["peritonitis", "infection", "cloudy", "mask", "hygiene", "sterile"] },
+            { id: "living with peritoneal dialysis", any: ["daily", "precaution", "safe", "care", "infection", "activity"] }
         ]
     },
     {
