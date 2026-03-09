@@ -7,6 +7,7 @@ export interface MenuOption {
 export const MAIN_MENU: MenuOption[] = [
     { label: "Explore Topics", text: "Show Explore Menu", icon: "🌐" },
     { label: "Diet & Nutrition", text: "show diet menu", icon: "🥗" },
+    { label: "Dialysis", text: "Show Dialysis Menu", icon: "🏥" },
     { label: "Treatment Options", text: "Available treatment options", icon: "💊" },
     { label: "Prevention Tips", text: "how to prevent kidney disease?", icon: "🛡️" },
     { label: "Lab Results Guide", text: "understanding kidney lab results", icon: "🧪" },
@@ -55,7 +56,7 @@ export const DIALYSIS_MENU: MenuOption[] = [
     { label: "Peritoneal Dialysis", text: "understanding peritoneal dialysis", icon: "🏠" },
     { label: "AV Fistula Care", text: "caring for your av fistula", icon: "🧵" },
     { label: "Side Effects", text: "side effects of haemodialysis", icon: "🤕" },
-    { label: "⬅️ Back to Explore", text: "Show Explore Menu", icon: "⬅️" },
+    { label: "⬅️ Back to Main", text: "Show Main Menu", icon: "⬅️" },
 ];
 
 export const STONES_MENU: MenuOption[] = [
