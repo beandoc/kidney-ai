@@ -146,8 +146,22 @@ function processFileContent(indexArr: IndexEntry[], file: string, content: any) 
     }
 
     for (const node of normalizedNodes) {
-        const searchableText = [docName, node.title || "", node.summary || "", (node.text || "").slice(0, 10000)].join(" ").toLowerCase();
-        const words = new Set(searchableText.split(/[\s,.\-;:!?()[\]{}"'/\\]+/).filter(w => w.length > 2));
+        const searchableText = [docName, node.title || "", node.summary || "", (node.text || "").slice(0, 5000)].join(" ").toLowerCase();
+
+        // COMPRESSION: Skip very small non-medical words and common stop words
+        const STOP_WORDS = new Set(["the", "and", "your", "then", "that", "this", "with", "from", "their", "about", "could", "would", "should"]);
+
+        const words = new Set(
+            searchableText.split(/[\s,.\-;:!?()[\]{}"'/\\]+/)
+                .filter(w => {
+                    // Quick Win 4: Exclude words < 4 chars unless they are clinical abbreviations
+                    const abbreviations = new Set(["ckd", "aki", "gfr", "avn", "sle", "anc", "hgb", "scr", "una"]);
+                    if (w.length < 4 && !abbreviations.has(w)) return false;
+                    if (STOP_WORDS.has(w)) return false;
+                    return true;
+                })
+        );
+
         indexArr.push({
             docName,
             fileName: file,

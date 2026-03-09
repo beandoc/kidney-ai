@@ -51,7 +51,7 @@ export const BASICS_ANSWERS: Record<string, string> = {
 - Changes in urination (frequency, foam, or blood).
 - Swelling (puffy eyes, swollen hands/feet).
 - Constant fatigue and weakness.
-- Loss appetite, nausea, or vomiting.
+- Loss of appetite, nausea, or vomiting.
 
 **How Doctors Diagnose:**
 - **Blood Tests:** Checking creatinine and calculating your **eGFR** (the filtering score).

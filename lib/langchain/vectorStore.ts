@@ -2,10 +2,34 @@ import { Document } from "@langchain/core/documents";
 import { getChatModel, QUERY_REFINER_PROMPT, RERANKER_PROMPT } from "./config";
 import { HumanMessage } from "@langchain/core/messages";
 
+import { getCachedResponse, setCachedResponse } from "../cache";
+import Redis from "ioredis";
+
+const redis = new Redis(process.env.REDIS_URL || "");
+
 /**
  * Refine the user query to fix typos and normalize medical terms
  */
 export async function refineQuery(query: string): Promise<string> {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    // QUICK WIN 3: Skip refinement for very short/simple queries
+    if (normalizedQuery.split(/\s+/).length <= 3) {
+        return query;
+    }
+
+    // QUICK WIN 2: Check Redis Cache first
+    const cacheKey = `cache:refined_query:${normalizedQuery}`;
+    try {
+        const cachedRefined = await redis.get(cacheKey);
+        if (cachedRefined) {
+            console.log(`[Refiner] Cache HIT: "${query}" -> "${cachedRefined}"`);
+            return cachedRefined;
+        }
+    } catch (e) {
+        console.warn("[Refiner] Cache read failed:", e);
+    }
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second fail-fast
 
@@ -18,6 +42,10 @@ export async function refineQuery(query: string): Promise<string> {
 
         const refined = response.content.toString().trim();
         console.log(`Query refined: "${query}" -> "${refined}"`);
+
+        // Cache the successful refinement for 7 days
+        redis.set(cacheKey, refined, "EX", 604800).catch(err => console.error("Refinement Cache Write Error:", err));
+
         return refined;
     } catch (error: unknown) {
         console.error("Query refinement failed, using original query:", error);

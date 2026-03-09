@@ -6,6 +6,7 @@ export default redis;
 
 // Cache key for dynamic gold answers
 export const DYNAMIC_GOLD_KEY = "kidney-ai:dynamic-gold";
+export const FAILED_QUERIES_KEY = "kidney-ai:failed-queries";
 
 /**
  * Fetches all dynamic gold answers from Redis.
@@ -29,5 +30,49 @@ export async function saveDynamicGoldAnswers(answers: Record<string, string>): P
     } catch (error) {
         console.error("Failed to save dynamic gold to Redis:", error);
         throw error;
+    }
+}
+/**
+ * Log a failed query to Redis
+ */
+export async function logFailedQuery(query: string): Promise<void> {
+    try {
+        const timestamp = new Date().toISOString();
+        const entry = JSON.stringify({ query, timestamp });
+        // Add to a list of failed queries, keep only last 1000
+        await redis.lpush(FAILED_QUERIES_KEY, entry);
+        await redis.ltrim(FAILED_QUERIES_KEY, 0, 999);
+    } catch (error) {
+        console.error("Failed to log failed query to Redis:", error);
+    }
+}
+
+/**
+ * Get all failed queries from Redis
+ */
+export async function getFailedQueries(): Promise<any[]> {
+    try {
+        const data = await redis.lrange(FAILED_QUERIES_KEY, 0, -1);
+        return data.map(d => JSON.parse(d));
+    } catch (error) {
+        console.error("Failed to fetch failed queries from Redis:", error);
+        return [];
+    }
+}
+
+/**
+ * Remove a failed query from Redis
+ */
+export async function removeFailedQuery(query: string): Promise<void> {
+    try {
+        const all = await redis.lrange(FAILED_QUERIES_KEY, 0, -1);
+        for (const item of all) {
+            const parsed = JSON.parse(item);
+            if (parsed.query === query) {
+                await redis.lrem(FAILED_QUERIES_KEY, 1, item);
+            }
+        }
+    } catch (error) {
+        console.error("Failed to remove failed query:", error);
     }
 }

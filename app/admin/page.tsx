@@ -95,7 +95,7 @@ export default function AdminDashboard() {
     const [isSyncing, setIsSyncing] = useState(false);
 
     // New states for User Management
-    const [currentTab, setCurrentTab] = useState<'knowledge' | 'users' | 'gold'>('knowledge');
+    const [currentTab, setCurrentTab] = useState<'knowledge' | 'users' | 'gold' | 'failures'>('knowledge');
     const [users, setUsers] = useState<any[]>([]);
     const [isLoadingUsers, setIsLoadingUsers] = useState(false);
     const [newUsername, setNewUsername] = useState("");
@@ -110,6 +110,10 @@ export default function AdminDashboard() {
     const [isLoadingGold, setIsLoadingGold] = useState(false);
     const [isAddingGold, setIsAddingGold] = useState(false);
     const [goldLang, setGoldLang] = useState<'en' | 'hi' | 'mr' | 'ur'>('en');
+
+    // Failed Queries State
+    const [failures, setFailures] = useState<any[]>([]);
+    const [isLoadingFailures, setIsLoadingFailures] = useState(false);
 
     const fetchStats = useCallback(async () => {
         if (!password) return;
@@ -180,6 +184,38 @@ export default function AdminDashboard() {
             setIsLoadingGold(false);
         }
     }, [password]);
+    const fetchFailures = useCallback(async () => {
+        if (!password) return;
+        setIsLoadingFailures(true);
+        try {
+            const response = await fetch("/api/admin/failures", {
+                headers: { "x-admin-password": password }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setFailures(data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch failures", error);
+        } finally {
+            setIsLoadingFailures(false);
+        }
+    }, [password]);
+
+    const handleDeleteGold = async (key: string) => {
+        if (!password || !confirm(`Delete gold answer for "${key}"?`)) return;
+        try {
+            const response = await fetch(`/api/admin/gold?key=${encodeURIComponent(key)}`, {
+                method: "DELETE"
+            });
+            if (response.ok) {
+                fetchGold();
+                setStatus({ type: 'success', message: "Deleted Gold Answer" });
+            }
+        } catch (error) {
+            console.error("Failed to delete gold", error);
+        }
+    };
 
     const handleSaveGold = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -205,19 +241,25 @@ export default function AdminDashboard() {
         }
     };
 
-    const handleDeleteGold = async (key: string) => {
-        if (!password || !confirm(`Delete gold answer for "${key}"?`)) return;
+    const handleDeleteFailure = async (query: string) => {
+        if (!password) return;
         try {
-            const response = await fetch(`/api/admin/gold?key=${encodeURIComponent(key)}`, {
-                method: "DELETE"
+            const response = await fetch(`/api/admin/failures?query=${encodeURIComponent(query)}`, {
+                method: "DELETE",
+                headers: { "x-admin-password": password }
             });
             if (response.ok) {
-                fetchGold();
-                setStatus({ type: 'success', message: "Deleted Gold Answer" });
+                fetchFailures();
             }
         } catch (error) {
-            console.error("Failed to delete gold", error);
+            console.error("Failed to delete failure", error);
         }
+    };
+
+    const handleAddressFailure = (query: string) => {
+        setNewGoldKey(query);
+        setCurrentTab('gold');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const toggleBlockUser = async (userId: string, isBlocked: boolean) => {
@@ -406,8 +448,9 @@ export default function AdminDashboard() {
             fetchInventory();
             fetchUsers();
             fetchGold();
+            fetchFailures();
         }
-    }, [password, fetchStats, fetchInventory, fetchUsers, fetchGold]);
+    }, [password, fetchStats, fetchInventory, fetchUsers, fetchGold, fetchFailures]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -572,6 +615,13 @@ export default function AdminDashboard() {
                     >
                         <Zap className="w-4 h-4" />
                         Flash-Gold Manager
+                    </button>
+                    <button
+                        onClick={() => setCurrentTab('failures')}
+                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all ${currentTab === 'failures' ? 'bg-[#128C7E] text-white shadow-md' : 'text-slate-500 hover:bg-white'}`}
+                    >
+                        <AlertCircle className="w-4 h-4" />
+                        Gap Analysis
                     </button>
                 </div>
 
@@ -1217,6 +1267,66 @@ export default function AdminDashboard() {
                                     </div>
                                     <h3 className="text-slate-800 font-bold text-lg">No Users Registered</h3>
                                     <p className="text-sm text-slate-500 mt-2">When people start using the chatbot, their activity will appear here.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                ) : currentTab === 'failures' ? (
+                    /* Gap Analysis View */
+                    <div className="bg-white rounded-2xl shadow-sm border border-[#D1D7DB] overflow-hidden animate-in fade-in duration-500">
+                        <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-red-50/50">
+                            <div>
+                                <h1 className="text-2xl font-bold flex items-center gap-3 text-slate-800">
+                                    <AlertCircle className="w-7 h-7 text-red-500" />
+                                    Clinical Gap Analysis
+                                </h1>
+                                <p className="text-slate-500 mt-1">Questions where the AI answered "I don't know". Turn these into clinical truths.</p>
+                            </div>
+                            <button
+                                onClick={fetchFailures}
+                                className="p-2.5 bg-white hover:bg-slate-50 rounded-xl border border-[#D1D7DB] shadow-sm transition-all"
+                            >
+                                <RefreshCcw className={`w-5 h-5 text-slate-600 ${isLoadingFailures ? 'animate-spin' : ''}`} />
+                            </button>
+                        </div>
+
+                        <div className="p-8">
+                            {failures.length > 0 ? (
+                                <div className="space-y-4">
+                                    {failures.map((f, i) => (
+                                        <div key={i} className="flex flex-col md:flex-row items-center justify-between p-5 bg-white border border-[#D1D7DB] rounded-2xl hover:border-red-200 hover:bg-red-50/10 transition-all gap-4">
+                                            <div className="flex-1 w-full">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{new Date(f.timestamp).toLocaleString()}</span>
+                                                </div>
+                                                <p className="text-slate-800 font-bold text-lg italic">"{f.query}"</p>
+                                            </div>
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                <button
+                                                    onClick={() => handleAddressFailure(f.query)}
+                                                    className="flex items-center gap-2 px-4 py-2 bg-[#128C7E] text-white text-xs font-bold rounded-xl shadow-sm hover:bg-[#0b6e63] transition-all"
+                                                >
+                                                    <Plus className="w-3 h-3" />
+                                                    Add Answer
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteFailure(f.query)}
+                                                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                                    title="Dismiss"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="py-20 text-center">
+                                    <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-100">
+                                        <CheckCircle className="w-10 h-10 text-emerald-500" />
+                                    </div>
+                                    <h3 className="text-slate-800 font-bold text-lg">No Clinical Gaps Found!</h3>
+                                    <p className="text-sm text-slate-500 mt-2">The AI has been able to answer all recent clinical queries from guidelines.</p>
                                 </div>
                             )}
                         </div>
