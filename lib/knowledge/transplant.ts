@@ -10,6 +10,28 @@ export const TRANSPLANT_ANSWERS: Record<string, string> = {
 **The Procedure:**
 The donor kidney is placed in the lower abdomen. The original kidneys are usually left in place unless they cause specific problems like severe infection or hypertension.`,
 
+   "when is kidney transplant needed?": `A kidney transplant becomes necessary when your kidneys have lost **85% to 90%** of their ability to function normally. This stage is known as **End-Stage Renal Disease (ESRD)** or kidney failure.
+
+**1. The Medical Benchmark (eGFR):**
+A normal eGFR is usually 90 or higher. A transplant is typically evaluated or required when your **eGFR drops below 15**. At this level, toxins build up in the blood dangerously fast.
+
+**2. Common Causes:**
+- **Diabetes:** High blood sugar damages the kidney's blood vessels.
+- **High Blood Pressure:** Damages the delicate filtering units.
+- **Glomerulonephritis:** Inflammation of the filtering units.
+- **Polycystic Kidney Disease (PKD):** Genetic cysts that destroy healthy tissue.
+
+**3. Warning Signs & Symptoms:**
+As you approach kidney failure, you may experience:
+- **Severe Edema:** Swelling in hands, feet, ankles, or face.
+- **Nausea & Fatigue:** Persistent sickness and extreme lethargy.
+- **Urination Changes:** A significant drop in urine output.
+- **Confusion:** Difficulty concentrating or sleep issues.
+
+**Transplant vs. Dialysis:**
+While dialysis filters your blood using a machine, a transplant is generally the **preferred treatment** for eligible patients because it offers fewer dietary restrictions, a longer life expectancy, and a significantly better quality of life.`,
+
+
    "who can donate a kidney?": `A kidney donor can be either a living person or a deceased individual, governed by national organ donation laws.
 
 **1. Living Donors:**
@@ -55,10 +77,7 @@ Typically 3 to 4 hours. Living donors usually undergo a minimally invasive "keyh
 Many women regain fertility and can have successful pregnancies, though this requires very careful medical supervision by a transplant team.
 
 **What if the transplant fails?**
-If a transplanted kidney fails, returning to dialysis and being evaluated for a second transplant are viable options.
-
-**When should I start thinking about a transplant?**
-The ideal time to discuss options is during **CKD Stages 3B, 4, or 5**. Preemptive transplants (before starting dialysis) often have the best results.`,
+If a transplanted kidney fails, returning to dialysis and being evaluated for a second transplant are viable options.`,
 
    "precautions after kidney transplant": `Post-transplant care is a lifelong commitment to protecting your new donor kidney.
 
