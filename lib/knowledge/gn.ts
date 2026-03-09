@@ -19,17 +19,34 @@ export const GN_ANSWERS: Record<string, string> = {
 - **Blood Leak (Hematuria):** For red cells to enter urine, the **Glomerular Basement Membrane (GBM)** must be physically disrupted, usually by inflammation.
 - **Loss of Filtration (Declining GFR):** Inflammation impairs the kidneys' ability to filter, leading to a decline in function (eGFR).`,
 
-    "what is nephrotic syndrome?": `**Nephrotic syndrome** is defined by a combination of findings resulting from heavy protein loss in the urine. It is common in diseases like Minimal Change Disease (MCD), FSGS, and Membranous Nephropathy (MN).
+    "what is nephrotic syndrome?": `Nephrotic syndrome is a group of problems suggesting that the kidneys are not working properly, often caused by different types of kidney disease.
 
-**Classic Triad Checklist:**
-1. **Massive Proteinuria:** Typically exceeding **3.5 grams per day**.
-2. **Hypoalbuminemia:** Low blood albumin (typically ≤2.5 g/dL).
-3. **Edema:** Significant swelling due to fluid retention.
+**Key Indicators:**
+- **Proteinuria:** Very high levels of protein in the urine.
+- **Hypoalbuminemia:** Low levels of a protein called "albumin" in the blood.
+- **Edema:** Swelling, often affecting the area around the eyes and in the feet.
 
-**Complications of Nephrotic State:**
-- **Severe Swelling (Edema):** Often starts around the eyes (periorbital) in the morning and moves to the legs later.
-- **High Blood Fats (Dyslipidemia):** Elevated cholesterol and triglycerides.
-- **Blood Clots (Hypercoagulopathy):** Higher risk of DVT or pulmonary embolism due to loss of anti-clotting proteins in urine.`,
+**Common Causes:** Minimal Change Disease, FSGS, Membranous Nephropathy, Diabetes, Amyloidosis, and Lupus.
+
+**Symptoms and Complications:**
+- **Swelling:** Can also involve the ankles, legs, hands, arms, or belly.
+- **Weight Gain:** Due to the body holding on to too much salt and water.
+- **Risks:** Increased risk of muscle loss, high cholesterol, kidney failure, blood clots, and infection.
+
+**Test and Treatment:**
+- **Tests:** Urine tests (for protein), blood tests (for albumin), and a kidney biopsy (to find the cause in adults).
+- **Treatment:** Managing the underlying disease (like diabetes or lupus), medicines to reduce protein, diuretics for swelling, a low-salt diet, and medicines for high cholesterol or blood clots.
+
+**Self-Care:**
+- Take all medicines as instructed.
+- Go to all doctor's appointments and get recommended vaccines.
+- Track your weight if recommended.
+- Follow a low-salt diet and check labels for "sodium."
+
+**When to call your doctor for nephrotic syndrome issues:**
+1. Fever of 100.4°F (38°C) or higher.
+2. Urinating less often than usual.
+3. Swelling is getting worse.`,
 
     "what is nephritic syndrome?": `**Nephritic syndrome** is a clinical presentation characterized by **glomerular inflammation**.
 
@@ -125,5 +142,80 @@ On a kidney biopsy, the characteristic finding is **crescent formation**, which 
 1. **Clinical Presentation:** Nephrotic vs. Nephritic syndromes.
 2. **Histopathology (Biopsy):** Descriptive patterns like Focal Segmental (FSGS) or Membranoproliferative (MPGN).
 3. **Pathogenic Mechanism:** Immune Complex (Lupus, IgAN), Antibody-Mediated (ANCA, Anti-GBM), Podocyte injury, or Complement Dysregulation (C3G).
-4. **Association:** **Primary** (kidney only) vs. **Secondary** (caused by Diabetes, genetic Alport syndrome, or systemic disease like Lupus).`
+4. **Association:** **Primary** (kidney only) vs. **Secondary** (caused by Diabetes, genetic Alport syndrome, or systemic disease like Lupus).`,
+
+    "what is glomerular disease?": `Glomerular disease is a condition where the kidneys' filters (glomeruli) are damaged.
+
+**Key Concepts:**
+- **Filtration Failure:** The part of the kidney that filters waste (the glomerulus) doesn't work correctly.
+- **Leakage:** Because the filters are "broken," things that should stay in the blood—like protein and red blood cells—leak into the urine.
+- **Progression:** It can happen quickly (Acute Kidney Injury) or slowly over years (Chronic Kidney Disease).`,
+
+    "what are the symptoms of glomerular disease?": `Symptoms vary depending on the cause, and some people have no symptoms at all. Common signs include:
+
+- **Urine Changes:** Bloody urine (red, pink, or brown) or foamy/bubbly urine (from protein).
+- **Edema:** Swelling in the face, hands, feet, or abdomen.
+- **Fatigue:** Feeling unusually tired.
+- **Output:** Urinating less frequently than usual.`,
+
+    "is there a test for glomerular disease?": `Doctors use several tests to identify and classify glomerular injury:
+
+- **Laboratory Tests:** Blood and urine tests to check for protein, blood, and overall kidney function (eGFR).
+- **Imaging:** Ultrasound to see the size and structure of the kidneys.
+- **Kidney Biopsy:** The "Gold Standard" test where a tiny sample of kidney tissue is removed with a needle and examined under a microscope to find the exact cause.`,
+
+    "how is glomerular disease treated?": `Treatment is tailored to the specific type of disease and its severity:
+
+- **Medical Management:** ACE inhibitors or ARBs to lower blood pressure and protect filters.
+- **Immune Suppression:** Steroids (Prednisone) or stronger drugs like Rituximab, Cyclophosphamide, or Mycophenolate (Cellcept) to "quiet" the immune system.
+- **Symptom Relief:** Diuretics (water pills) to reduce swelling.
+- **Advanced Care:** In some cases, Plasmapheresis (filtering the blood via machine) or Kidney Replacement Therapy (Dialysis/Transplant) may be needed.`,
+
+    "what is iga nephropathy?": `**IgA Nephropathy** (Berger's disease) occurs when an antibody called IgA builds up in the kidney. IgA is normally helpful for fighting infections, but when it clumps in the kidney's filters, it causes inflammation and damage.`,
+
+    "what are the symptoms of iga nephropathy?": `- **Visible Blood:** Red or "cola-colored" urine, often starting 1–2 days **after** a cold or sore throat.
+- **Invisible Blood:** Sometimes blood is only found during a routine urine test (microscopic hematuria).
+- **Proteinuria:** Foamy urine or swelling in the hands and feet.
+- **Silent Progression:** Many patients have no symptoms for years until kidney function declines.`,
+
+    "medical treatments for iga nephropathy": `Management focuses on protecting the kidneys and reducing inflammation:
+
+- **BP & Protein Control:** ACE inhibitors or ARBs are the foundation of treatment.
+- **SGLT2 Inhibitors:** Newer medications (like Farxiga or Jardiance) that provide extra protection.
+- **Cholesterol Stats:** Statins to protect the heart, as kidney disease increases cardiovascular risk.
+- **Anti-Inflammatories:** Steroids to reduce acute kidney inflammation.
+- **Monitoring:** Regular urine and blood tests (at least once a year) are vital even if you feel well.`,
+
+    "iga nephropathy and pregnancy": `If you have IgA Nephropathy and want to start a family, **consult your nephrologist first**:
+
+- **Risk Assessment:** If your kidneys are healthy, the risk is low. If there is significant damage, pregnancy can be dangerous for both the parent and baby.
+- **Medication Safety:** ACE inhibitors and ARBs **cannot** be taken during pregnancy as they cause birth defects. They must be switched to safer options before you conceive.
+- **Close Monitoring:** Pregnancy requires extra check-ups to monitor kidney function and blood pressure.`,
+
+    "what is lupus?": `Lupus is a type of **autoimmune disease**, where the immune system attacks healthy cells instead of only fighting bad ones. This response causes symptoms and can affect many parts of the body.
+
+**Common Symptoms:**
+- **Skin:** Butterfly-shaped rash on the nose and cheeks (after sun exposure) and hair loss.
+- **Physical:** Joint pain, stiffness, easy bruising, sores in the mouth, and cold fingers/toes that turn pale or blue.
+- **Respiratory/Heart:** Chest pain and trouble breathing.
+- **Kidney:** Foamy or "tea-colored" urine and swelling (hands, feet, eyes, or belly).
+- **Mental:** Difficulty thinking clearly, anxiety, and sadness.
+
+**Self-Care:**
+- Eat a healthy diet with plenty of fruits and vegetables.
+- Stay active (to prevent muscle weakness).
+- Avoid direct sun and use broad-spectrum sunscreen.
+- Stop smoking as it makes lupus worse.
+- Tell all doctors you have lupus before they prescribe medications.
+
+**How is Lupus treated?**
+Treatment is typically overseen by a **rheumatologist**. Medicines include:
+- **NSAIDs:** Like Ibuprofen (Motrin/Advil) and Naproxen (Aleve) for joint pain.
+- **Hydroxychloroquine:** Helps manage lupus symptoms.
+- **Steroids:** Help "turn off" the autoimmune response but can cause side effects like weight gain or weak bones.
+
+**Lupus and Pregnancy:**
+With careful planning and help from your rheumatologist, you can have a healthy baby. It is important to wait until symptoms have been controlled for at least 6 months before trying to conceive.
+
+*If you have a fever or new/worsening symptoms, call your doctor at once.*`,
 };

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { User, Loader2, ArrowRight } from "lucide-react";
 
 interface LoginWallProps {
-    onLogin: (userId: string, username: string) => void;
+    onLogin: (userId: string, username: string, navigationOnly?: boolean) => void;
 }
 
 export default function LoginWall({ onLogin }: LoginWallProps) {
@@ -37,7 +37,10 @@ export default function LoginWall({ onLogin }: LoginWallProps) {
             if (response.ok) {
                 localStorage.setItem("kidney_ai_user_id", data.id);
                 localStorage.setItem("kidney_ai_username", data.username);
-                onLogin(data.id, data.username);
+                if (data.navigationOnly) {
+                    localStorage.setItem("kidney_ai_navigation_only", "true");
+                }
+                onLogin(data.id, data.username, data.navigationOnly);
             } else {
                 setError(data.error || "Failed to enter chat");
             }

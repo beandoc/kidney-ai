@@ -14,6 +14,7 @@ interface ChatInputProps {
     setSelectedImage: (val: string | null) => void;
     isLoading: boolean;
     handleSubmit: (e: React.FormEvent) => void;
+    isReadOnly?: boolean;
 }
 
 export default function ChatInput({
@@ -23,12 +24,14 @@ export default function ChatInput({
     setSelectedImage,
     isLoading,
     handleSubmit,
+    isReadOnly = false,
 }: ChatInputProps) {
     const [isListening, setIsListening] = useState(false);
     const recognitionRef = useRef<any>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (isReadOnly) return;
         const file = e.target.files?.[0];
         if (file) {
             if (file.size > 5 * 1024 * 1024) {
@@ -49,7 +52,7 @@ export default function ChatInput({
     };
 
     useEffect(() => {
-        if (SpeechRecognitionAPI) {
+        if (SpeechRecognitionAPI && !isReadOnly) {
             recognitionRef.current = new SpeechRecognitionAPI();
             recognitionRef.current.continuous = true;
             recognitionRef.current.interimResults = true;
@@ -79,9 +82,10 @@ export default function ChatInput({
                 setIsListening(false);
             };
         }
-    }, [setInput]);
+    }, [setInput, isReadOnly]);
 
     const toggleListening = () => {
+        if (isReadOnly) return;
         if (isListening) {
             recognitionRef.current?.stop();
             setIsListening(false);
@@ -93,7 +97,14 @@ export default function ChatInput({
     };
 
     return (
-        <footer className="relative z-20 px-4 py-4 flex flex-col gap-2 wa-input-container">
+        <footer className={`relative z-20 px-4 py-4 flex flex-col gap-2 wa-input-container ${isReadOnly ? 'opacity-95' : ''}`}>
+            {isReadOnly && (
+                <div className="flex justify-center mb-1">
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-[#128C7E]/70 bg-[#128C7E]/5 px-4 py-1 rounded-full border border-[#128C7E]/10">
+                        OPD Explorer Mode: Read-Only Access
+                    </span>
+                </div>
+            )}
             {selectedImage && (
                 <div className="max-w-[1200px] mx-auto w-full mb-2 animate-in slide-in-from-bottom-2">
                     <div className="relative inline-block group">
@@ -104,6 +115,7 @@ export default function ChatInput({
                         />
                         <button
                             onClick={removeImage}
+                            disabled={isReadOnly}
                             className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors"
                         >
                             <X className="w-3 h-3" />
@@ -122,23 +134,24 @@ export default function ChatInput({
                     onChange={onFileSelect}
                     accept="image/*"
                     className="hidden"
+                    disabled={isReadOnly}
                 />
                 <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center text-[#54656F] bg-white rounded-full p-2.5 shadow-sm border border-slate-100 hover:text-[#128C7E] cursor-pointer transition-colors active:bg-slate-50"
+                    onClick={() => !isReadOnly && fileInputRef.current?.click()}
+                    className={`flex items-center text-[#54656F] bg-white rounded-full p-2.5 shadow-sm border border-slate-100 transition-colors active:bg-slate-50 ${isReadOnly ? 'cursor-not-allowed opacity-50' : 'hover:text-[#128C7E] cursor-pointer'}`}
                 >
                     <Plus className="w-6 h-6" />
                 </div>
 
                 <form onSubmit={handleSubmit} className="flex-1 flex items-center gap-2">
-                    <div className="flex-1 bg-white rounded-full px-5 py-3 flex items-center shadow-md border border-slate-100/50 focus-within:ring-2 focus-within:ring-[#128C7E]/10 transition-all">
+                    <div className={`flex-1 bg-white rounded-full px-5 py-3 flex items-center shadow-md border border-slate-100/50 transition-all ${!isReadOnly ? 'focus-within:ring-2 focus-within:ring-[#128C7E]/10' : 'bg-slate-50 border-slate-200'}`}>
                         <input
                             type="text"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
-                            placeholder={isListening ? "Listening (Hindi or English)..." : "Type your query or tap mic to speak..."}
-                            className={`flex-1 bg-transparent border-none outline-none text-[16px] placeholder-slate-400 ${isListening ? 'text-[#128C7E] animate-pulse' : 'text-[#111B21]'}`}
-                            disabled={isLoading}
+                            placeholder={isReadOnly ? "Exploration Mode: Click buttons/options to navigate" : (isListening ? "Listening (Hindi or English)..." : "Type your query or tap mic to speak...")}
+                            className={`flex-1 bg-transparent border-none outline-none text-[16px] placeholder-slate-400 ${isListening ? 'text-[#128C7E] animate-pulse' : 'text-[#111B21]'} ${isReadOnly ? 'cursor-not-allowed italic' : ''}`}
+                            disabled={isLoading || isReadOnly}
                         />
                     </div>
 

@@ -25,6 +25,7 @@ export interface UserRecord {
     lastQueryDate: string; // YYYY-MM-DD
     isBlocked: boolean;
     mobile?: string;
+    navigationOnly?: boolean;
 }
 
 export async function getUsers(): Promise<UserRecord[]> {
@@ -99,6 +100,11 @@ export async function trackQuery(userId: string): Promise<{ success: boolean; er
     }
 
     if (user.isBlocked) return { success: false, error: "USER_BLOCKED" };
+
+    // Navigation-only users don't consume quota as they only use verified pre-set paths
+    if (user.navigationOnly) {
+        return { success: true };
+    }
 
     const today = new Date().toISOString().split('T')[0];
 

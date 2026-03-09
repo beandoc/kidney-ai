@@ -17,28 +17,30 @@ Normally, urine contains dissolved waste. When there is too much waste in too li
 4. **Struvite (Infection Stones):** Typically form during a chronic upper urinary tract infection.
 5. **Cystine:** A rare hereditary type caused by excessive excretion of the amino acid cystine.`,
 
-    "symptoms of kidney stones": `Symptoms often appear when a stone moves into the ureter (the tube connecting the kidney to the bladder).
+    "symptoms of kidney stones": `Some people have no symptoms, but most experience significant discomfort when a stone moves:
+- **Pain:** Severe pain in the side (flank), back, or lower belly.
+- **Urinary Changes:** Blood in the urine (pink, red, or brown), pain during urination, or needing to urinate in a hurry.
+- **Nausea:** Feeling sick to your stomach or vomiting.
 
-**Common signs:**
-- **Renal Colic:** Sharp, severe pain in the back, side (flank), or lower abdomen that often comes in waves.
-- **Hematuria:** Blood in the urine (may look pink, red, or brown).
-- **Urinary Urgency:** Persistent need to urinate or burning during urination.
-- **Nausea & Vomiting:** Caused by intense pain.
+**Tests for Kidney Stones:**
+- **Imaging:** CT scans or ultrasounds show the stone's size and exact location.
+- **Labs:** Blood or urine tests to find the cause and check for complications.
 
-**⚠️ Warning:** Fever and chills are signs of a concurrent infection and require **urgent medical attention**.`,
+**How Stones are Treated:**
+1. **At-Home Care:** For small stones, drink plenty of fluids and take pain relievers. You may be asked to urinate through a **strainer** to catch and test the stone.
+2. **Hospital Care:** For large stones or severe pain, you may need IV fluids and specialized procedures:
+   - **Lithotripsy:** Using shock waves or lasers to break stones into small pieces.
+   - **Ureteroscopy:** Using a thin tube with a camera to remove or break up stones.
+   - **Percutaneous Nephrolithotomy:** A small surgery where the stone is removed through a tiny incision in the back.
 
-    "risk factors for kidney stones": `Stone formation is multifactorial, influenced by:
+**Preventing Future Stones:**
+- **Hydration:** Drinking lots of water is the most effective defense.
+- **Diet:** Eating less salt (processed foods) and more fruits and vegetables.
+- **Specific Shifts:** Depending on the stone type (Calcium vs. Uric Acid), your doctor may recommend avoiding specific foods like spinach or organ meats.
 
-- **Dehydration:** The most significant factor (concentrated urine).
-- **Diet:** High salt (sodium), high animal protein, and high-oxalate foods. High fructose (syrups/sugar) also increases risk.
-- **Medical Conditions:** Obesity, diabetes, gout, and certain GI diseases.
-- **Genetics:** A family history significantly increases your risk.
-- **Medications:** Certain diuretics and calcium-based antacids.`,
-
-    "preventing kidney stones": `If you've had one stone, your risk of another is about 50% within 5-7 years. Prevention is key:
-
-1. **Stay Hydrated (Most Important):** Aim for a urine output of **2 to 2.5 liters** per day. Water is the best choice.
-2. **Sodium Restriction:** High salt intake forces more calcium into the urine, which can form stones.
-3. **Dietary Balance:** Based on your stone type, your doctor may recommend moderating animal protein or high-oxalate foods.
-4. **24-Hour Urine Analysis:** Consult a nephrologist to identify your specific metabolic risk factors and determine if pharmacological therapy is needed.`
+**When to Call the Doctor:**
+- You have severe flank pain, nausea, or visible blood in your urine.
+- You have a **fever (100.4°F / 38°C) or chills** while trying to pass a stone at home.
+- You are vomiting and cannot keep fluids down.
+- You have not urinated for more than 8 hours.`
 };

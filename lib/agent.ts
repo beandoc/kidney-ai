@@ -17,8 +17,8 @@ import { findGoldMatch } from "./agent/triggers";
 export { prewarmAgent };
 
 // --- Main Agent Loop ---
-export async function* runAgent(input: string, chatHistory: BaseMessage[], image?: string) {
-   console.log(JSON.stringify({ event: "AgentStart", query: input, historyLength: chatHistory.length, hasImage: !!image }));
+export async function* runAgent(input: string, chatHistory: BaseMessage[], image?: string, isNavigationOnly: boolean = false) {
+   console.log(JSON.stringify({ event: "AgentStart", query: input, historyLength: chatHistory.length, hasImage: !!image, isNavigationOnly }));
 
    const normalizedInput = input.trim().toLowerCase();
 
@@ -170,6 +170,12 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
             return;
          }
 
+         // Block new translations for navigationOnly users to save costs
+         if (isNavigationOnly) {
+            yield content + "\n\n*(Translation for this complex topic is limited to registered clinicians. Showing English version for accuracy)*" + getMenuPayload(MAIN_MENU);
+            return;
+         }
+
          // 2. TIER 1: On-the-fly machine translation (Fallback)
          yield `Retrieved verified clinical answer. Translating to ${targetLang}... <thought>Found Gold Match for "${goldMatchKey}". Using lightweight translation model as no pre-translated version was found in the registry.</thought>`;
 
@@ -187,6 +193,12 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
       }
 
       yield content;
+      return;
+   }
+
+   // RESTRICTION: Exit before expensive tiers if navigation-only mode is active
+   if (isNavigationOnly) {
+      yield "I'm sorry, I couldn't find a verified guide for that specific query in the explorer menu. Please use the menu buttons below to navigate clinical guidelines." + getMenuPayload(MAIN_MENU);
       return;
    }
 

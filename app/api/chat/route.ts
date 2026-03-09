@@ -75,7 +75,13 @@ export async function POST(request: NextRequest) {
         const customStream = new ReadableStream({
             async start(controller) {
                 try {
-                    const agentStream = runAgent(message, historyMessages, image);
+                    // Check if user is navigation-only
+                    const { getUsers } = await import("../../../lib/users");
+                    const users = await getUsers();
+                    const userRecord = users.find(u => u.id === userId);
+                    const isNavigationOnly = userRecord?.navigationOnly || false;
+
+                    const agentStream = runAgent(message, historyMessages, image, isNavigationOnly);
 
                     for await (const chunk of agentStream) {
                         if (typeof chunk === 'string') {

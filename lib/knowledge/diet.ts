@@ -132,5 +132,146 @@ Protein builds muscle and repairs tissue. However, it creates waste that kidneys
 2. How can I adjust my diet to help with **high acid levels** (bicarbonate) in my blood?
 3. Am I getting enough protein to **maintain my muscle mass** without overworking my kidneys?
 4. Are **plant-based proteins** appropriate for my specific situation?
-5. Where can I find support for getting healthy, **kidney-friendly foods** locally?`
+5. Where can I find support for getting healthy, **kidney-friendly foods** locally?`,
+
+   "do people on dialysis need to watch their diet?": `Yes. Most people on dialysis must carefully manage their food and fluid intake because their kidneys can no longer filter excess waste, salt, and water effectively.
+
+**Why it's essential:**
+Dialysis is life-saving, but it doesn't work 24/7 like healthy kidneys do. Between treatments, minerals and fluids build up in your blood. A specialized diet prevents these from reaching dangerous levels that can strain your heart, lungs, and bones.
+
+**Dietary Priorities:**
+- **Sodium (Salt):** High salt makes you thirsty and raises blood pressure.
+- **Fluids:** Excess fluid causes swelling, weight gain, and breathing difficulty.
+- **Potassium:** High levels can cause dangerous heart rhythm problems.
+- **Phosphorus:** Build-up leads to weak, brittle bones and itchy skin.
+- **Protein:** Needs change based on dialysis type; PD patients often need **more** protein.`,
+
+   "dialysis diet: practical tips for success": `Managing a dialysis diet is a balancing act. Here are practical strategies to help you succeed:
+
+**1. Controlling Thirst & Fluids:**
+- **Sodium First:** The best way to reduce thirst is to limit salt. 
+- **Ice Cubes:** Suck on ice instead of drinking water (it lasts longer).
+- **Mouth Care:** Chew gum, suck on sour hard candy, or rinse your mouth without swallowing.
+
+**2. Choosing Good Foods:**
+- **Healthy Proteins:** Lean meat, poultry, fish, and eggs (especially for PD).
+- **Kidney-Safe Veg:** Peppers, onions, cabbage, and cauliflower.
+- **Label Reading:** Always check for "Sodium Free" and "No added phosphorus."
+
+**3. Type-Specific Rule:**
+- **Hemodialysis:** Usually requires the most strict limit on potassium and fluid.
+- **Peritoneal Dialysis (PD):** May allow more potassium but requires higher protein intake.`,
+
+   "what is potassium?": `Potassium is a mineral found in most foods that your body needs to work normally. It keeps your heart beating and helps your nerves and muscles work. 
+
+However, your body only needs a specific amount. Too much or too little potassium in the blood can cause serious health problems. Having too much is called **hyperkalemia**, which can cause heart rhythm issues and muscle weakness.`,
+
+   "who needs a low-potassium diet?": `People usually follow a low-potassium diet to treat or prevent high potassium levels (**hyperkalemia**). Common reasons include:
+
+- **Kidney Disease:** Healthy kidneys filter out extra potassium. When kidneys are damaged, potassium builds up in the blood.
+- **Dialysis:** Most people on dialysis need to limit potassium because the treatment doesn't filter it as constantly as healthy kidneys.
+- **Medications:** Certain blood pressure and heart medicines can cause the body to hold on to extra potassium.`,
+
+   "what is a low-potassium diet?": `A low-potassium diet involves choosing foods with lower levels of the mineral and strictly limiting high-potassium options.
+
+**Success Strategies:**
+- **Work with a Dietitian:** They will help you plan meals and tell you exactly how much potassium you should have daily.
+- **Read Nutrition Labels:** Check the **"Potassium"** amount and the **"Serving Size."** Remember, if you eat two servings, you are getting twice the potassium listed.
+- **Prepare Foods Properly:** Use techniques like "leaching" (soaking) to remove potassium from vegetables.`,
+
+   "high vs. low potassium foods": `Making the right choices can safely keep your potassium in the "Green Zone."
+
+**Lower Potassium (Safe to eat in moderation):**
+- **Fruits:** Apples, berries, grapes, peaches, pears, pineapple.
+- **Vegetables:** Green beans, cabbage, cauliflower, cucumber, lettuce, onions, peppers.
+- **Grains:** White bread (not whole grain), white rice, pasta.
+
+**Higher Potassium (Avoid or limit strictly):**
+- **Fruits:** Bananas, mangoes, kiwis, oranges, pomegranates, dried fruits.
+- **Vegetables:** Potatoes, tomatoes, spinach, avocados, pumpkins.
+- **Other:** Chocolate, nuts, beans, lentils, yogurt, and salt substitutes (Potassium Chloride).`,
+
+   "ways to cut down on potassium": `Beyond food choices, how you prepare your meals makes a big difference:
+
+- **Draining Canned Food:** Always discard the liquid from canned fruits, vegetables, or meats. Potassium leaches into the juice.
+- **The Leaching Process:** For raw or frozen vegetables (like potatoes or carrots):
+  1. Peel and slice into thin pieces. 
+  2. Soak in warm, unsalted water for at least 2 hours.
+  3. Drain and rinse in warm water.
+  4. Cook in fresh, unsalted water.
+- **Small Portions:** If you really want a high-potassium food, eat a very small portion (e.g., one slice of a tomato) instead of a whole serving.`,
+
+   "should i eat less sodium?": `Nearly everyone eats too much sodium (table salt). While the body needs a tiny amount, excess sodium causes high blood pressure and strains the heart and kidneys.
+
+**Benefits of Reducing Sodium:**
+- **Lower Blood Pressure:** Reduces risk of stroke, heart attack, and kidney damage.
+- **Fluid Balance:** Minimizes fluid retention/swelling (edema) in ankles and belly.
+- **Kidney Protection:** Prevents kidneys from overworking and reduces the risk of kidney stones.
+- **Bone Health:** Helps keep bones strong.
+
+**Goal:** Most experts recommend a limit of **2,300 mg** per day, but kidney patients may need even less (check with your doctor).`,
+
+   "which foods have the most sodium?": `Processed and restaurant foods contribute most of the sodium in our diets. Even foods that don't taste salty can be high in sodium.
+
+**Common High-Sodium Sources:**
+- **Canned Goods:** Soups, beans, and vegetables.
+- **Processed Meats:** Deli meats, hot dogs, and sausages.
+- **Packaged Meals:** Frozen dinners and instant noodle/rice mixes.
+- **Condiments:** Ketchup, mustard, pickles, and soy sauce.
+- **Snacks:** Salted nuts, chips, and crackers.
+- **Bakery Items:** Many sweet breads and muffins use sodium bicarbonate (baking soda).`,
+
+   "how to reduce sodium in my diet?": `The most important step is choosing fresh ingredients over processed ones.
+
+**Grocery Tips:**
+- **Buy Fresh:** Choose fresh or "fresh-frozen" (no added salt) fruits and vegetables.
+- **Fresh Proteins:** Buy fresh meats and fish instead of canned or deli counter versions.
+- **Read Labels:** Choose items labeled "Sodium Free" or "Very Low Sodium." Aim for foods with **<400mg** per serving.
+- **Check Medicines:** Avoid over-the-counter meds with "sodium carbonate/bicarbonate" unless prescribed.
+
+**Dining Out Tips:**
+- **Plain is Better:** Choose grilled meats/fish and steamed vegetables.
+- **Sauce on the Side:** Avoid pre-made sauces and dressings; use oil and vinegar instead.
+- **Special Requests:** Ask your server to have your meal prepared without added salt.
+
+**Flavor Without Salt:**
+Your taste buds take time to adjust. Enhance flavor using herbs, spices, lemon juice, or vinegar instead of the salt shaker.`,
+
+   "what is fluid restriction and how to manage it?": `Fluid restriction means limiting the total amount of liquids you take in through both drinks and "hidden" sources in food. This is necessary when your body holds on to too much water due to kidney or heart problems.
+
+**What Counts as Fluid?**
+- **All Drinks:** Water, soda, juice, tea, coffee, flavored water, and alcohol.
+- **Room Temp Liquids:** Ice, freezer pops, soup, broth, milkshakes, and smoothies.
+- **Hidden Fluids (High-Water Foods):** 
+    - **Fruits:** Watermelon, melons, oranges, grapes, strawberries, etc.
+    - **Vegetables:** Cucumber, zucchini, celery, tomatoes, spinach, etc.
+
+**Practical Management Tips:**
+- **Spreading Intake:** Spread your allowed fluids throughout the day, often with meals and snacks.
+- **Track Everything:** Use a marked water bottle to visualize your daily allowance.
+- **Small Sips:** Use small cups and take small sips rather than large gulps.
+- **Timing:** Use your allowed drinks to take your medications.
+- **Drainage:** Always drain liquid from canned/cooked fruits or vegetables before eating.
+
+**Managing Thirst Without Drinking:**
+- **Sucking:** Use hard candy, mints, or a lemon slice to help with dry mouth.
+- **Mouth Care:** Brush your teeth or gargle with cold mouthwash (don't swallow).
+- **Cold Relief:** Suck on ice or frozen fruit (be sure to count the volume).
+- **Distraction:** Keep busy to focus less on being thirsty.`,
+
+   "diet for kidney stones": `A kidney-friendly diet can significantly lower the risk of forming new stones. 
+
+**Common Stone Types & Diet Tips:**
+- **Calcium Oxalate Stones:** Limit foods high in oxalate like **spinach, rhubarb, strawberries, chocolate, almonds, peanuts, beets, tea, and whole-wheat**. Limit non-dairy animal proteins (meat/eggs) and avoid Vitamin C supplements.
+- **Uric Acid Stones:** Limit high-purine foods like **oats, whole milk, asparagus, and certain meats and fish**.
+
+**General Recommendations:**
+- **Eat Healthy:** Focus on a balanced thali with plenty of fruits, whole grains, and low-fat dairy. Extra fruits and vegetables high in **potassium** can also help.
+- **Fluids (Most Important):** Drink more water throughout the day to help "flush" all types of kidney stones.
+- **Limit Salt:** Reduce processed foods and restaurant meals. 
+- **Calcium Balance:** Getting enough dietary calcium is vital for bones, but consult your doctor before taking **calcium or vitamin D supplements**, as they can sometimes trigger stone formation.
+
+**Smart Swaps:**
+- **Choose:** Fresh fruits, low-fat yogurt, lentils, tofu, and unsalted crackers.
+- **Avoid:** Canned or frozen meals high in sodium, excessive dark colas, and sugar-added juices.`
 };

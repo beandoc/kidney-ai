@@ -32,12 +32,14 @@ export const BASICS_MENU: MenuOption[] = [
     { label: "Yearly Check-Up", text: "the silent worker: yearly kidney check-up", icon: "📅" },
     { label: "Is it Reversible?", text: "kidney damage: is it possible to reverse?", icon: "⏳" },
     { label: "Hitting the Brakes", text: "hitting the brakes on ckd", icon: "🛑" },
+    { label: "Kidney Cancer", text: "What is kidney cancer?", icon: "🎗️" },
     { label: "⬅️ Back to Explore", text: "Show Explore Menu", icon: "⬅️" },
 ];
 
 export const GN_MENU: MenuOption[] = [
     { label: "Nephrotic Syndrome", text: "what is nephrotic syndrome?", icon: "💧" },
     { label: "Nephritic Syndrome", text: "what is nephritic syndrome?", icon: "🩸" },
+    { label: "IgA Nephropathy", text: "What is iga nephropathy?", icon: "🔬" },
     { label: "Diagnosis & Biopsy", text: "diagnostic process for glomerular disease", icon: "🔬" },
     { label: "Management/Rituximab", text: "management approach for glomerular disease", icon: "💊" },
     { label: "What is RPGN?", text: "what is rpgn?", icon: "⚠️" },

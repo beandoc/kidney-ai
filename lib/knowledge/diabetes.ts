@@ -195,5 +195,63 @@ Try to do different kinds of activities to stay safe and healthy:
 *   **S**peech difficulty.
 *   **T**ime to call emergency services.
 
-*Call for help immediately if you or someone else has these symptoms. Getting treatment within the first hour is critical.*`
+*Call for help immediately if you or someone else has these symptoms. Getting treatment within the first hour is critical.*`,
+
+    "can diabetes cause kidney problems?": `Yes. People with diabetes have a significantly increased risk of kidney disease, medically known as **diabetic nephropathy**.
+
+**How it happens:**
+The kidneys contain millions of tiny blood vessel clusters (filters) that clean waste from your blood. High blood sugar levels from diabetes can damage these filters over time. When damaged, the kidneys can't do their job properly, which can eventually lead to kidney failure.`,
+
+    "what are the symptoms of kidney disease caused by diabetes?": `In the early stages, diabetic kidney disease usually has **no symptoms**. As the disease progresses, you may notice:
+
+- **Edema:** Swelling in your feet, ankles, or legs.
+- **High Blood Pressure:** Which can also worsen existing kidney damage.
+- **Proteinuria:** Foamy urine (caused by protein leaking into the urine).
+- **Systemic Signs:** Feeling very tired (anemia), loss of appetite, and nausea.
+- **Bone Issues:** Weakened bones due to mineral imbalances.`,
+
+    "is there a test for kidney disease if i have diabetes?": `Yes. If you have diabetes, your doctor will perform regular screenings to catch kidney issues early:
+
+- **Urine Test (uACR):** Checks for "albumin," a protein that shouldn't be in your urine if kidneys are healthy.
+- **Blood Test (eGFR):** Measures how well your kidneys are filtering your blood.
+- **Regularity:** These tests should be done at least once a year. If disease is found, they may be done every few months to monitor progression.`,
+
+    "is there anything i can do to protect my kidneys if i have diabetes?": `You can take several proactive steps to lower your risk or slow down existing kidney disease:
+
+**1. Clinical Management:**
+- **Blood Sugar:** Keep your A1C close to your target (usually <7%).
+- **Blood Pressure:** Manage your BP (target is often <130/80).
+- **Meds:** Take your diabetes and BP medicines exactly as prescribed.
+
+**2. Lifestyle Changes:**
+- **Healthy Diet:** Choose kidney-friendly, low-salt foods.
+- **Physical Activity:** Regular movement helps control sugar and weight.
+- **Smoking:** Quit smoking to protect your heart and blood vessels.
+- **Alcohol:** Limit intake to reduce strain on your system.
+
+**3. Medicine Safety:**
+- **Avoid NSAIDs:** Do not take Ibuprofen (Advil/Motrin) or Naproxen (Aleve) without a doctor's approval, as they can harm kidneys.
+- **Consult First:** Always check before starting new supplements or over-the-counter meds.`,
+
+    "medical treatments for diabetic kidney disease": `While kidney disease cannot be reversed, modern treatments can significantly slow it down:
+
+- **ACE Inhibitors or ARBs:** Blood pressure medicines that specifically protect kidney filters.
+- **SGLT2 Inhibitors:** A newer class of diabetes meds (like Jardiance, Farxiga, or Invokana) that provide direct protection to the heart and kidneys.
+- **Blood Sugar Meds:** Proper insulin or oral medications to reduce the "syrup-like" effect of high sugar on filters.
+- **Nephrologist:** If disease progresses, you should see a kidney specialist for advanced management.`,
+
+    "diabetes, kidney disease, and pregnancy": `If you have diabetes and/or kidney disease and want to get pregnant, **plan ahead with your doctor**:
+
+- **Pre-pregnancy Planning:** Kidney disease can increase risks for both parent and baby.
+- **Medicine Check:** Some common kidney and BP medicines are **not safe** during pregnancy and must be switched before you conceive.
+- **Close Monitoring:** You will need a specialized healthcare team to manage sugar and kidney function during pregnancy.`,
+
+    "what happens if my kidneys stop working completely?": `When kidneys lose most or all of their ability to filter blood (<15% function), it is called **kidney failure** or **end-stage kidney disease (ESRD)**.
+
+**Your Treatment Choices:**
+1. **Kidney Transplant:** Surgery to place a healthy donor kidney into your body. This is often the best option for long-term health.
+2. **Dialysis:** Treatment that takes over the filtering job of the kidneys.
+   - **Hemodialysis:** A machine filters your blood (usually 3 times a week at a center).
+   - **Peritoneal Dialysis:** A daily treatment you perform at home using a special fluid in your abdomen.
+3. **Comfort Care:** Choosing not to have a transplant or dialysis. This involves medical care to manage symptoms and ensure comfort.`
 };

@@ -35,7 +35,7 @@ const WELCOME_OPTIONS = [
 
 export default function ChatComponent() {
     const [mounted, setMounted] = useState(false);
-    const [user, setUser] = useState<{ id: string; username: string } | null>(null);
+    const [user, setUser] = useState<{ id: string; username: string; navigationOnly?: boolean } | null>(null);
     const [messages, setMessages] = useState<Message[]>([
         {
             id: "welcome",
@@ -92,8 +92,9 @@ export default function ChatComponent() {
         // Check for existing user session
         const storedId = localStorage.getItem("kidney_ai_user_id");
         const storedUsername = localStorage.getItem("kidney_ai_username");
+        const storedNavOnly = localStorage.getItem("kidney_ai_navigation_only") === "true";
         if (storedId && storedUsername) {
-            setUser({ id: storedId, username: storedUsername });
+            setUser({ id: storedId, username: storedUsername, navigationOnly: storedNavOnly });
         }
     }, []);
 
@@ -135,6 +136,7 @@ export default function ChatComponent() {
     const handleSignOut = () => {
         localStorage.removeItem("kidney_ai_user_id");
         localStorage.removeItem("kidney_ai_username");
+        localStorage.removeItem("kidney_ai_navigation_only");
         setUser(null);
         clearChat();
     };
@@ -320,8 +322,9 @@ export default function ChatComponent() {
 
     return (
         <div className="flex h-screen bg-[#E5DDD5] overflow-hidden relative">
-            {!user && <LoginWall onLogin={(id, username) => {
-                setUser({ id, username });
+            {!user && <LoginWall onLogin={(id: string, username: string, navigationOnly?: boolean) => {
+                localStorage.setItem("kidney_ai_navigation_only", navigationOnly ? "true" : "false");
+                setUser({ id, username, navigationOnly });
                 clearChat(); // Immediate clean slate on every login
             }} />}
             {user?.username?.toLowerCase().includes('sachin') && (
@@ -381,6 +384,7 @@ export default function ChatComponent() {
                     setSelectedImage={setSelectedImage}
                     isLoading={isLoading}
                     handleSubmit={handleSubmit}
+                    isReadOnly={user?.navigationOnly}
                 />
             </div>
         </div>

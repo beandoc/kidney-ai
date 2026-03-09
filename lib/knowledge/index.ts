@@ -9,6 +9,12 @@ import { PROCEDURES_ANSWERS } from './procedures';
 import { STONES_ANSWERS } from './stones';
 import { INFECTIONS_ANSWERS } from './infections';
 import { GN_ANSWERS } from './gn';
+import { PROTEINURIA_ANSWERS } from './proteinuria';
+import { EDEMA_ANSWERS } from './edema';
+import { LUPUS_ANSWERS } from './lupus';
+import { PKD_ANSWERS } from './pkd';
+import { PAIN_ANSWERS } from './pain';
+import { HYPERTENSION_ANSWERS } from './hypertension';
 
 export const GOLD_ANSWERS: Record<string, string> = {
     ...BASICS_ANSWERS,
@@ -21,5 +27,11 @@ export const GOLD_ANSWERS: Record<string, string> = {
     ...PROCEDURES_ANSWERS,
     ...STONES_ANSWERS,
     ...INFECTIONS_ANSWERS,
-    ...GN_ANSWERS
+    ...GN_ANSWERS,
+    ...PROTEINURIA_ANSWERS,
+    ...EDEMA_ANSWERS,
+    ...LUPUS_ANSWERS,
+    ...PKD_ANSWERS,
+    ...PAIN_ANSWERS,
+    ...HYPERTENSION_ANSWERS
 };

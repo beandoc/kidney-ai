@@ -33,13 +33,20 @@ export async function POST(request: Request) {
         }
 
         // New user — only admin can self-register, others are blocked
-        if (!isAdmin) {
+        if (!isAdmin && cleanUsername !== 'opduser') {
             return NextResponse.json({
                 error: "Account not found. Access is limited to registered clinicians. Please contact the administrator to create your account."
             }, { status: 403 });
         }
 
-        // Register admin for the first time
+        // Check if opduser is trying to register with the correct password
+        if (cleanUsername === 'opduser') {
+            if (password !== '0987654321') {
+                return NextResponse.json({ error: "Invalid password for OPD user." }, { status: 401 });
+            }
+        }
+
+        // Register new user (admin or opduser)
         let passwordHash;
         if (password) {
             const bcrypt = await import("bcryptjs");
@@ -47,6 +54,14 @@ export async function POST(request: Request) {
         }
 
         const user = await registerUser(username, mobile, passwordHash);
+
+        // If it was opduser, we need to make sure the record reflects navigationOnly
+        if (cleanUsername === 'opduser') {
+            const { updateUserInfo } = await import("../../../../lib/users");
+            await updateUserInfo(user.id, { navigationOnly: true });
+            user.navigationOnly = true;
+        }
+
         return NextResponse.json(user);
     } catch (error) {
         console.error("Register error:", error);

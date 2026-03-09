@@ -159,5 +159,136 @@ Creatinine is a waste product from muscle metabolism—it is the "Report Card" o
 2. What are my goal **A1C and blood glucose** levels?
 3. What is my **"dry weight"**, and when should I worry about changes?
 4. Are there any test results you are particularly concerned about?
-5. Do any of my results have a different goal range than what's listed on the lab report?`
+5. Do any of my results have a different goal range than what's listed on the lab report?`,
+
+   "what is a kidney biopsy?": `A kidney (renal) biopsy is a procedure where a tiny sample of kidney tissue is removed and examined under a microscope. 
+
+**Why it's done:**
+A biopsy is recommended when blood and urine tests don't provide enough information. It helps your doctor:
+- **Identify the Cause:** Especially for unexplained blood (**hematuria**) or high/increasing protein (**proteinuria**) in the urine.
+- **Assess Function:** When kidneys suddenly or slowly stop functioning normally and the cause is unclear.
+- **Plan Treatment:** Determine the severity of damage and the most effective treatment plan.`,
+
+   "how to prepare for a kidney biopsy": `Your medical team will provide specific instructions, but common preparation includes:
+
+**1. Preliminary Testing:**
+You may need blood tests to check for clotting abnormalities or active infections before the procedure.
+
+**2. Medication Management (Crucial):**
+To decrease bleeding risk, you may need to stop certain medications **1-2 weeks** before:
+- **Pain relievers:** Aspirin, Ibuprofen (Advil, Motrin), Naproxen (Aleve).
+- **Blood thinners:** Warfarin (Jantoven), Rivaroxaban (Xarelto), Apixaban (Eliquis), Clopidogrel (Plavix), or Heparin.
+- **Supplements:** Fish oil, ginkgo biloba, or other herbal products.
+
+**3. Fasting:**
+You may be asked to "fast" (not eat or drink) for a certain period before the biopsy.
+
+**4. Planning Home Care:**
+You will need someone to drive you home and stay with you during the initial hours of recovery.`,
+
+   "what happens during a kidney biopsy?": `The procedure is usually performed while you are awake with local anesthesia to numb the area.
+
+**Common Types:**
+- **Percutaneous Biopsy:** The most common way. The doctor uses a thin needle, often guided by **ultrasound, X-ray, or CT scan**, to take tissue samples through the skin on your back.
+- **Surgical (Open) Biopsy:** Performed under general anesthesia. A small cut is made to obtain the tissue directly. 
+- **Rare Approaches:** Transjugular (via neck vein) or laparoscopic methods.
+
+**Laboratory Examination:**
+The tissue is sent to a lab to look for **scarring, infection, or abnormalities**. Results are typically available within **1-2 weeks** (sooner in urgent cases).`,
+
+   "recovery after a kidney biopsy": `- **Observation:** You will stay in a recovery unit for several hours (or overnight) to monitor for complications.
+- **Monitoring:** You may have blood drawn or repeat ultrasounds/X-rays to check for internal bleeding.
+- **Urination:** Your staff will monitor your urine for blood.
+- **Initial Rest:** Once home, do NOT perform heavy lifting or vigorous exercise for **1-2 weeks**.
+- **Medications:** Do not restart aspirin or blood thinners until your doctor specifically says it is safe.`,
+
+   "risks of a kidney biopsy": `While generally safe, all procedures carry some risk:
+- **Bleeding:** The most common complication. Many notice some blood in the urine for a few days.
+- **Pain:** Discomfort at the site usually resolves within hours with medication.
+- **Arteriovenous Fistula:** A rare injury to a nearby artery and vein that creates an abnormal connection. These usually close on their own.
+- **Other Rare Risks:** Infection, damage to nearby organs, or urine leaks.
+
+**When to notify your doctor immediately:**
+1. Your urine is bright red or brown for longer than **one week**.
+2. You have **severe or prolonged pain** at the biopsy site.
+3. You develop a fever of 100.4°F (38°C) or higher.`,
+
+   "kidney biopsy: home care and aftercare": `After your biopsy, it's vital to follow these instructions to ensure proper healing and avoid complications:
+
+**1. Site Care:**
+- **Keep it Dry:** Keep the biopsy site dry and covered with a bandage for the first **1 to 2 days**.
+- **Cleaning:** Once cleared by your doctor, gently wash the area with soap and water during showers. **Do not** soak the site in a bath, pool, or hot tub until fully healed.
+- **Hygiene:** Always wash your hands before and after touching the site or changing the bandage.
+
+**2. Physical Activity:**
+- **Take it Easy:** Slowly increase your activity over 1 to 2 weeks.
+- **Limitations:** Avoid heavy lifting, contact sports, or any activity that could cause rough contact to your back/kidney area.
+
+**3. Medications:**
+- **Follow Orders:** Take all medicines exactly as instructed. 
+- **Resuming Meds:** Confirm with your doctor exactly when it is safe to restart any blood thinners or NSAIDs you stopped before the procedure.
+
+**4. When to Call Your Doctor:**
+Contact your medical team immediately if you experience:
+- **Fever:** 100.4°F (38°C) or higher, or chills.
+- **Site Issues:** Drainage, redness, or increasing swelling at the biopsy site.
+- **Severe Pain:** New or worsening pain at the site.
+- **Urine Changes:** Bloody urine that doesn't clear after 24 hours, or urine that looks dark red/brown.
+- **Urination Problems:** Inability to urinate or a burning sensation when urinating.`,
+
+   "how to collect a 24-hour urine specimen": `A 24-hour urine specimen collection allows your doctor to see the exact amount of protein, waste, and minerals your kidneys process in a full day.
+
+**Step-by-Step Instructions:**
+1. **Start Day 1:** In the morning, urinate into the toilet (flush it). Note this exact time (e.g., 6:15 AM). This is your starting point.
+2. **Collect Every Drop:** For the next 24 hours, collect every single drop of urine passed during the day and night into the empty collection bottle provided.
+3. **Storage:** Keep the collection bottle cool or in the refrigerator throughout the process.
+4. **End Day 2:** The next morning, exactly 24 hours after you started (e.g., 6:15 AM), collect the final urine passed and add it to the bottle.
+5. **Lab Return:** Return the bottle(s) to your healthcare provider or the lab immediately after the final collection.
+
+**Important Tips:**
+- If you have a bowel movement, any urine passed with it should still be collected (try to avoid including feces).
+- Do not stop the collection early.
+- Note the exact time of your final collection, even if it differs slightly from when you started.`,
+
+   "what is a urine culture?": `A urine culture is a lab test that checks your urine for bacteria, yeast, and other germs.
+
+**Why it's done:**
+- To confirm a urinary tract infection (UTI).
+- To identify the specific germ causing the infection.
+- To determine which antibiotic will be most effective (sensitivity testing).
+- To check for bacteria if you are pregnant or about to have urinary tract surgery.
+
+**Preparation:**
+You do not need to fast. However, you may be asked to avoid urinating for about an hour before the test and to drink extra water so you are ready to provide a sample.
+
+**How to collect a "Clean Catch" sample:**
+1. **Wash Hands:** Always start with soap and water.
+2. **Clean Genital Area:** Use the special wipe provided (wipe front to back).
+3. **Mid-stream Collection:** Start urinating into the toilet, then stop. Place the cup under the stream, start urinating again, and catch the "middle" portion of your urine.
+4. **Finish:** Finish urinating into the toilet and give the capped sample to your nurse.
+
+**Your Results:**
+- **Positive:** Germs were found. Your doctor will prescribe an antibiotic targeted at that specific germ.
+- **Negative:** No significant germs were found. If you still have symptoms, your doctor may order other tests.
+- **Results Timing:** It usually takes a few days for germs to grow in the lab.`,
+
+   "what is a urinalysis?": `A urinalysis is a standard lab test to check your urine for health problems.
+
+**How it's done:**
+The lab performs three main checks:
+1. **Visual Exam:** Checking color, clarity, and smell for clues.
+2. **Dipstick Test:** Using a special test strip to check for **protein, blood, and sugar**.
+3. **Microscopic Exam:** Looking for cells, germs, and tiny crystals.
+
+**Why it's done:**
+- To screen for kidney disease or injury.
+- To diagnose symptoms of a urinary tract infection (UTI).
+- To monitor conditions like diabetes that affect the kidneys.
+
+**Preparation & Collection:**
+- Avoid urinating for an hour before the test.
+- Drink water shortly before the test to help you urinate.
+- Use the **"Clean Catch"** method: wash hands, clean the area, start urinating into the toilet, then collect "mid-stream" urine in the cup without touching its rim to your skin.
+
+*Urinalysis results give your doctor an idea of how well your kidneys are working and help decide if you need more tests.*`
 };
