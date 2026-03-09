@@ -11,7 +11,7 @@ import SuggestedQuestions from "./chat/SuggestedQuestions";
 import { Message } from "./chat/types";
 import LoginWall from "./chat/LoginWall";
 
-const WELCOME_MESSAGE = `Hello! I'm **Nirogyam ChatBot** — I am here to assist you with all your questions about Kidney Health, and consultation with **Dr Sachin**.
+const WELCOME_MESSAGE = `Hello! I'm **Nirogyam Kidney AI ChatBot** — I am here to assist you with all your questions about Kidney diseases, and guide you for better Kidney health.
 
 Learn more about our services, or get more information. I'm here to help you every step of the way. Let's ensure you have a wonderful experience!
 

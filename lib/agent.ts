@@ -47,7 +47,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
 
    // TIER -1: Navigation & Menus (Zero Tokens)
    if (normalizedInput === "menu" || normalizedInput === "options" || normalizedInput === "show main menu" || normalizedInput === "hi" || normalizedInput === "hello") {
-      yield "Namaste! I am your Kidney Health Assistant. Tap below to explore my services!" + getMenuPayload(MAIN_MENU);
+      yield "Hello! I'm **Nirogyam Kidney AI ChatBot** — I am here to assist you with all your questions about Kidney diseases, and guide you for better Kidney health." + getMenuPayload(MAIN_MENU);
       return;
    }
 
