@@ -275,7 +275,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
       // STEP 1.2: CONDITIONAL RERANKING
       let finalDocs = uniqueDocs;
       if (uniqueDocs.length > 1) {
-         yield `<thought>High-level guidance says: ${uniqueDocs[0].metadata.summary?.slice(0, 100)}... Now reranking the most important 4 clinical chunks.</thought>`;
+         // yield `<thought>High-level guidance says: ${uniqueDocs[0].metadata.summary?.slice(0, 100)}...</thought>`;
          const topCandidates = uniqueDocs.slice(0, 4);
          const remainingDocs = uniqueDocs.slice(4);
          const reranked = await timeoutPromise(rerankDocuments(finalSearchQuery, topCandidates), 8000, "Reranking");
