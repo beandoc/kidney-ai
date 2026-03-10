@@ -4,23 +4,63 @@ import { searchPageIndex, formatPageIndexContext } from "./pageindex/retrieval";
 import { getChatModel } from "./langchain/config";
 import { refineQuery, rerankDocuments } from "./langchain/vectorStore";
 import { getCachedResponse, setCachedResponse } from "./cache";
-import { MAIN_MENU, DISEASE_MENU, LABS_MENU, TRANSPLANT_MENU, VACCINE_MENU, DISCHARGE_MENU, EXPLORE_MENU, BASICS_MENU, GN_MENU, DIALYSIS_MENU, PD_MENU, STONES_MENU, DIET_MENU, getMenuPayload } from "./menu";
+import {
+   MAIN_MENU, DISEASE_MENU, LABS_MENU, TRANSPLANT_MENU, VACCINE_MENU, DISCHARGE_MENU, EXPLORE_MENU,
+   BASICS_MENU, GN_MENU, DIALYSIS_MENU, PD_MENU, STONES_MENU, DIET_MENU,
+   PD_BASICS_MENU, PD_CARE_MENU, PD_SAFETY_MENU, PD_LIFESTYLE_MENU, PD_LOGISTICS_MENU,
+   TRANSPLANT_PREP_MENU, TRANSPLANT_SURGERY_MENU, TRANSPLANT_LIFE_MENU,
+   getMenuPayload, MenuOption
+} from "./menu";
 import { searchSemantic } from "./langchain/pinecone";
 
 // Future-proofed modular imports
 import { GOLD_ANSWERS } from "./knowledge/index";
 import { virtualLocalModel } from "./agent/classifier";
-import { buildContextAwareQuery, prewarmAgent } from "./agent/utils";
-import { getDynamicGoldAnswers, logFailedQuery } from "./redis";
+import { buildContextAwareQuery, prewarmAgent, levenshteinDistance } from "./agent/utils";
+import { getDynamicGoldAnswers, logFailedQuery, logFeedback } from "./redis";
 import { findGoldMatch } from "./agent/triggers";
 
 export { prewarmAgent };
 
 // --- Main Agent Loop ---
-export async function* runAgent(input: string, chatHistory: BaseMessage[], image?: string, isNavigationOnly: boolean = false) {
+export async function* runAgent(input: string, chatHistory: BaseMessage[], image?: string, isNavigationOnly: boolean = false): AsyncGenerator<string, void, unknown> {
    console.log(JSON.stringify({ event: "AgentStart", query: input, historyLength: chatHistory.length, hasImage: !!image, isNavigationOnly }));
 
    const normalizedInput = input.trim().toLowerCase();
+
+   // TIER -2: Instant Language Toggle Logic
+   // If the user just says "Hindi" or "Marathi", they want to flip the PREVIOUS response.
+   const supportedLanguageFlipCommands: Record<string, string> = {
+      "hindi": "hi", "हिंदी": "hi", "marathi": "mr", "मराठी": "mr", "english": "en", "angrezi": "en",
+      "tell in hindi": "hi", "hindi mein batao": "hi", "marathi madhe sanga": "mr", "tell in marathi": "mr"
+   };
+
+   if (supportedLanguageFlipCommands[normalizedInput] && chatHistory.length > 0) {
+      const lastUserMsg = [...chatHistory].reverse().find(m => m instanceof HumanMessage && m.content.toString().length > 10);
+      if (lastUserMsg) {
+         const previousQuery = lastUserMsg.content.toString();
+         const targetLang = normalizedInput;
+         console.log(JSON.stringify({ event: "InstantLanguageFlip", from: previousQuery, to: targetLang }));
+         yield* runAgent(`${previousQuery} in ${targetLang}`, chatHistory.slice(0, -1), undefined, isNavigationOnly);
+         return;
+      }
+   }
+
+   // Handle Feedback/Rating Commands (Format: "rating:5:previous_query:previous_response")
+   if (normalizedInput.startsWith("rating:")) {
+      try {
+         const parts = input.split(":");
+         const rating = parseInt(parts[1]);
+         const previousQuery = parts[2] || "unknown";
+         const previousResponse = parts.slice(3).join(":") || "unknown";
+
+         await logFeedback(previousQuery, previousResponse, rating);
+         yield "Thank you for your feedback! It helps me provide better kidney care guidelines. Is there anything else you'd like to learn today?";
+         return;
+      } catch (e) {
+         console.error("Failed to parse rating:", e);
+      }
+   }
 
    // TIER -2: Image Analysis (Multimodal OCR)
    if (image) {
@@ -47,7 +87,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
 
    // TIER -1: Navigation & Menus (Zero Tokens)
    if (normalizedInput === "menu" || normalizedInput === "options" || normalizedInput === "show main menu" || normalizedInput === "hi" || normalizedInput === "hello") {
-      yield "Hello! I'm **Nirogyam Kidney AI ChatBot** — I am here to assist you with all your questions about Kidney diseases, and guide you for better Kidney health." + getMenuPayload(MAIN_MENU);
+      yield "Hello! I'm **Nirogyam Kidney AI ChatBot**. I am here to assist with your **Post Hospital Discharge Pathway**, 🔍 **Explore Options**, and 🛡️ **Prevention Tips**." + getMenuPayload(MAIN_MENU);
       return;
    }
 
@@ -62,7 +102,22 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
    }
 
    if (normalizedInput === "show transplant menu") {
-      yield "Kidney Transplant is a life-changing procedure. Explore these topics to understand the process:" + getMenuPayload(TRANSPLANT_MENU);
+      yield "Kidney Transplant is a life-changing procedure. Explore these categories to understand the process:" + getMenuPayload(TRANSPLANT_MENU);
+      return;
+   }
+
+   if (normalizedInput === "show transplant prep menu") {
+      yield "Preparation and evaluation are the first steps toward a successful transplant:" + getMenuPayload(TRANSPLANT_PREP_MENU);
+      return;
+   }
+
+   if (normalizedInput === "show transplant surgery menu") {
+      yield "What to expect during the operation and the immediate recovery phase:" + getMenuPayload(TRANSPLANT_SURGERY_MENU);
+      return;
+   }
+
+   if (normalizedInput === "show transplant life menu") {
+      yield "Life after transplant requires commitment to medication and proactive health checks:" + getMenuPayload(TRANSPLANT_LIFE_MENU);
       return;
    }
 
@@ -97,7 +152,32 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
    }
 
    if (normalizedInput === "show pd menu") {
-      yield "Peritoneal Dialysis is a home-based treatment. Explore these topics to manage your care effectively:" + getMenuPayload(PD_MENU);
+      yield "Peritoneal Dialysis is a home-based treatment. Explore these categories to manage your care effectively:" + getMenuPayload(PD_MENU);
+      return;
+   }
+
+   if (normalizedInput === "show pd basics menu") {
+      yield "Foundational knowledge about how Peritoneal Dialysis works and choosing your schedule:" + getMenuPayload(PD_BASICS_MENU);
+      return;
+   }
+
+   if (normalizedInput === "show pd care menu") {
+      yield "Detailed guidance on catheter surgery and daily maintenance of your PD access:" + getMenuPayload(PD_CARE_MENU);
+      return;
+   }
+
+   if (normalizedInput === "show pd safety menu") {
+      yield "Critical steps for preventing infections and troubleshooting flow issues at home:" + getMenuPayload(PD_SAFETY_MENU);
+      return;
+   }
+
+   if (normalizedInput === "show pd lifestyle menu") {
+      yield "Managing your diet, medications, and physical activity while on PD:" + getMenuPayload(PD_LIFESTYLE_MENU);
+      return;
+   }
+
+   if (normalizedInput === "show pd logistics menu") {
+      yield "Everything you need to know about supplies, storage, and home sterilization:" + getMenuPayload(PD_LOGISTICS_MENU);
       return;
    }
 
@@ -127,20 +207,73 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
    // TIER 1: Gold Answer Matching (Zero Token Cost - Handled locally)
    let goldMatchKey: string | null = null;
 
-   const isTranslationRequested = normalizedInput.includes("hindi") || normalizedInput.includes("marathi") || normalizedInput.includes("translate") || normalizedInput.includes("urdu");
+   // Enhanced Language Detection (Devanagari Script Check)
+   const isHindiScript = /[\u0900-\u094F\u0966-\u097F]/.test(normalizedInput);
+   const isMarathiRequested = normalizedInput.includes("marathi") || normalizedInput.includes("मराठी") || /\b(आहे|काय|कसा|हो|नको|बघ|सांगा|सांग)\b/.test(normalizedInput);
+   const isHindiRequested = (normalizedInput.includes("hindi") || normalizedInput.includes("हिंदी") || isHindiScript) && !isMarathiRequested;
+   const isUrduRequested = normalizedInput.includes("urdu") || normalizedInput.includes("उर्दू");
+
+   const isTranslationRequested = isHindiRequested || isMarathiRequested || isUrduRequested || normalizedInput.includes("translate") || normalizedInput.includes("tell in") || normalizedInput.includes("bolava");
 
    const isComparison = normalizedInput.includes("compare") || normalizedInput.includes(" vs ") || normalizedInput.includes("difference") || normalizedInput.includes("than") || (normalizedInput.includes("calculate") && normalizedInput.includes("stage"));
+
+   // Tier 1 vs TIER 3 Routing: Treatment protocols and clinical deep-dives should use Dynamic RAG (Tier 3)
+   // instead of static Gold Answers to provide specific, high-quality medical guidance.
+   // EXCEPTION: Curated Gold topics should check Gold answers first to ensure procedure-specific accuracy.
+   const clinicalKeywords = [
+      "treatment", "management", "medicine", "medication", "dosage", "dose",
+      "protocol", "therapy", "clinical", "research", "mechanism", "surgery", "procedure", "cure", "heal",
+      "guideline", "scientific", "pathology", "diagnosis", "managing"
+   ];
+
+   // Robust Clinical Detection (with fuzzy typo tolerance)
+   const clinicalWords = normalizedInput.split(/\s+/);
+   const isClinicalDeepDive = clinicalKeywords.some((k: string) => {
+      // Direct word match
+      if (clinicalWords.some(w => w === k)) return true;
+      // Exact boundary match (handles some punctuation)
+      const regex = new RegExp(`\\b${k}\\b`, "i");
+      if (regex.test(normalizedInput)) return true;
+      // Typo tolerance: if a long word in input is 80%+ similar to a clinical keyword
+      if (k.length > 5) {
+         return clinicalWords.some(w => {
+            if (w.length < 5) return false;
+            const distance = levenshteinDistance(w, k);
+            return distance <= 2; // Allow 1-2 char typos in large words like 'treatmnet'
+         });
+      }
+      return false;
+   });
+
+   const curatedTopics = [
+      "transplant", "biopsy", "anca", "creatinine", "proteinuria", "fistula", "catheter", "dialysis",
+      "biopsy", "injection", "painkiller", "hyponatremia", "hyperkalemia", "sodium", "potassium", "salt", "stones", "ckd", "aki",
+      "हायपोनेट्रेमिया", "हाइपोनेट्रेमिया", "सोडियम", "पोटॅशियम", "पोटेशियम", "मिठ", "नमक"
+   ];
+   const isCuratedTopic = curatedTopics.some(t => normalizedInput.includes(t));
 
    const dynamicGold = await getDynamicGoldAnswers();
    const allGold = { ...GOLD_ANSWERS, ...dynamicGold };
 
-   // Tier 1 logic
-   if (!isComparison) {
-      if (allGold[normalizedInput]) {
+   // Set default target language for the session
+   const langCode = isMarathiRequested ? "mr" : isHindiRequested ? "hi" : isUrduRequested ? "ur" : null;
+
+   // Tier 1 logic: Prioritize intent-based Keyword Search, then Typo-matching Fuzzy Search.
+   if (allGold[normalizedInput] || (!isComparison && (!isClinicalDeepDive || isCuratedTopic))) {
+      // Step 1: Automatic routing for pre-translated menu clicks
+      if (langCode && allGold[`${normalizedInput}:${langCode}`]) {
+         goldMatchKey = `${normalizedInput}:${langCode}`;
+      }
+      else if (allGold[normalizedInput]) {
          goldMatchKey = normalizedInput;
       }
-      // Step 2: Fuzzy Match for Typos (Handles spelling/grammar errors)
-      else if (normalizedInput.length > 5) {
+      // Step 2: Keyword Search (Better for intent & sub-rules)
+      else if (!goldMatchKey) {
+         goldMatchKey = findGoldMatch(normalizedInput);
+      }
+
+      // Step 3: Fuzzy Match for Typos (Last resort fallback)
+      if (!goldMatchKey && normalizedInput.length > 5) {
          const goldKeys = Object.keys(allGold).filter(k => !k.includes(":") && k.length > 5);
          const fuse = new Fuse(goldKeys, {
             threshold: 0.28,
@@ -153,31 +286,61 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
             console.log(JSON.stringify({ event: "GoldMatch_Fuzzy", query: normalizedInput, match: goldMatchKey }));
          }
       }
-
-      // Step 3: Keyword Search (Broad Fallback)
-      if (!goldMatchKey) {
-         goldMatchKey = findGoldMatch(normalizedInput);
-      }
    }
+
+   // --- PREPARE METADATA DECORATOR (Toggles, Disclaimer, Guidance Menu) ---
+   // Map query/category to suggested follow-up menu
+   let suggestedMenu = MAIN_MENU;
+   let guidanceLabel = "\n\nExplore further clinical details:";
+   const combinedTopicStr = (goldMatchKey || normalizedInput + " " + (isCuratedTopic ? "curated" : "")).toLowerCase();
+
+   if (combinedTopicStr.includes("transplant")) {
+      suggestedMenu = TRANSPLANT_MENU;
+      guidanceLabel = "\n\nExplore our special Transplant Guidelines:";
+   } else if (combinedTopicStr.includes("lab") || combinedTopicStr.includes("creatinine") || combinedTopicStr.includes("gfr")) {
+      suggestedMenu = LABS_MENU;
+      guidanceLabel = "\n\nNeed help interpreting lab results?";
+   } else if (combinedTopicStr.includes("vaccin")) {
+      suggestedMenu = VACCINE_MENU;
+      guidanceLabel = "\n\nRecommended vaccinations for kidney patients:";
+   } else if (combinedTopicStr.includes("discharge") || combinedTopicStr.includes("care plan") || combinedTopicStr.includes("follow up") || combinedTopicStr.includes("fistula care") || combinedTopicStr.includes("catheter") || combinedTopicStr.includes("biopsy") || combinedTopicStr.includes("aki")) {
+      suggestedMenu = DISCHARGE_MENU;
+      guidanceLabel = "\n\nNeed post-discharge guidance for specific procedures?";
+   } else if (combinedTopicStr.includes("dialysis") || combinedTopicStr.includes("disease") || combinedTopicStr.includes("ckd")) {
+      suggestedMenu = DISEASE_MENU;
+      guidanceLabel = "\n\nLearn more about this condition from verified guidelines:";
+   }
+
+   // Add language flip options
+   const footerLanguageOptions: MenuOption[] = [];
+   const currentIsHindi = isHindiRequested;
+   const currentIsMarathi = isMarathiRequested;
+
+   if (!currentIsHindi) footerLanguageOptions.push({ label: "🌐 Read in Hindi", text: "Hindi", icon: "🇮🇳" });
+   if (!currentIsMarathi) footerLanguageOptions.push({ label: "🌐 Marathi (मराठी)", text: "Marathi", icon: "🚩" });
+   if (currentIsHindi || currentIsMarathi) footerLanguageOptions.push({ label: "🌐 Read in English", text: "English", icon: "🇬🇧" });
+
+   const finalMenuPayload = getMenuPayload([...footerLanguageOptions, ...suggestedMenu.slice(0, 3), { label: "⬅️ Main Menu", text: "Show Main Menu", icon: "🏠" }]);
+   const responseDecorator = "\n\n---\n**Disclaimer:** *This is for educational purposes only. Always follow your doctor's advice.*" + guidanceLabel + finalMenuPayload;
 
    if (goldMatchKey && allGold[goldMatchKey]) {
       const content = allGold[goldMatchKey];
       console.log(JSON.stringify({ event: "GoldMatch", key: goldMatchKey, translated: isTranslationRequested }));
 
       if (isTranslationRequested) {
-         const langCode = normalizedInput.includes("hindi") ? "hi" : normalizedInput.includes("marathi") ? "mr" : normalizedInput.includes("urdu") ? "ur" : null;
+         const langCode = isMarathiRequested ? "mr" : isHindiRequested ? "hi" : isUrduRequested ? "ur" : "hi";
          const targetLang = langCode === "hi" ? "Hindi" : langCode === "mr" ? "Marathi" : langCode === "ur" ? "Urdu" : "the requested language";
 
          // 1. TIER 0: Pre-translated expert content (Blazing Fast + Free)
          if (langCode && allGold[`${goldMatchKey}:${langCode}`]) {
             console.log(JSON.stringify({ event: "GoldMatch_PreTranslated", key: goldMatchKey, lang: langCode }));
-            yield allGold[`${goldMatchKey}:${langCode}`];
+            yield allGold[`${goldMatchKey}:${langCode}`] + responseDecorator;
             return;
          }
 
          // Block new translations for navigationOnly users to save costs
          if (isNavigationOnly) {
-            yield content + "\n\n*(Translation for this complex topic is limited to registered clinicians. Showing English version for accuracy)*" + getMenuPayload(MAIN_MENU);
+            yield content + "\n\n*(Translation for this complex topic is limited to registered clinicians. Showing English version for accuracy)*" + finalMenuPayload;
             return;
          }
 
@@ -188,16 +351,16 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
             const model = getChatModel();
             const translatePrompt = `Translate the following medical guidance exactly into ${targetLang}. Keep any medical terms (like creatinine, GFR, PD) in English in brackets if needed for clarity. Output ONLY the translated text.\n\nContent: ${content}`;
             const response = await model.invoke([new HumanMessage(translatePrompt)]);
-            yield response.content as string;
+            yield (response.content as string) + responseDecorator;
             return;
          } catch (e) {
             console.error("Translation of gold answer failed:", e);
-            yield content + "\n\n*(Translation failed, showing English version for safety)*";
+            yield content + "\n\n*(Translation failed, showing English version for safety)*" + responseDecorator;
             return;
          }
       }
 
-      yield content;
+      yield content + responseDecorator;
       return;
    }
 
@@ -286,32 +449,47 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
       let context = formatPageIndexContext(finalDocs);
       if (context.length > 8000) context = context.slice(0, 8000) + "\n...[truncated]";
 
-      // SOURCE SHORTENING
-      const cleanSourceName = (name: string) => {
-         return name.replace(/\.(pdf|md|docx|txt)$/i, "").replace(/-Guideline-English|-English|-Guideline/i, "").replace(/-/g, " ").replace(/AKI|CKD|AKI Trial/gi, "").trim();
+      // SOURCE SHORTENING with Null Safety
+      const cleanSourceName = (name: string | undefined | null) => {
+         if (!name) return "Guidelines";
+         const cleaned = name
+            .replace(/\.(pdf|md|docx|txt|ts|json)$/i, "")
+            .replace(/-Guideline-English|-English|-Guideline/i, "")
+            .replace(/-Merged$/i, "")
+            .replace(/_/g, " ")
+            .replace(/-/g, " ")
+            .replace(/AKI|CKD|AKI Trial/gi, "")
+            .trim();
+
+         const lower = cleaned.toLowerCase();
+         if (lower.includes("basics") || lower.includes("faq") || lower.includes("nirogyam") || lower.includes("health guide")) {
+            return "Nirogyam Kidney Guide";
+         }
+         return cleaned || "Clinical Guidelines";
       };
 
-      const sources = uniqueDocs.map(d => cleanSourceName(d.metadata.source));
+      const sources = uniqueDocs.map(d => cleanSourceName(d.metadata?.source));
       const uniqueSources = Array.from(new Set(sources));
 
+      const targetLanguageName = isMarathiRequested ? "Marathi" : isHindiRequested ? "Hindi" : isUrduRequested ? "Urdu" : "English";
       const model = getChatModel();
       const prompt = `
-            You are a Kidney Health Assistant. 
+            You are a Kidney Health Assistant. You must answer questions based strictly on the provided medical guidelines. 
             
-            TASK:
-            1. Language: Answer in the same language as the USER. (English/Hindi/Marathi).
-            2. Content: Answer using ONLY the provided Guidelines.
-            3. Citations: Use subtle inline citations like *[Source: KDIGO 2012]*. 
-               * Sources: ${uniqueSources.join(", ")}
-            4. **EXTREME BREVITY**: Max 2-3 concise sentences.
-            5. **SAFETY**: If not in guidelines, say "Sorry, I don't know the answer for this."
+            IMPORTANT:
+            1. **CITATIONS**: Use subtle inline citations like *[Source: Nirogyam Kidney Guide]* for every claim.
+               * AVAILABLE SOURCES: ${uniqueSources.join(", ")}
+               * CROSS-REFERENCE: Be extremely careful. Check the text snippet below. Every piece of advice MUST be attributed to its specific source.
+            2. **LANGUAGE**: You MUST answer in **${targetLanguageName}**. (Note: If ${targetLanguageName} is Marathi, do NOT use Hindi. Use Marathi words like 'आहे', 'कसा', 'सांगा ही' etc.)
+            3. **STRICT SOURCE**: Only attribute info to its actual source doc. Do NOT attribute info to "KDIGO" if it came from "Nirogyam Kidney Guide".
+            4. **STRUCTURE**: Use clear headings or bullet points.
             
             GUIDELINES:
             ${context}
             
             USER QUESTION: ${input}
             
-            Answer:
+            Response:
         `;
 
       const finalStream = await model.stream([...chatHistory, new HumanMessage(prompt)]);
@@ -327,37 +505,13 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
 
       // Log if AI failed to answer from guidelines
       if (fullResponse.toLowerCase().includes("don't know") || fullResponse.toLowerCase().includes("sorry")) {
-         logFailedQuery(input).catch(e => console.error("Failed to log query:", e));
+         logFailedQuery(input).catch((e: any) => console.error("Failed to log query:", e));
       }
 
-      // 6. SMART GUIDANCE (Guided Exploration)
-      // Map retrieved clinical category to a specific follow-up menu
-      const topCategory = uniqueDocs[0]?.metadata?.category?.toLowerCase();
-      let suggestedMenu = MAIN_MENU;
-      let guidanceLabel = "\n\nExplore further clinical details:";
+      const finalWithButtons = responseDecorator;
+      yield finalWithButtons;
 
-      if (topCategory?.includes("transplant")) {
-         suggestedMenu = TRANSPLANT_MENU;
-         guidanceLabel = "\n\nExplore our special Transplant Guidelines:";
-      } else if (topCategory?.includes("lab") || topCategory?.includes("creatinine") || topCategory?.includes("gfr")) {
-         suggestedMenu = LABS_MENU;
-         guidanceLabel = "\n\nNeed help interpreting lab results?";
-      } else if (topCategory?.includes("vaccin")) {
-         suggestedMenu = VACCINE_MENU;
-         guidanceLabel = "\n\nRecommended vaccinations for kidney patients:";
-      } else if (topCategory?.includes("discharge") || topCategory?.includes("care plan") || topCategory?.includes("follow up") || topCategory?.includes("fistula care") || topCategory?.includes("catheter") || topCategory?.includes("biopsy")) {
-         suggestedMenu = DISCHARGE_MENU;
-         guidanceLabel = "\n\nNeed post-discharge guidance for specific procedures?";
-      } else if (topCategory?.includes("dialysis") || topCategory?.includes("disease") || topCategory?.includes("ckd") || topCategory?.includes("aki")) {
-         suggestedMenu = DISEASE_MENU;
-         guidanceLabel = "\n\nLearn more about this condition from verified guidelines:";
-      }
-
-      const finalResponseWithDisclaimer = fullResponse +
-         "\n\n---\n**Disclaimer:** *This is for educational purposes only. Always follow your doctor's advice.*" +
-         guidanceLabel + getMenuPayload(suggestedMenu);
-
-      setCachedResponse(input, finalResponseWithDisclaimer).catch(e => console.error("Cache store failure:", e));
+      setCachedResponse(input, fullResponse + finalWithButtons).catch((e: any) => console.error("Cache store failure:", e));
 
    } catch (globalError: any) {
       console.error("[Agent] CRITICAL FAILURE:", globalError);

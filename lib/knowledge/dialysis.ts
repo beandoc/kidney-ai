@@ -112,9 +112,9 @@ Your doctor will perform surgery to create a "lifeline" (access). This must be d
 - **Diet:** Start with clear liquids and progress to bland foods as tolerated.
 
 **Risks to Watch For:**
-- Bleeding or significant swelling.
-- Infection (fever/redness).
-- "Steal Syndrome": Coldness, numbness, or pale skin in the hand.
+- **Bleeding or significant swelling.**
+- **Infection (fever/redness).**
+- **"Steal Syndrome":** Coldness, numbness, or pale skin in the hand.
 
 **When to Call Your Doctor:**
 1. **Infection:** Fever of 100.4°F (38°C) or higher.
@@ -135,35 +135,11 @@ A soft tube (catheter) is placed in your abdomen. A special fluid (dialysate) fl
 - **Flexibility:** Done at home, giving you control over your schedule.
 - **Independence:** Easier for work or school.`,
 
-  "pd catheter placement: preparation and procedure": `Before you start Peritoneal Dialysis(PD), you need surgery to place a PD catheter(a thin, flexible tube).
-
-** Surgical Methods:**
-- ** Open Surgery:** The doctor makes a cut(incision) to see directly inside.
-- ** Minimally Invasive(Laparoscopic):** Uses smaller cuts and a camera(laparoscope) to guide tools.
-- ** Percutaneous:** Uses a special tool through the skin, often guided by ultrasound or X - ray.
-
-** How to Prepare:**
-- ** Medical History:** Discuss your medications(including iron / calcium), allergies, and any bleeding issues.
-- ** Stool Softeners:** You might need to clear your bowels before surgery.
-- ** Placement Planning:** Your doctor will ask about your sleeping position, which hand is dominant, and where your belt or pants rest on your body to find the best exit site.
-- ** Pre - op Steps:** You may need to fast(not eat / drink) for a specific time and wash the area with a special soap.
-
-** What Happens During the Procedure:**
-- ** Anesthesia:** You’ll receive medicine to prevent pain(local, regional, or general). 
-- ** Tunneling:** The catheter is "tunneled" under the skin(usually near the belly button) and guided into the abdomen.
-- ** Testing:** The doctor will fill and drain the abdomen with sterile fluid to ensure the catheter works properly.
-- ** Duration:** The procedure typically takes about an hour.
-
-** After the Procedure:**
-  - An X - ray might be done to confirm the catheter's tip position.
-    - Healing usually takes about ** 2 weeks ** before dialysis begins, though urgent cases may start small exchanges sooner.
-- ** Home Care:** You’ll need a friend or family member to help with initial care or a home health nurse.`,
-
-  "living with peritoneal dialysis": `PD requires space for supplies and surgical healing for the catheter(thin, flexible tube in your belly).
-- ** Daily Rules:** Maintain a clean, dedicated area for exchanges.
-- ** Training:** A nurse will teach you how to perform exchanges safely and check your "exit site" daily.
-- ** Risks:** ** Peritonitis ** (infection inside the abdomen). Watch for ** cloudy dialysate **, abdominal pain, or fever.
-- ** Activity:** Increase movement slowly after catheter placement.Avoid heavy lifting and sports for several weeks as advised.`,
+  "living with peritoneal dialysis": `PD requires space for supplies and surgical healing for the catheter (thin, flexible tube in your belly).
+- **Daily Rules:** Maintain a clean, dedicated area for exchanges.
+- **Training:** A nurse will teach you how to perform exchanges safely and check your "exit site" daily.
+- **Risks:** **Peritonitis** (infection inside the abdomen). Watch for **cloudy dialysate**, abdominal pain, or fever.
+- **Activity:** Increase movement slowly after catheter placement. Avoid heavy lifting and sports for several weeks as advised.`,
 
   "peritoneal dialysis (pd) catheter: care and safety": `Your PD catheter (thin tube with 1-2 cuffs) is your lifeline for dialysis and requires strict care to prevent infection.
 
@@ -184,10 +160,10 @@ A soft tube (catheter) is placed in your abdomen. A special fluid (dialysate) fl
 - **Fluid:** The drained dialysis fluid looks **cloudy** or a different color.
 - **Catheter Trouble:** If it falls out, breaks, leaks, or if fluid stops flowing through it.`,
 
-  "alternatives to dialysis": `Dialysis is a treatment, not a cure.Other options:
-1. ** Kidney Transplant:** Often the preferred choice for long - term quality of life.
-2. ** Conservative Care:** Managing symptoms without starting dialysis.
-3. ** Switching:** Moving from PD to HD(or vice - versa) based on health changes.`,
+  "alternatives to dialysis": `Dialysis is a treatment, not a cure. Other options:
+1. **Kidney Transplant:** Often the preferred choice for long-term quality of life.
+2. **Conservative Care:** Managing symptoms without starting dialysis.
+3. **Switching:** Moving from PD to HD (or vice-versa) based on health changes.`,
 
   "what is a hemodialysis catheter?": `A hemodialysis catheter (or Central Venous Catheter, CVC) is a thin tube inserted into a large vein (usually in the neck) to allow blood to leave and return to your body during dialysis.
 
@@ -218,7 +194,7 @@ A soft tube (catheter) is placed in your abdomen. A special fluid (dialysate) fl
 - **Immediate Use:** The catheter can be used for dialysis right after placement.
 
 **Possible Risks:**
-- Infection, bleeding, or blood clots.
-- The catheter breaking, leaking, or moving out of place.
-- Very rare: Collapsed lung (pneumothorax), heart rhythm issues, or injury to a blood vessel.`
+- **Infection, bleeding, or blood clots.**
+- **The catheter breaking, leaking, or moving out of place.**
+- **Very rare:** Collapsed lung (pneumothorax), heart rhythm issues, or injury to a blood vessel.`
 };

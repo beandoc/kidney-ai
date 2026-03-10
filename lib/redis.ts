@@ -76,3 +76,32 @@ export async function removeFailedQuery(query: string): Promise<void> {
         console.error("Failed to remove failed query:", error);
     }
 }
+
+export const FEEDBACK_KEY = "kidney-ai:feedback";
+
+/**
+ * Log user feedback rating to Redis
+ */
+export async function logFeedback(query: string, response: string, rating: number, comment?: string): Promise<void> {
+    try {
+        const timestamp = new Date().toISOString();
+        const entry = JSON.stringify({ query, response, rating, comment, timestamp });
+        await redis.lpush(FEEDBACK_KEY, entry);
+        await redis.ltrim(FEEDBACK_KEY, 0, 4999); // Keep last 5000 feedbacks
+    } catch (error) {
+        console.error("Failed to log feedback to Redis:", error);
+    }
+}
+
+/**
+ * Get all feedback from Redis
+ */
+export async function getFeedback(): Promise<any[]> {
+    try {
+        const data = await redis.lrange(FEEDBACK_KEY, 0, -1);
+        return data.map(d => JSON.parse(d));
+    } catch (error) {
+        console.error("Failed to fetch feedback from Redis:", error);
+        return [];
+    }
+}

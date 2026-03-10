@@ -11,13 +11,14 @@ import SuggestedQuestions from "./chat/SuggestedQuestions";
 import { Message } from "./chat/types";
 import LoginWall from "./chat/LoginWall";
 
-const WELCOME_MESSAGE = `Hello! I'm **Nirogyam Kidney AI ChatBot** — I am here to assist you with all your questions about Kidney diseases, and guide you for better Kidney health.
+const WELCOME_MESSAGE = `Hello! I'm **Nirogyam Kidney AI ChatBot**. I am here to assist with your **Post Hospital Discharge Pathway**, 🔍 **Explore Options**, and 🛡️ **Prevention Tips**.
 
-Learn more about our services, or get more information. I'm here to help you every step of the way. Let's ensure you have a wonderful experience!
+Learn more about our clinical medical guidelines, diet plans, and professional care every step of the way. Let's ensure you have a wonderful recovery and healthy kidneys!
 
 **For everything on Kidneys —**
-- Prevention and Care
-- Lifestyle or Diet
+- Post Hospital Discharge care
+- Prevention and Basic Care
+- Lifestyle, Diet or Nutrition
 - Vaccinations
 - Dialysis and Fistula Care
 - Kidney Transplant
@@ -29,6 +30,7 @@ Learn more about our services, or get more information. I'm here to help you eve
 ⚠️ *This is an automated chatbot response. The responses are for information purpose only, and should not be construed as medical advice! In case of an emergency or urgent care please come to **MI Room/ Emergency***`;
 
 const WELCOME_OPTIONS = [
+    { label: "🏠 Post Hospital Discharge", text: "Show Discharge Menu", icon: "🏠" },
     { label: "🔍 Explore Options", text: "Menu", icon: "🔍" },
     { label: "🛡️ Prevention Tips", text: "How to prevent kidney disease?", icon: "🛡️" },
 ];

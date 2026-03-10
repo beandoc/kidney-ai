@@ -82,33 +82,33 @@ export const KEYWORD_REGISTRY: TriggerRule[] = [
     { id: "what is dialysis and fistula care?", any: ["fistula", "dialysis care"] },
     {
         id: "what is a kidney transplant?",
-        any: ["transplant"],
+        any: ["transplant", "प्रत्यारोपण", "ट्रान्सप्लांट"],
         subRules: [
-            { id: "when is kidney transplant needed?", any: ["when", "need", "benchmark", "egfr"] },
-            { id: "when is a transplant not advised? (contraindications)", any: ["not advised", "not eligible", "contraindication", "risk", "danger"] },
-            { id: "the transplant evaluation process", any: ["evaluation", "process", "test", "audit", "ready"] },
-            { id: "how are kidney transplants matched?", any: ["match", "pairing", "hla", "crossmatch", "blood group", "science"] },
-            { id: "what to expect on transplant surgery day", any: ["surgery day", "operation", "happen during", "incision", "npo"] },
-            { id: "who can donate a kidney?", any: ["donor", "who can give", "living", "deceased", "cadaveric"] },
+            { id: "when is kidney transplant needed?", any: ["when", "need", "benchmark", "egfr", "कब", "गरज"] },
+            { id: "when is a transplant not advised? (contraindications)", any: ["not advised", "not eligible", "contraindication", "risk", "danger", "खतरा", "धोका"] },
+            { id: "the transplant evaluation process", any: ["evaluation", "process", "test", "audit", "ready", "तैयारी", "चाचणी"] },
+            { id: "how are kidney transplants matched?", any: ["match", "pairing", "hla", "crossmatch", "blood group", "science", "मिलान"] },
+            { id: "what to expect on transplant surgery day", any: ["surgery day", "operation", "happen during", "incision", "npo", "ऑपरेशन"] },
+            { id: "who can donate a kidney?", any: ["donor", "who can give", "living", "deceased", "cadaveric", "दाता"] },
             { id: "recovery and life after transplant", any: ["recovery", "life after", "how long in hospital"] },
-            { id: "understanding transplant rejection", any: ["rejection", "fail", "attack", "immune response"] },
-            { id: "the importance of medication adherence", any: ["medication", "pill", "adherence", "taking meds", "timing"] },
+            { id: "understanding transplant rejection", any: ["rejection", "fail", "attack", "immune response", "रिजेक्शन"] },
+            { id: "the importance of medication adherence", any: ["medication", "pill", "adherence", "taking meds", "timing", "दवा", "औषध"] },
             { id: "long-term care and wellness", any: ["long term", "wellness", "screening", "cancer", "heart", "bone"] },
-            { id: "diet after transplant", any: ["diet", "food", "eat", "grapefruit", "sodium", "salt"] },
-            { id: "exercise and activity after transplant", any: ["exercise", "activity", "walk", "sport", "lifting"] },
-            { id: "precautions after kidney transplant", any: ["precaution", "care", "home care", "safeguard", "aftercare"] }
+            { id: "diet after transplant", any: ["diet", "food", "eat", "grapefruit", "sodium", "salt", "आहार"] },
+            { id: "exercise and activity after transplant", any: ["exercise", "activity", "walk", "sport", "lifting", "व्यायाम"] },
+            { id: "precautions after kidney transplant", any: ["precaution", "care", "home care", "safeguard", "aftercare", "परहेज"] }
         ]
     },
-    { id: "what does high creatinine mean?", all: ["high", "creatinine"] },
-    { id: "can kidney damage be reversed?", all: ["can", "revers"] },
-    { id: "kidney stones vs kidney failure?", all: ["stone", "failure"] },
-    { id: "how much water do i really need?", any: ["how much water", "water intake"] },
-    { id: "what are the symptoms of kidney disease?", any: ["symptom"] },
-    { id: "what are kidney failure stages?", any: ["stage", "floor"] },
-    { id: "how do diabetes and high blood pressure affect kidneys?", any: ["diabetes", "blood pressure", "sugar", "high bp"] },
-    { id: "how to lower creatinine?", any: ["lower", "reduce"], all: ["creatinine"] },
-    { id: "are painkillers safe for kidneys?", any: ["painkiller", "pain killer", "brufen", "paracetamol"] },
-    { id: "common kidney silent killers", any: ["habit", "killer", "harmful", "silent", "pkd", "uncontrolled"] },
+    { id: "what does high creatinine mean?", any: ["high", "creatinine", "क्रिएटिनिन", "वाढलेले"] },
+    { id: "can kidney damage be reversed?", all: ["can", "revers"], any: ["उलट", "ठीक होऊ"] },
+    { id: "kidney stones vs kidney failure?", all: ["stone", "failure"], any: ["पथरी", "खडा", "फेलियर"] },
+    { id: "how much water do i really need?", any: ["how much water", "water intake", "कितना पानी", "किती पाणी"] },
+    { id: "what are the symptoms of kidney disease?", any: ["symptom", "लक्षण", "चिन्हे"] },
+    { id: "what are kidney failure stages?", any: ["stage", "स्टेज"] },
+    { id: "how do diabetes and high blood pressure affect kidneys?", any: ["diabetes", "blood pressure", "sugar", "high bp", "मधुमेह", "शुगर", "बीपी"] },
+    { id: "how to lower creatinine?", any: ["lower", "reduce", "कम करना", "कमी करणे"], all: ["creatinine"] },
+    { id: "are painkillers safe for kidneys?", any: ["painkiller", "pain killer", "brufen", "paracetamol", "दर्दनिवारक", "पेनकिलर"] },
+    { id: "common kidney silent killers", any: ["habit", "killer", "harmful", "silent", "pkd", "uncontrolled", "आदत", "खतरनाक"] },
     {
         id: "what is anca vasculitis?",
         any: ["anca"],
@@ -122,13 +122,13 @@ export const KEYWORD_REGISTRY: TriggerRule[] = [
     },
     {
         id: "what is ckd?",
-        any: ["ckd", "chronic kidney disease", "what is kidney disease"],
+        any: ["ckd", "chronic kidney disease", "what is kidney disease", "सीकेडी", "क्रोनिक"],
         subRules: [
-            { id: "what are the symptoms of ckd?", any: ["symptom", "sign", "swelling", "tired"] },
-            { id: "what can i do on my own to protect my kidneys?", any: ["protect", "care", "prevent", "lifestyle", "nsaid"] },
-            { id: "how is ckd treated?", any: ["treat", "medicine", "pill", "ace", "arb"] },
-            { id: "why do i need a special diet if i have ckd?", any: ["why diet", "need diet", "reason for diet"] },
-            { id: "chronic kidney disease: diet for non-dialysis patients", any: ["what can i eat", "eat ckd", "drink ckd", "serving"] }
+            { id: "what are the symptoms of ckd?", any: ["symptom", "sign", "swelling", "tired", "लक्षण", "सूजन", "सूज"] },
+            { id: "what can i do on my own to protect my kidneys?", any: ["protect", "care", "prevent", "lifestyle", "nsaid", "बचाव", "काळजी"] },
+            { id: "how is ckd treated?", any: ["treat", "medicine", "pill", "ace", "arb", "इलाज", "उपचार"] },
+            { id: "why do i need a special diet if i have ckd?", any: ["why diet", "need diet", "reason for diet", "आहार"] },
+            { id: "chronic kidney disease: diet for non-dialysis patients", any: ["what can i eat", "eat ckd", "drink ckd", "serving", "क्या खाएं", "काय खावे"] }
         ]
     },
     {
@@ -146,44 +146,44 @@ export const KEYWORD_REGISTRY: TriggerRule[] = [
     { id: "kidney medications guide", any: ["medicine", "medication", "drug", "pill", "-pril", "-sartan"] },
     {
         id: "understanding peritoneal dialysis",
-        any: ["peritoneal", " pd "],
+        any: ["peritoneal", " pd ", "पेरिटोनियल", "पीडी"],
         regex: [/\bpd\b/],
         subRules: [
-            { id: "understanding peritoneal dialysis", any: ["how it works", "basics", "basics of pd"] },
+            { id: "understanding peritoneal dialysis", any: ["how it works", "basics", "basics of pd", "कैसे काम करता है"] },
             { id: "what is a pd exchange: drain, fill, dwell", any: ["exchange", "fill", "dwell", "drain", "3 steps", "three steps"] },
             { id: "pd options: choosing what fits your life", any: ["capd", "apd", "options", "choice", "which one", "best fit", "manual vs machine"] },
             { id: "manual exchanges (capd): how it works and schedules", any: ["manual exchange", "capd schedule", "sample schedule", "during the day", "gravity"] },
             { id: "automated dialysis (apd): how the cycler works", any: ["cycler", "automated", "overnight", "machine", "while i sleep", "wet day", "dry day"] },
             { id: "nightly routine and cleaning for apd", any: ["setup", "routine", "cleaning", "disposal", "garbage", "container", "sharps", "needle"] },
-            { id: "benefits of peritoneal dialysis", any: ["benefit", "why choice", "advantage", "freedom", "flexible"] },
-            { id: "pd catheter placement: preparation and procedure", any: ["placement", "surgery", "operation", "marking", "prep", "fasting", "anesthesia"] },
+            { id: "benefits of peritoneal dialysis", any: ["benefit", "why choice", "advantage", "freedom", "flexible", "फायदे"] },
+            { id: "pd catheter placement: preparation and procedure", any: ["placement", "surgery", "operation", "marking", "prep", "fasting", "anesthesia", "कैथेटर"] },
             { id: "post-operative catheter care", any: ["post-op", "after surgery", "healing", "flushing", "heparin", "dressing change"] },
             { id: "peritoneal dialysis (pd) catheter: care and safety", any: ["catheter", "tube", "cleaning", "exit site", "wash", "shower"] },
-            { id: "peritonitis: preventing and recognizing a serious infection", any: ["peritonitis", "infection", "cloudy", "hazy", "milky", "newspaper test", "belly pain", "abdominal pain", "stop exchange", "save the bag"] },
+            { id: "peritonitis: preventing and recognizing a serious infection", any: ["peritonitis", "infection", "cloudy", "hazy", "milky", "newspaper test", "belly pain", "abdominal pain", "stop exchange", "save the bag", "संक्रमण", "इन्फेक्शन"] },
             { id: "securely anchoring your catheter", any: ["anchor", "c-shape", "taping", "immobile", "tugging", "tight clothing"] },
             { id: "exit-site infections: signs and prevention", any: ["exit site infection", "pus", "discharge", "redness", "swelling", "warmth", "tenderness", "10 rules", "prevention"] },
             { id: "troubleshooting slow flow and fibrin", any: ["slow flow", "slow drain", "slow fill", "kink", "twist", "fibrin", "white stringy", "constipation", "position"] },
             { id: "troubleshooting leaks and hernias", any: ["leak", "hernia", "bulge", "lump", "pericatheter", "boundary defect"] },
-            { id: "managing pain and other pd complications", any: ["inflow pain", "outflow pain", "siphon pain", "bloody fluid", "pink fluid", "red fluid", "hemoperitoneum", "air in abdomen", "pneumoperitoneum", "shoulder pain"] },
+            { id: "managing pain and other pd complications", any: ["inflow pain", "outflow pain", "siphon pain", "bloody fluid", "pink fluid", "red fluid", "hemoperitoneum", "air in abdomen", "pneumoperitoneum", "shoulder pain", "दर्द"] },
             { id: "a guide to common concerns on pd: when to call your clinic", any: ["common concerns", "symptoms", "when to call", "urgent", "newspaper test", "shortness of breath", "chest pain"] },
             { id: "managing common health issues on pd", any: ["itchy skin", "phosphate binder", "constipation", "fatigue", "anemia", "restless legs", "cramp"] },
             { id: "living with peritoneal dialysis", any: ["daily", "precaution", "safe", "care", "infection", "activity", "lifestyle", "work", "travel", "adjustment", "emotional", "stress", "alone"] },
             { id: "intimacy and family planning on pd", any: ["sex", "intimacy", "relationship", "partner", "pregnancy", "birth control", "fertility", "baby"] },
-            { id: "exercise and swimming on peritoneal dialysis", any: ["exercise", "activity", "sport", "walking", "swimming", "pool", "lake", "waterproof dressing"] },
+            { id: "exercise and activity on pd", any: ["exercise", "activity", "sport", "walking", "swimming", "pool", "lake", "waterproof dressing"] },
             { id: "storing and disposing of pd supplies", any: ["storage", "store", "delivery", "disposal", "used fluid", "trash", "recycle", "bleach solution", "cleaning drain"] },
-            { id: "the 6-step handwashing technique", any: ["handwash", "hand wash", "hand hygiene", "clean hands", "6 step", "six step"] },
+            { id: "the 6-step handwashing technique", any: ["handwash", "hand wash", "hand hygiene", "clean hands", "6 step", "six step", "हाथ धोना"] },
             { id: "preparing for a safe exchange: warming and materials", any: ["warm fluid", "bag warming", "microwave", "heating pad", "cold fluid", "safe exchange", "preparation", "prep area"] },
             { id: "essential materials for pd exchange at home", any: ["materials", "items list", "supplies", "iv stand", "dressing drum", "gauze", "spirit", "kit"] },
-            { id: "daily exit-site care and bathing safely", any: ["exit site", "dressing change", "bathing", "shower", "spirit", "povidone", "iodine", "spiral", "c-shape", "anchoring", "plastic zip pouch"] },
+            { id: "daily exit-site care and bathing safely", any: ["exit site", "dressing change", "bathing", "shower", "spirit", "povidone", "iodine", "spiral", "c-shape", "anchoring", "plastic zip pouch", "नहाना"] },
             { id: "responding to pd catheter damage: emergency steps", any: ["damaged catheter", "hole in tube", "leak in catheter", "crack in catheter", "emergency", "clamp catheter"] },
             { id: "sterilizing supplies: autoclaving with a pressure cooker", any: ["autoclave", "pressure cooker", "sterilize", "sterilization", "dressing drum", "whistle", "high flame"] },
             { id: "medications on peritoneal dialysis", any: ["medicine", "medication", "pill", "tablet", "phosphate binder", "vitamin d", "iron", "epo", "heparin", "antibiotic", "pain relief", "paracetamol"] },
             { id: "pd for different health situations", any: ["diabetes", "older", "elderly", "obesity", "overweight", "urgent start", "adpkd", "surgery", "lvad", "stoma", "colostomy"] },
             { id: "essential vaccinations for pd patients", any: ["vaccin", "hepatitis b", "pneumonia", "pneumococcal", "flu shot", "covid vaccine", "tetanus", "travel vaccine"] },
             { id: "adding medications to your pd bags (intraperitoneal)", any: ["adding medicine to bag", "inject medicine", "intraperitoneal", "syringe", "needle", "vial", "medication port", "insulin in bag", "heparin in bag"] },
-            { id: "your guide to a kidney-friendly diet on pd", any: ["diet", "food", "eat", "protein", "sodium", "salt", "phosphorus", "calcium", "fibre", "calories", "potassium", "fluid balance", "watermelon"] },
-            { id: "low-sodium (low-salt) diet for peritoneal dialysis", any: ["low sodium", "low salt", "limit salt", "achar", "pickle", "papad", "bhujia", "amchur", "lauki", "tori", "tinda", "bhindi"] },
-            { id: "low-potassium diet for peritoneal dialysis", any: ["low potassium", "limit potassium", "hyperkalemia", "high potassium", "leaching", "soak potato", "palak", "anar", "shakarkandi", "kaddu"] }
+            { id: "your guide to a kidney-friendly diet on pd", any: ["diet", "food", "eat", "protein", "sodium", "salt", "phosphorus", "calcium", "fibre", "calories", "potassium", "fluid balance", "watermelon", "भोजन"] },
+            { id: "low-sodium (low-salt) diet for peritoneal dialysis", any: ["low sodium", "low salt", "limit salt", "achar", "pickle", "papad", "bhujia", "amchur", "lauki", "tori", "tinda", "bhindi", "नमक", "मीठ"] },
+            { id: "low-potassium diet for peritoneal dialysis", any: ["low potassium", "limit potassium", "hyperkalemia", "high potassium", "leaching", "soak potato", "palak", "anar", "shakarkandi", "kaddu", "पोटेशियम"] }
         ]
     },
     {
@@ -329,19 +329,19 @@ export const KEYWORD_REGISTRY: TriggerRule[] = [
     },
     {
         id: "what is hyponatremia?",
-        any: ["hyponatremia", "low sodium", "too little sodium"],
+        any: ["hyponatremia", "low sodium", "too little sodium", "हाइपोनेट्रेमिया", "हायपोनेट्रेमिया", "सोडियम"],
         subRules: [
-            { id: "what causes hyponatremia?", any: ["cause", "why", "medicine", "drug", "water", "drink"] },
-            { id: "symptoms and tests for hyponatremia", any: ["symptom", "sign", "test", "check", "blood test", "urine", "confusion", "seizure"] },
-            { id: "how is hyponatremia treated?", any: ["treat", "help", "cure", "salt", "tablet"] }
+            { id: "what causes hyponatremia?", any: ["cause", "why", "medicine", "drug", "water", "drink", "कारण", "क्यूं"] },
+            { id: "symptoms and tests for hyponatremia", any: ["symptom", "sign", "test", "check", "blood test", "urine", "confusion", "seizure", "लक्षण", "जांच"] },
+            { id: "how is hyponatremia treated?", any: ["treat", "help", "cure", "salt", "tablet", "उपचार", "इलाज"] }
         ]
     },
     {
         id: "what is a low-potassium diet?",
-        any: ["potassium diet", "low potassium"],
+        any: ["potassium diet", "low potassium", "पोटॅशियम", "पोटेशियम", "कमी", "कम"],
         subRules: [
-            { id: "high vs. low potassium foods", any: ["food", "list", "avoid", "eat", "fruit", "veg"] },
-            { id: "ways to cut down on potassium", any: ["cut down", "lowering", "reduce", "leaching", "soak"] }
+            { id: "high vs. low potassium foods", any: ["food", "list", "avoid", "eat", "fruit", "veg", "खाना", "फळ", "भाजी"] },
+            { id: "ways to cut down on potassium", any: ["cut down", "lowering", "reduce", "leaching", "soak", "कम करना", "कमी करणे"] }
         ]
     },
     {
@@ -391,10 +391,10 @@ export const KEYWORD_REGISTRY: TriggerRule[] = [
         id: "what is lupus (sle)?",
         any: ["lupus", "sle", "systemic lupus"],
         subRules: [
-            { id: "symptoms of lupus", any: ["symptom", "rash", "butterfly", "joint", "fatigue"] },
-            { id: "lupus and kidney health", any: ["kidney", "nephritis", "glomerulonephritis"] },
-            { id: "lupus treatment and lifestyle", any: ["treat", "lifestyle", "sun", "diet", "exercise", "medicine"] },
-            { id: "when to call your doctor for lupus", any: ["doctor", "call", "fever", "emergency"] }
+            { id: "lupus treatment and lifestyle", any: ["treat", "medicine", "medication", "pill", "cure", "help", "management"] },
+            { id: "symptoms of lupus", any: ["symptom", "rash", "butterfly", "joint", "fatigue", "sign"] },
+            { id: "lupus and kidney health", any: ["nephritis", "glomerulonephritis", "kidney", "renal"] },
+            { id: "when to call your doctor for lupus", any: ["doctor", "call", "fever", "emergency", "urgent"] }
         ]
     },
     {

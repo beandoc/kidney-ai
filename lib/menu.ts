@@ -5,14 +5,14 @@ export interface MenuOption {
 }
 
 export const MAIN_MENU: MenuOption[] = [
-    { label: "Explore Topics", text: "Show Explore Menu", icon: "🌐" },
+    { label: "Post Hospital Discharge Pathway", text: "Show Discharge Menu", icon: "🏥🏠" },
+    { label: "Explore Options", text: "Show Explore Menu", icon: "🔍" },
+    { label: "Prevention Tips", text: "how to prevent kidney disease?", icon: "🛡️" },
     { label: "Diet & Nutrition", text: "show diet menu", icon: "🥗" },
     { label: "Dialysis", text: "Show Dialysis Menu", icon: "🏥" },
     { label: "Treatment Options", text: "Available treatment options", icon: "💊" },
-    { label: "Prevention Tips", text: "how to prevent kidney disease?", icon: "🛡️" },
     { label: "Lab Results Guide", text: "understanding kidney lab results", icon: "🧪" },
     { label: "Kidney Transplant", text: "Show Transplant Menu", icon: "🔄" },
-    { label: "Post Discharge Advice", text: "Show Discharge Menu", icon: "🏠" },
     { label: "Prepare for Clinic Visit", text: "prepare for clinic visit", icon: "📅" },
     { label: "Join WhatsApp", text: "Stay Connected on WhatsApp", icon: "📱" },
 ];
@@ -60,12 +60,51 @@ export const DIALYSIS_MENU: MenuOption[] = [
 ];
 
 export const PD_MENU: MenuOption[] = [
-    { label: "How it Works", text: "understanding peritoneal dialysis", icon: "🔄" },
-    { label: "CAPD vs APD", text: "types of peritoneal dialysis: capd and apd", icon: "🆚" },
-    { label: "Benefits of PD", text: "benefits of peritoneal dialysis", icon: "🌟" },
-    { label: "Catheter Care", text: "peritoneal dialysis (pd) catheter: care and safety", icon: "🩹" },
-    { label: "Peritonitis Safety", text: "preventing peritonitis during pd", icon: "⚠️" },
+    { label: "Basics & Choice", text: "Show PD Basics Menu", icon: "🔄" },
+    { label: "Procedure & Daily Care", text: "Show PD Care Menu", icon: "🏥" },
+    { label: "Safety & Troubleshooting", text: "Show PD Safety Menu", icon: "⚠️" },
+    { label: "Diet & Lifestyle", text: "Show PD Lifestyle Menu", icon: "🥗" },
+    { label: "Home Logistics", text: "Show PD Logistics Menu", icon: "📦" },
     { label: "⬅️ Back to Dialysis", text: "Show Dialysis Menu", icon: "⬅️" },
+];
+
+export const PD_BASICS_MENU: MenuOption[] = [
+    { label: "How PD Works", text: "understanding peritoneal dialysis", icon: "🔄" },
+    { label: "CAPD vs APD (Options)", text: "pd options: choosing what fits your life", icon: "🆚" },
+    { label: "Manual (CAPD) Schedule", text: "manual exchanges (capd): how it works and schedules", icon: "🗓️" },
+    { label: "The Cycler (APD)", text: "automated dialysis (apd): how the cycler works", icon: "🤖" },
+    { label: "⬅️ Back to PD Menu", text: "Show PD Menu", icon: "⬅️" },
+];
+
+export const PD_CARE_MENU: MenuOption[] = [
+    { label: "Catheter Surgery", text: "pd catheter placement: preparation and procedure", icon: "🏥" },
+    { label: "Daily Catheter Care", text: "peritoneal dialysis (pd) catheter: care and safety", icon: "🩹" },
+    { label: "Bathing Instructions", text: "daily exit-site care and bathing safely", icon: "🚿" },
+    { label: "Exchange Step-by-Step", text: "what is a pd exchange: drain, fill, dwell", icon: "💧" },
+    { label: "⬅️ Back to PD Menu", text: "Show PD Menu", icon: "⬅️" },
+];
+
+export const PD_SAFETY_MENU: MenuOption[] = [
+    { label: "Peritonitis Safety", text: "peritonitis: preventing and recognizing a serious infection", icon: "⚠️" },
+    { label: "Exit-Site Infections", text: "exit-site infections: signs and prevention", icon: "🔍" },
+    { label: "Troubleshoot Flow", text: "troubleshooting slow flow and fibrin", icon: "🔧" },
+    { label: "Emergency: Damaged Tube", text: "responding to pd catheter damage: emergency steps", icon: "🚨" },
+    { label: "⬅️ Back to PD Menu", text: "Show PD Menu", icon: "⬅️" },
+];
+
+export const PD_LIFESTYLE_MENU: MenuOption[] = [
+    { label: "PD Diet Overview", text: "your guide to a kidney-friendly diet on pd", icon: "🥗" },
+    { label: "Meds on PD", text: "medications on peritoneal dialysis", icon: "💊" },
+    { label: "Exercise & Travel", text: "exercise and swimming on peritoneal dialysis", icon: "🏃" },
+    { label: "Intimacy & Pregnancy", text: "intimacy and family planning on pd", icon: "❤️" },
+    { label: "⬅️ Back to PD Menu", text: "Show PD Menu", icon: "⬅️" },
+];
+
+export const PD_LOGISTICS_MENU: MenuOption[] = [
+    { label: "Exchange Materials", text: "essential materials for pd exchange at home", icon: "📦" },
+    { label: "Storage & Disposal", text: "storing and disposing of pd supplies", icon: "🗑️" },
+    { label: "Sterilizing (Autoclave)", text: "sterilizing supplies: autoclaving with a pressure cooker", icon: "🔥" },
+    { label: "⬅️ Back to PD Menu", text: "Show PD Menu", icon: "⬅️" },
 ];
 
 export const STONES_MENU: MenuOption[] = [
@@ -119,14 +158,34 @@ export const LABS_MENU: MenuOption[] = [
 ];
 
 export const TRANSPLANT_MENU: MenuOption[] = [
-    { label: "When is it needed?", text: "When is kidney transplant needed?", icon: "❓" },
-    { label: "Surgery & Anesthesia", text: "what to expect on transplant surgery day", icon: "🏥" },
-    { label: "Rejection Info", text: "understanding transplant rejection", icon: "⚠️" },
-    { label: "Medication Strategy", text: "the importance of medication adherence", icon: "💊" },
-    { label: "Long-term Health", text: "long-term care and wellness", icon: "🌟" },
-    { label: "Diet & Exercise", text: "diet and exercise after transplant", icon: "🍎" },
-    { label: "Post-Transplant Care", text: "Precautions after kidney transplant", icon: "🏠" },
+    { label: "Prep & Evaluation", text: "Show Transplant Prep Menu", icon: "📋" },
+    { label: "Surgery & Hospital", text: "Show Transplant Surgery Menu", icon: "🏥" },
+    { label: "Life After Transplant", text: "Show Transplant Life Menu", icon: "🌟" },
     { label: "⬅️ Back to Main", text: "Show Main Menu", icon: "⬅️" },
+];
+
+export const TRANSPLANT_PREP_MENU: MenuOption[] = [
+    { label: "When is it needed?", text: "When is kidney transplant needed?", icon: "❓" },
+    { label: "Evaluation Process", text: "the transplant evaluation process", icon: "📋" },
+    { label: "Who can donate?", text: "who can donate a kidney?", icon: "🤝" },
+    { label: "Matching Science", text: "how are kidney transplants matched?", icon: "🧬" },
+    { label: "⬅️ Back to Transplant", text: "Show Transplant Menu", icon: "⬅️" },
+];
+
+export const TRANSPLANT_SURGERY_MENU: MenuOption[] = [
+    { label: "Surgery Day", text: "what to expect on transplant surgery day", icon: "🏥" },
+    { label: "Anesthesia Risks", text: "risks of anesthesia for transplant", icon: "😴" },
+    { label: "Recovery in Hospital", text: "recovery and life after transplant", icon: "📈" },
+    { label: "⬅️ Back to Transplant", text: "Show Transplant Menu", icon: "⬅️" },
+];
+
+export const TRANSPLANT_LIFE_MENU: MenuOption[] = [
+    { label: "Anti-rejection Meds", text: "the importance of medication adherence", icon: "💊" },
+    { label: "Rejection Signs", text: "understanding transplant rejection", icon: "⚠️" },
+    { label: "Long-term Health", text: "long-term care and wellness", icon: "🌟" },
+    { label: "Diet & Exercise", text: "diet and exercise after transplant", icon: "🏃" },
+    { label: "Lifelong Precautions", text: "precautions after kidney transplant", icon: "🏠" },
+    { label: "⬅️ Back to Transplant", text: "Show Transplant Menu", icon: "⬅️" },
 ];
 
 export const VACCINE_MENU: MenuOption[] = [
