@@ -252,6 +252,17 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
    ];
    const isCuratedTopic = curatedTopics.some(t => normalizedInput.includes(t));
 
+   // --- GOLD MATCHING LAYER ---
+   // Clean query for matching (strip translation suffixes if present)
+   let cleanMatchQuery = normalizedInput;
+   if (isTranslationRequested) {
+      cleanMatchQuery = normalizedInput
+         .replace(/\b(in|into|madhe|madhe sanga|mein|mein batao|bolava|sanga|tell in|translate to)\b/g, "")
+         .replace(/\b(hindi|marathi|urdu|english|angrezi|हिंदी|मराठी)\b/g, "")
+         .replace(/\s+/g, " ")
+         .trim();
+   }
+
    const dynamicGold = await getDynamicGoldAnswers();
    const allGold = { ...GOLD_ANSWERS, ...dynamicGold };
 
@@ -259,9 +270,15 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
    const langCode = isMarathiRequested ? "mr" : isHindiRequested ? "hi" : isUrduRequested ? "ur" : null;
 
    // Tier 1 logic: Prioritize intent-based Keyword Search, then Typo-matching Fuzzy Search.
-   if (allGold[normalizedInput] || (!isComparison && (!isClinicalDeepDive || isCuratedTopic))) {
+   if (allGold[cleanMatchQuery] || allGold[normalizedInput] || (!isComparison && (!isClinicalDeepDive || isCuratedTopic))) {
       // Step 1: Automatic routing for pre-translated menu clicks
-      if (langCode && allGold[`${normalizedInput}:${langCode}`]) {
+      if (langCode && allGold[`${cleanMatchQuery}:${langCode}`]) {
+         goldMatchKey = `${cleanMatchQuery}:${langCode}`;
+      }
+      else if (allGold[cleanMatchQuery]) {
+         goldMatchKey = cleanMatchQuery;
+      }
+      else if (langCode && allGold[`${normalizedInput}:${langCode}`]) {
          goldMatchKey = `${normalizedInput}:${langCode}`;
       }
       else if (allGold[normalizedInput]) {
@@ -269,7 +286,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
       }
       // Step 2: Keyword Search (Better for intent & sub-rules)
       else if (!goldMatchKey) {
-         goldMatchKey = findGoldMatch(normalizedInput);
+         goldMatchKey = findGoldMatch(cleanMatchQuery) || findGoldMatch(normalizedInput);
       }
 
       // Step 3: Fuzzy Match for Typos (Last resort fallback)
