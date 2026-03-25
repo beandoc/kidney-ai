@@ -21,6 +21,7 @@ export async function POST(request: Request) {
         const existingUser = await loginUser(username);
 
         if (existingUser) {
+            if (cleanUsername === 'opduser') existingUser.navigationOnly = true;
             // Existing user: verify password if they've set one
             if (existingUser.passwordHash && password) {
                 const bcrypt = await import("bcryptjs");

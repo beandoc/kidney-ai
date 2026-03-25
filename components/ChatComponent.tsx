@@ -95,7 +95,33 @@ export default function ChatComponent() {
         const storedId = localStorage.getItem("kidney_ai_user_id");
         const storedUsername = localStorage.getItem("kidney_ai_username");
         const storedNavOnly = localStorage.getItem("kidney_ai_navigation_only") === "true";
-        if (storedId && storedUsername) {
+        
+        // Check for Auto-Login via URL params (OVERRIDE existing session if params provided)
+        const params = new URLSearchParams(window.location.search);
+        const autoUser = params.get("username");
+        const autoMobile = params.get("mobile");
+        const autoPass = params.get("password") || "";
+
+        if (autoUser && autoMobile) {
+            const autoLoginData = async () => {
+                try {
+                    const response = await fetch("/api/auth/register", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ username: autoUser, mobile: autoMobile, password: autoPass })
+                    });
+                    const data = await response.json();
+                    if (response.ok) {
+                        localStorage.setItem("kidney_ai_user_id", data.id);
+                        localStorage.setItem("kidney_ai_username", data.username);
+                        const isNav = data.navigationOnly || data.username.toLowerCase() === 'opduser';
+                        localStorage.setItem("kidney_ai_navigation_only", isNav ? "true" : "false");
+                        setUser({ id: data.id, username: data.username, navigationOnly: isNav });
+                    }
+                } catch (e) { console.error("Auto-login failed", e); }
+            };
+            autoLoginData();
+        } else if (storedId && storedUsername) {
             setUser({ id: storedId, username: storedUsername, navigationOnly: storedNavOnly });
         }
     }, []);
