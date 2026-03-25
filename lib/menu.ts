@@ -5,15 +5,15 @@ export interface MenuOption {
 }
 
 export const MAIN_MENU: MenuOption[] = [
-    { label: "Post Hospital Discharge Pathway", text: "Show Discharge Menu", icon: "🏥🏠" },
-    { label: "Explore Options", text: "Show Explore Menu", icon: "🔍" },
+    { label: "Discharge Guidance", text: "Show Discharge Menu", icon: "🏥" },
+    { label: "Clinical Library", text: "Show Explore Menu", icon: "📚" },
     { label: "Prevention Tips", text: "how to prevent kidney disease?", icon: "🛡️" },
     { label: "Diet & Nutrition", text: "show diet menu", icon: "🥗" },
-    { label: "Dialysis", text: "Show Dialysis Menu", icon: "🏥" },
-    { label: "Treatment Options", text: "Available treatment options", icon: "💊" },
-    { label: "Lab Results Guide", text: "understanding kidney lab results", icon: "🧪" },
-    { label: "Kidney Transplant", text: "Show Transplant Menu", icon: "🔄" },
-    { label: "Prepare for Clinic Visit", text: "prepare for clinic visit", icon: "📅" },
+    { label: "Dialysis Guide", text: "Show Dialysis Menu", icon: "🏥" },
+    { label: "Treatment Info", text: "Available treatment options", icon: "💊" },
+    { label: "Lab Guide", text: "understanding kidney lab results", icon: "🧪" },
+    { label: "Transplant", text: "Show Transplant Menu", icon: "🔄" },
+    { label: "Clinic Prep", text: "prepare for clinic visit", icon: "📅" },
     { label: "Join WhatsApp", text: "Stay Connected on WhatsApp", icon: "📱" },
 ];
 
@@ -140,9 +140,9 @@ export const DISCHARGE_MENU: MenuOption[] = [
 ];
 
 export const DISEASE_MENU: MenuOption[] = [
-    { label: "Chronic Kidney Disease", text: "What is chronic kidney disease?", icon: "📉" },
+    { label: "Chronic Disease (CKD)", text: "What is chronic kidney disease?", icon: "📉" },
     { label: "Lupus Nephritis", text: "What is lupus nephritis?", icon: "🦋" },
-    { label: "Kidney Stones", text: "Kidney stones vs kidney failure?", icon: "💎" },
+    { label: "Stones & Failure", text: "Kidney stones vs kidney failure?", icon: "💎" },
     { label: "Dialysis & Fistula", text: "What is dialysis and fistula care?", icon: "🏥" },
     { label: "⬅️ Back to Main", text: "Show Main Menu", icon: "⬅️" },
 ];

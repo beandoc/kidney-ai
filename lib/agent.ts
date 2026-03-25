@@ -14,7 +14,6 @@ import {
 import { searchSemantic } from "./langchain/pinecone";
 
 // Future-proofed modular imports
-// Removed large static gold answers import
 import { getGoldAnswers } from "./knowledge/index";
 import { virtualLocalModel } from "./agent/classifier";
 import { buildContextAwareQuery, prewarmAgent, levenshteinDistance } from "./agent/utils";
@@ -30,7 +29,6 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
    const normalizedInput = input.trim().toLowerCase();
 
    // TIER -2: Instant Language Toggle Logic
-   // If the user just says "Hindi" or "Marathi", they want to flip the PREVIOUS response.
    const supportedLanguageFlipCommands: Record<string, string> = {
       "hindi": "hi", "हिंदी": "hi", "marathi": "mr", "मराठी": "mr", "english": "en", "angrezi": "en",
       "tell in hindi": "hi", "hindi mein batao": "hi", "marathi madhe sanga": "mr", "tell in marathi": "mr"
@@ -47,7 +45,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
       }
    }
 
-   // Handle Feedback/Rating Commands (Format: "rating:5:previous_query:previous_response")
+   // Handle Feedback/Rating Commands
    if (normalizedInput.startsWith("rating:")) {
       try {
          const parts = input.split(":");
@@ -66,7 +64,6 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
    // TIER -2: Image Analysis (Multimodal OCR)
    if (image) {
       yield "Analyzing your medical report or image...";
-
       try {
          const model = getChatModel();
          const message = new HumanMessage({
@@ -77,7 +74,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
          });
 
          const response = await model.invoke([message]);
-         yield response.content as string;
+         yield (response.content as string);
          return;
       } catch (err: any) {
          console.error("Image analysis failed:", err);
@@ -218,46 +215,39 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
 
    const isComparison = normalizedInput.includes("compare") || normalizedInput.includes(" vs ") || normalizedInput.includes("difference") || normalizedInput.includes("than") || (normalizedInput.includes("calculate") && normalizedInput.includes("stage"));
 
-   // Tier 1 vs TIER 3 Routing: Treatment protocols and clinical deep-dives should use Dynamic RAG (Tier 3)
-   // instead of static Gold Answers to provide specific, high-quality medical guidance.
-   // EXCEPTION: Curated Gold topics should check Gold answers first to ensure procedure-specific accuracy.
    const clinicalKeywords = [
       "treatment", "management", "medicine", "medication", "dosage", "dose",
       "protocol", "therapy", "clinical", "research", "mechanism", "surgery", "procedure", "cure", "heal",
       "guideline", "scientific", "pathology", "diagnosis", "managing"
    ];
 
-   // Robust Clinical Detection (with fuzzy typo tolerance)
    const clinicalWords = normalizedInput.split(/\s+/);
    const isClinicalDeepDive = clinicalKeywords.some((k: string) => {
-      // Direct word match
       if (clinicalWords.some(w => w === k)) return true;
-      // Exact boundary match (handles some punctuation)
       const regex = new RegExp(`\\b${k}\\b`, "i");
       if (regex.test(normalizedInput)) return true;
-      // Typo tolerance: if a long word in input is 80%+ similar to a clinical keyword
       if (k.length > 5) {
          return clinicalWords.some(w => {
             if (w.length < 5) return false;
             const distance = levenshteinDistance(w, k);
-            return distance <= 2; // Allow 1-2 char typos in large words like 'treatmnet'
+            return distance <= 2;
          });
       }
       return false;
    });
 
    const curatedTopics = [
-      "transplant", "biopsy", "anca", "creatinine", "proteinuria", "fistula", "catheter", "dialysis",
-      "biopsy", "injection", "painkiller", "hyponatremia", "hyperkalemia", "sodium", "potassium", "salt", "stones", "ckd", "aki",
-      "हायपोनेट्रेमिया", "हाइपोनेट्रेमिया", "सोडियम", "पोटॅशियम", "पोटेशियम", "मिठ", "नमक"
+      "transplant", "biopsy", "anca", "creatinine", "proteinuria", "fistula", "catheter", "dialysis"
    ];
    const isCuratedTopic = curatedTopics.some(t => normalizedInput.includes(t));
 
    // --- GOLD MATCHING LAYER ---
-   // Clean query for matching (strip translation suffixes if present)
-   let cleanMatchQuery = normalizedInput;
+   let cleanMatchQuery = normalizedInput
+      .replace(/[?.,!:-]$/, "")
+      .trim();
+   
    if (isTranslationRequested) {
-      cleanMatchQuery = normalizedInput
+      cleanMatchQuery = cleanMatchQuery
          .replace(/\b(in|into|madhe|madhe sanga|mein|mein batao|bolava|sanga|tell in|translate to)\b/g, "")
          .replace(/\b(hindi|marathi|urdu|english|angrezi|हिंदी|मराठी)\b/g, "")
          .replace(/\s+/g, " ")
@@ -267,48 +257,42 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
    const goldAnswers = getGoldAnswers();
    const dynamicGold = await getDynamicGoldAnswers();
    const allGold = { ...goldAnswers, ...dynamicGold };
-
-   // Set default target language for the session
    const langCode = isMarathiRequested ? "mr" : isHindiRequested ? "hi" : isUrduRequested ? "ur" : null;
 
-   // Tier 1 logic: Prioritize intent-based Keyword Search, then Typo-matching Fuzzy Search.
-   if (allGold[cleanMatchQuery] || allGold[normalizedInput] || (!isComparison && (!isClinicalDeepDive || isCuratedTopic))) {
-      // Step 1: Automatic routing for pre-translated menu clicks
-      if (langCode && allGold[`${cleanMatchQuery}:${langCode}`]) {
-         goldMatchKey = `${cleanMatchQuery}:${langCode}`;
-      }
-      else if (allGold[cleanMatchQuery]) {
-         goldMatchKey = cleanMatchQuery;
-      }
-      else if (langCode && allGold[`${normalizedInput}:${langCode}`]) {
-         goldMatchKey = `${normalizedInput}:${langCode}`;
-      }
-      else if (allGold[normalizedInput]) {
-         goldMatchKey = normalizedInput;
-      }
-      // Step 2: Keyword Search (Better for intent & sub-rules)
-      else if (!goldMatchKey) {
-         goldMatchKey = findGoldMatch(cleanMatchQuery) || findGoldMatch(normalizedInput);
-      }
-
-      // Step 3: Fuzzy Match for Typos (Last resort fallback)
-      if (!goldMatchKey && normalizedInput.length > 5) {
-         const goldKeys = Object.keys(allGold).filter(k => !k.includes(":") && k.length > 5);
-         const fuse = new Fuse(goldKeys, {
-            threshold: 0.28,
-            distance: 100,
-            ignoreLocation: true
-         });
-         const fuzzyResults = fuse.search(normalizedInput);
-         if (fuzzyResults.length > 0) {
-            goldMatchKey = fuzzyResults[0].item;
-            console.log(JSON.stringify({ event: "GoldMatch_Fuzzy", query: normalizedInput, match: goldMatchKey }));
-         }
+   // 1. Exact Match
+   if (allGold[cleanMatchQuery] || allGold[normalizedInput]) {
+      if (langCode && allGold[`${cleanMatchQuery}:${langCode}`]) goldMatchKey = `${cleanMatchQuery}:${langCode}`;
+      else if (allGold[cleanMatchQuery]) goldMatchKey = cleanMatchQuery;
+      else if (langCode && allGold[`${normalizedInput}:${langCode}`]) goldMatchKey = `${normalizedInput}:${langCode}`;
+      else if (allGold[normalizedInput]) goldMatchKey = normalizedInput;
+   } 
+   
+   // 2. Single-word Match (Meds/Topics)
+   if (!goldMatchKey && normalizedInput.length > 3) {
+      const keys = Object.keys(allGold);
+      const partialMatch = keys.find(k => k.toLowerCase().includes(normalizedInput.toLowerCase()) && !k.includes(":"));
+      if (partialMatch) {
+         goldMatchKey = partialMatch;
+         console.log(JSON.stringify({ event: "GoldMatch_Partial", query: normalizedInput, match: goldMatchKey }));
       }
    }
 
-   // --- PREPARE METADATA DECORATOR (Toggles, Disclaimer, Guidance Menu) ---
-   // Map query/category to suggested follow-up menu
+   // 3. Keyword Logic Match
+   if (!goldMatchKey) {
+      goldMatchKey = findGoldMatch(cleanMatchQuery) || findGoldMatch(normalizedInput);
+   }
+
+   // 4. Fuzzy Match (Fallback)
+   if (!goldMatchKey && normalizedInput.length > 5) {
+      const goldKeys = Object.keys(allGold).filter(k => !k.includes(":") && k.length > 5);
+      const fuse = new Fuse(goldKeys, { threshold: 0.28, distance: 100, ignoreLocation: true });
+      const fuzzyResults = fuse.search(normalizedInput);
+      if (fuzzyResults.length > 0) {
+         goldMatchKey = fuzzyResults[0].item;
+      }
+   }
+
+   // --- PREPARE METADATA DECORATOR ---
    let suggestedMenu = MAIN_MENU;
    let guidanceLabel = "\n\nExplore further clinical details:";
    const combinedTopicStr = (goldMatchKey || normalizedInput + " " + (isCuratedTopic ? "curated" : "")).toLowerCase();
@@ -330,11 +314,9 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
       guidanceLabel = "\n\nLearn more about this condition from verified guidelines:";
    }
 
-   // Add language flip options
    const footerLanguageOptions: MenuOption[] = [];
    const currentIsHindi = isHindiRequested;
    const currentIsMarathi = isMarathiRequested;
-
    if (!currentIsHindi) footerLanguageOptions.push({ label: "🌐 Read in Hindi", text: "Hindi", icon: "🇮🇳" });
    if (!currentIsMarathi) footerLanguageOptions.push({ label: "🌐 Marathi (मराठी)", text: "Marathi", icon: "🚩" });
    if (currentIsHindi || currentIsMarathi) footerLanguageOptions.push({ label: "🌐 Read in English", text: "English", icon: "🇬🇧" });
@@ -344,54 +326,49 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
 
    if (goldMatchKey && allGold[goldMatchKey]) {
       const content = allGold[goldMatchKey];
-      console.log(JSON.stringify({ event: "GoldMatch", key: goldMatchKey, translated: isTranslationRequested }));
+      
+      // "Fluff-Buster" logic: Skip short navigation lists in favor of Deep clinical RAG
+      const isGoldFluff = content.length < 200 && (content.includes("?") || content.includes("\n-"));
 
-      if (isTranslationRequested) {
-         const langCode = isMarathiRequested ? "mr" : isHindiRequested ? "hi" : isUrduRequested ? "ur" : "hi";
-         const targetLang = langCode === "hi" ? "Hindi" : langCode === "mr" ? "Marathi" : langCode === "ur" ? "Urdu" : "the requested language";
+      if (!isGoldFluff) {
+         console.log(JSON.stringify({ event: "GoldMatch", key: goldMatchKey, translated: isTranslationRequested }));
+         if (isTranslationRequested) {
+            const lCode = langCode || "hi";
+            const targetLang = lCode === "hi" ? "Hindi" : lCode === "mr" ? "Marathi" : lCode === "ur" ? "Urdu" : "Hindi";
 
-         // 1. TIER 0: Pre-translated expert content (Blazing Fast + Free)
-         if (langCode && allGold[`${goldMatchKey}:${langCode}`]) {
-            console.log(JSON.stringify({ event: "GoldMatch_PreTranslated", key: goldMatchKey, lang: langCode }));
-            yield allGold[`${goldMatchKey}:${langCode}`] + responseDecorator;
-            return;
+            if (lCode && allGold[`${goldMatchKey}:${lCode}`]) {
+               yield allGold[`${goldMatchKey}:${lCode}`] + responseDecorator;
+               return;
+            }
+
+            if (isNavigationOnly) {
+               yield content + "\n\n*(Translation for this complex topic is limited...)*" + finalMenuPayload;
+               return;
+            }
+
+            yield `Retrieved clinical answer. Translating to ${targetLang}...`;
+            try {
+               const model = getChatModel();
+               const response = await model.invoke([new HumanMessage(TRANSLATE_PROMPT(content, targetLang))]);
+               yield (response.content as string) + responseDecorator;
+               return;
+            } catch (e) {
+               yield content + "\n\n*(Translation failed)*" + responseDecorator;
+               return;
+            }
          }
-
-         // Block new translations for navigationOnly users to save costs
-         if (isNavigationOnly) {
-            yield content + "\n\n*(Translation for this complex topic is limited to registered clinicians. Showing English version for accuracy)*" + finalMenuPayload;
-            return;
-         }
-
-         // 2. TIER 1: On-the-fly machine translation (Fallback)
-         yield `Retrieved verified clinical answer. Translating to ${targetLang}...`;
-
-         try {
-            const model = getChatModel();
-            const response = await model.invoke([new HumanMessage(TRANSLATE_PROMPT(content, targetLang))]);
-            yield (response.content as string) + responseDecorator;
-            return;
-         } catch (e) {
-            console.error("Translation of gold answer failed:", e);
-            yield content + "\n\n*(Translation failed, showing English version for safety)*" + responseDecorator;
-            return;
-         }
+         yield content + responseDecorator;
+         return;
       }
-
-      yield content + responseDecorator;
-      return;
    }
 
-   // RESTRICTION: Exit before expensive tiers if navigation-only mode is active
    if (isNavigationOnly) {
-      yield "I'm sorry, I couldn't find a verified guide for that specific query in the explorer menu. Please use the menu buttons below to navigate clinical guidelines." + getMenuPayload(MAIN_MENU);
+      yield "I'm sorry, I couldn't find a verified guide for that specific query. Please use the menu below." + getMenuPayload(MAIN_MENU);
       return;
    }
 
-   // TIER 2: Semantic Cache (High Cost Reduction)
    const cached = await getCachedResponse(input);
    if (cached) {
-      console.log(JSON.stringify({ event: "ResponseServedFromCache", query: input }));
       const tokens = cached.split(" ");
       for (const token of tokens) {
          yield token + " ";
@@ -400,120 +377,83 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
       return;
    }
 
-   // IMMEDIATE PULSE
    yield " ";
 
    try {
       const enrichedInput = buildContextAwareQuery(input, chatHistory);
-      console.log(`[Agent] Enriched input: "${enrichedInput}"`);
-
-      // STEP 1: SINGLE-PASS HYBRID RETRIEVAL (Optimized for Latency)
       const timeoutPromise = <T>(promise: Promise<T>, timeoutMs: number, name: string): Promise<T | null> =>
-         Promise.race([
-            promise,
-            new Promise<null>((resolve) => setTimeout(() => {
-               console.warn(`[Agent] ${name} timed out after ${timeoutMs}ms`);
-               resolve(null);
-            }, timeoutMs))
-         ]);
+         Promise.race([promise, new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs))]);
 
-      // 1.1: Refine FIRST (2-3s) - Normalizes typos and translates to English
       const refinedInput = await timeoutPromise(refineQuery(enrichedInput), 4000, "Refinement");
       const finalSearchQuery = refinedInput || enrichedInput;
 
-      // 1.2: Single Focused Search (Parallel)
       const [keywordDocs, semanticDocs] = await Promise.all([
          searchPageIndex(finalSearchQuery),
          timeoutPromise(searchSemantic(finalSearchQuery, 10), 8000, "Pinecone Search")
       ]);
 
-      const safeSemanticDocs = semanticDocs || [];
-      const safeKeywordDocs = keywordDocs || [];
-      const allDocs = [...safeKeywordDocs, ...safeSemanticDocs];
-
-      // HYBRID MERGE: Reciprocal Rank Fusion (RRF)
+      const allDocs = [...(keywordDocs || []), ...(semanticDocs || [])];
       const K = 60;
       const rrfScores = new Map<string, number>();
       const docMap = new Map<string, any>();
+      const queryWords = finalSearchQuery.toLowerCase().split(/\s+/).filter(w => w.length > 3);
 
       const applyRRF = (docs: any[], weight = 1.0) => {
          docs.forEach((doc, rank) => {
             const id = `${doc.metadata.source}-${doc.metadata.title}-${doc.pageContent.slice(0, 50)}`;
             docMap.set(id, doc);
-            const currentScore = rrfScores.get(id) || 0;
-            rrfScores.set(id, currentScore + (weight / (K + rank + 1)));
+            let score = weight / (K + rank + 1);
+            const sourceInfo = ((doc.metadata.source || "") + " " + (doc.metadata.title || "")).toLowerCase();
+            const sourceMatches = queryWords.filter(word => sourceInfo.includes(word)).length;
+            if (sourceMatches > 0) score *= (1 + (sourceMatches * 2.0));
+            rrfScores.set(id, (rrfScores.get(id) || 0) + score);
          });
       };
 
-      applyRRF(safeKeywordDocs, 1.0);
-      applyRRF(safeSemanticDocs, 1.2);
+      applyRRF(keywordDocs || [], 1.0);
+      applyRRF(semanticDocs || [], 1.2);
 
-      const uniqueDocs = Array.from(rrfScores.keys())
-         .map(id => ({ id, score: rrfScores.get(id)! }))
-         .sort((a, b) => b.score - a.score)
-         .map(item => docMap.get(item.id)!);
+      const uniqueDocs = Array.from(rrfScores.keys()).map(id => ({ id, score: rrfScores.get(id)! })).sort((a, b) => b.score - a.score).map(item => docMap.get(item.id)!);
 
-      // STEP 1.2: CONDITIONAL RERANKING
       let finalDocs = uniqueDocs;
       if (uniqueDocs.length > 1) {
-         // yield `<thought>High-level guidance says: ${uniqueDocs[0].metadata.summary?.slice(0, 100)}...</thought>`;
          const topCandidates = uniqueDocs.slice(0, 4);
-         const remainingDocs = uniqueDocs.slice(4);
          const reranked = await timeoutPromise(rerankDocuments(finalSearchQuery, topCandidates), 8000, "Reranking");
-         finalDocs = [...(reranked || topCandidates), ...remainingDocs];
+         finalDocs = [...(reranked || topCandidates), ...uniqueDocs.slice(4)];
       }
 
-      // Context Truncation (Strict for TPM budgeting)
       let context = formatPageIndexContext(finalDocs);
       if (context.length > 8000) context = context.slice(0, 8000) + "\n...[truncated]";
 
-      // SOURCE SHORTENING with Null Safety
       const cleanSourceName = (name: string | undefined | null) => {
-         if (!name) return "Guidelines";
-         const cleaned = name
-            .replace(/\.(pdf|md|docx|txt|ts|json)$/i, "")
-            .replace(/-Guideline-English|-English|-Guideline/i, "")
-            .replace(/-Merged$/i, "")
-            .replace(/_/g, " ")
-            .replace(/-/g, " ")
-            .replace(/AKI|CKD|AKI Trial/gi, "")
-            .trim();
-
-         const lower = cleaned.toLowerCase();
-         if (lower.includes("basics") || lower.includes("faq") || lower.includes("nirogyam") || lower.includes("health guide")) {
-            return "Nirogyam Kidney Guide";
-         }
-         return cleaned || "Clinical Guidelines";
+         if (!name) return "Clinical Guidelines";
+         let cl = name.replace(/\.(pdf|md|docx|txt|ts|json)$/i, "").replace(/-Guideline-English|-English|-Guideline/i, "").replace(/-Merged$/i, "").replace(/_/g, " ").replace(/-/g, " ").replace(/Manual Gold Answers/gi, "Nirogyam Clinical Reference").replace(/KDIGO/gi, "International Kidney Guidelines (KDIGO)").trim();
+         return cl || "Clinical Guidelines";
       };
 
-      const sources = uniqueDocs.map(d => cleanSourceName(d.metadata?.source));
-      const uniqueSources = Array.from(new Set(sources));
-
-      const targetLanguageName = isMarathiRequested ? "Marathi" : isHindiRequested ? "Hindi" : isUrduRequested ? "Urdu" : "English";
+      const sources = Array.from(new Set(uniqueDocs.map(d => cleanSourceName(d.metadata?.source))));
+      const tLang = isMarathiRequested ? "Marathi" : isHindiRequested ? "Hindi" : isUrduRequested ? "Urdu" : "English";
       const model = getChatModel();
-      const finalStream = await model.stream([...chatHistory, new HumanMessage(RAG_PROMPT(input, context, targetLanguageName, uniqueSources))]);
+      const finalStream = await model.stream([...chatHistory, new HumanMessage(RAG_PROMPT(input, context, tLang, sources))]);
+      
       let fullResponse = "";
-
       for await (const chunk of finalStream) {
          if (chunk.content) {
-            const text = chunk.content as string;
+            let text = (chunk.content as string).replace(/\[\s*\d+\s*\]/g, "").replace(/\[\s*,\s*\]/g, "").replace(/\[\s*\d+\s*-\s*\d+\s*\]/g, "").replace(/\s+\[/g, " [");
             fullResponse += text;
             yield text;
          }
       }
 
-      // Log if AI failed to answer from guidelines
       if (fullResponse.toLowerCase().includes("don't know") || fullResponse.toLowerCase().includes("sorry")) {
-         logFailedQuery(input).catch((e: any) => console.error("Failed to log query:", e));
+         logFailedQuery(input).catch(e => console.error(e));
       }
 
-      const finalWithButtons = responseDecorator;
-      yield finalWithButtons;
-
-      setCachedResponse(input, fullResponse + finalWithButtons).catch((e: any) => console.error("Cache store failure:", e));
+      yield responseDecorator;
+      setCachedResponse(input, fullResponse + responseDecorator).catch(e => console.error(e));
 
    } catch (globalError: any) {
       console.error("[Agent] CRITICAL FAILURE:", globalError);
-      yield `\n\n⚠️ **System Error:** ${globalError?.message || String(globalError)}\n\nPlease check your settings or contact the administrator.`;
+      yield `\n\n⚠️ **System Error:** ${globalError?.message || String(globalError)}`;
    }
 }
