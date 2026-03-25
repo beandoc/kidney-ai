@@ -1,7 +1,7 @@
 import { BaseMessage, HumanMessage } from "@langchain/core/messages";
 import Fuse from "fuse.js";
 import { searchPageIndex, formatPageIndexContext } from "./pageindex/retrieval";
-import { getChatModel } from "./langchain/config";
+import { getChatModel, MEDICAL_DISCLAIMER, RAG_PROMPT, TRANSLATE_PROMPT } from "./langchain/config";
 import { refineQuery, rerankDocuments } from "./langchain/vectorStore";
 import { getCachedResponse, setCachedResponse } from "./cache";
 import {
@@ -14,7 +14,8 @@ import {
 import { searchSemantic } from "./langchain/pinecone";
 
 // Future-proofed modular imports
-import { GOLD_ANSWERS } from "./knowledge/index";
+// Removed large static gold answers import
+import { getGoldAnswers } from "./knowledge/index";
 import { virtualLocalModel } from "./agent/classifier";
 import { buildContextAwareQuery, prewarmAgent, levenshteinDistance } from "./agent/utils";
 import { getDynamicGoldAnswers, logFailedQuery, logFeedback } from "./redis";
@@ -64,7 +65,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
 
    // TIER -2: Image Analysis (Multimodal OCR)
    if (image) {
-      yield "Analyzing your medical report or image... <thought>Performing OCR and clinical pattern matching on the provided image.</thought>";
+      yield "Analyzing your medical report or image...";
 
       try {
          const model = getChatModel();
@@ -263,8 +264,9 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
          .trim();
    }
 
+   const goldAnswers = getGoldAnswers();
    const dynamicGold = await getDynamicGoldAnswers();
-   const allGold = { ...GOLD_ANSWERS, ...dynamicGold };
+   const allGold = { ...goldAnswers, ...dynamicGold };
 
    // Set default target language for the session
    const langCode = isMarathiRequested ? "mr" : isHindiRequested ? "hi" : isUrduRequested ? "ur" : null;
@@ -338,7 +340,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
    if (currentIsHindi || currentIsMarathi) footerLanguageOptions.push({ label: "🌐 Read in English", text: "English", icon: "🇬🇧" });
 
    const finalMenuPayload = getMenuPayload([...footerLanguageOptions, ...suggestedMenu.slice(0, 3), { label: "⬅️ Main Menu", text: "Show Main Menu", icon: "🏠" }]);
-   const responseDecorator = "\n\n---\n**Disclaimer:** *This is for educational purposes only. Always follow your doctor's advice.*" + guidanceLabel + finalMenuPayload;
+   const responseDecorator = MEDICAL_DISCLAIMER + guidanceLabel + finalMenuPayload;
 
    if (goldMatchKey && allGold[goldMatchKey]) {
       const content = allGold[goldMatchKey];
@@ -362,12 +364,11 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
          }
 
          // 2. TIER 1: On-the-fly machine translation (Fallback)
-         yield `Retrieved verified clinical answer. Translating to ${targetLang}... <thought>Found Gold Match for "${goldMatchKey}". Using lightweight translation model as no pre-translated version was found in the registry.</thought>`;
+         yield `Retrieved verified clinical answer. Translating to ${targetLang}...`;
 
          try {
             const model = getChatModel();
-            const translatePrompt = `Translate the following medical guidance exactly into ${targetLang}. Keep any medical terms (like creatinine, GFR, PD) in English in brackets if needed for clarity. Output ONLY the translated text.\n\nContent: ${content}`;
-            const response = await model.invoke([new HumanMessage(translatePrompt)]);
+            const response = await model.invoke([new HumanMessage(TRANSLATE_PROMPT(content, targetLang))]);
             yield (response.content as string) + responseDecorator;
             return;
          } catch (e) {
@@ -490,26 +491,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
 
       const targetLanguageName = isMarathiRequested ? "Marathi" : isHindiRequested ? "Hindi" : isUrduRequested ? "Urdu" : "English";
       const model = getChatModel();
-      const prompt = `
-            You are a Kidney Health Assistant. You must answer questions based strictly on the provided medical guidelines. 
-            
-            IMPORTANT:
-            1. **CITATIONS**: Use subtle inline citations like *[Source: Nirogyam Kidney Guide]* for every claim.
-               * AVAILABLE SOURCES: ${uniqueSources.join(", ")}
-               * CROSS-REFERENCE: Be extremely careful. Check the text snippet below. Every piece of advice MUST be attributed to its specific source.
-            2. **LANGUAGE**: You MUST answer in **${targetLanguageName}**. (Note: If ${targetLanguageName} is Marathi, do NOT use Hindi. Use Marathi words like 'आहे', 'कसा', 'सांगा ही' etc.)
-            3. **STRICT SOURCE**: Only attribute info to its actual source doc. Do NOT attribute info to "KDIGO" if it came from "Nirogyam Kidney Guide".
-            4. **STRUCTURE**: Use clear headings or bullet points.
-            
-            GUIDELINES:
-            ${context}
-            
-            USER QUESTION: ${input}
-            
-            Response:
-        `;
-
-      const finalStream = await model.stream([...chatHistory, new HumanMessage(prompt)]);
+      const finalStream = await model.stream([...chatHistory, new HumanMessage(RAG_PROMPT(input, context, targetLanguageName, uniqueSources))]);
       let fullResponse = "";
 
       for await (const chunk of finalStream) {

@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
+import { levenshteinDistance } from "../agent/utils";
 export interface PageIndexNode {
     title?: string;
     section?: string;
@@ -80,12 +81,11 @@ async function buildIndex(): Promise<IndexEntry[]> {
     if (process.env.REDIS_URL) {
         try {
             console.log("[SearchIndex] Fetching dynamic uploads from Redis...");
-            const { createClient } = await import('redis');
-            const redisClient = await createClient({ url: process.env.REDIS_URL });
+            const Redis = (await import('ioredis')).default;
+            const redisClient = new Redis(process.env.REDIS_URL);
             redisClient.on("error", (err: any) => {
                 // Ignore connection errors during initial build index
             });
-            await redisClient.connect();
             const keys = await redisClient.keys('pageindex:*');
 
             for (const key of keys) {
@@ -219,20 +219,34 @@ export async function searchPageIndex(query: string): Promise<Document[]> {
 
     // MEDICAL SYNONYM EXPANSION
     const synonymMap: Record<string, string[]> = {
-        "kidney": ["renal"],
+        "kidney": ["renal", "nephro", "वृक्क"],
         "renal": ["kidney"],
-        "esrd": ["failure"],
+        "esrd": ["failure", "end stage"],
         "failure": ["esrd"],
-        "hypertension": ["bp", "blood pressure"],
+        "hypertension": ["bp", "blood pressure", "बीपी"],
         "bp": ["hypertension", "blood pressure"],
-        "diabetes": ["sugar"],
+        "diabetes": ["sugar", "मधुमेह", "शुगर"],
         "sugar": ["diabetes", "glucose"],
         "ckd": ["chronic", "disease"],
-        "akd": ["acute", "disease"],
-        "aki": ["acute", "injury"],
+        "aki": ["acute", "injury", "sudden"],
         "lupus": ["sle", "systemic lupus erythematosus"],
         "anca": ["vasculitis", "aav"],
-        "vasculitis": ["anca", "aav"]
+        "vasculitis": ["anca", "aav"],
+        "albuminuria": ["protein", "urine", "leakage", "foamy"],
+        "hematuria": ["blood", "urine", "bleed"],
+        "edema": ["swelling", "fluid", "retention", "सूजन"],
+        "pruritus": ["itching", "skin", "खुजली"],
+        "anemia": ["low blood", "tired", "hemoglobin", "hgb", "थकान"],
+        "peritonitis": ["infection", "belly", "stomach", "pd"],
+        "gout": ["uric acid", "joint", "pain"],
+        "nephritis": ["inflammation", "swelling", "infection"],
+        "creatinine": ["scr", "waste", "muscle"],
+        "cycler": ["apd", "machine", "automated"],
+        "fistula": ["avf", "access", "arm", "surgery"],
+        "biopsy": ["needle test", "tissue", "sample"],
+        "phosphorus": ["phosphate", "bone", "binder"],
+        "potassium": ["k+", "electrolyte", "fruit"],
+        "sodium": ["salt", "na+", "salt", "fluid"]
     };
 
     const expandedQuery = new Set<string>();
@@ -244,28 +258,6 @@ export async function searchPageIndex(query: string): Promise<Document[]> {
     }
     const finalQuery = Array.from(expandedQuery);
 
-    // LEVENSHTEIN DISTANCE IMPLEMENTATION FOR FUZZY MATCHING (TYPOS & MANGLED WORDS)
-    const levenshteinDistance = (a: string, b: string): number => {
-        if (a.length === 0) return b.length;
-        if (b.length === 0) return a.length;
-        const matrix = [];
-        for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-        for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-        for (let i = 1; i <= b.length; i++) {
-            for (let j = 1; j <= a.length; j++) {
-                if (b.charAt(i - 1) === a.charAt(j - 1)) {
-                    matrix[i][j] = matrix[i - 1][j - 1];
-                } else {
-                    matrix[i][j] = Math.min(
-                        matrix[i - 1][j - 1] + 1,
-                        matrix[i][j - 1] + 1,
-                        matrix[i - 1][j] + 1
-                    );
-                }
-            }
-        }
-        return matrix[b.length][a.length];
-    };
 
     const scored: { entry: IndexEntry; score: number }[] = [];
 

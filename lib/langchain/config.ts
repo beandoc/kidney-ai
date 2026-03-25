@@ -3,6 +3,7 @@ import { CustomGoogleEmbeddings } from "./CustomEmbeddings";
 import { ChatGroq } from "@langchain/groq";
 import { ChatMistralAI } from "@langchain/mistralai";
 import { ChatOpenAI } from "@langchain/openai";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 
 export const CHUNK_SIZE = 1000;
 export const CHUNK_OVERLAP = 200;
@@ -11,6 +12,50 @@ export const CHUNK_OVERLAP = 200;
 export const GROQ_MODEL = process.env.NEXT_PUBLIC_GROQ_MODEL || "llama-3.1-8b-instant";
 export const MISTRAL_MODEL = process.env.NEXT_PUBLIC_MISTRAL_MODEL || "mistral-small-latest";
 export const EMBEDDING_MODEL = "gemini-embedding-001";
+
+/**
+ * Startup Health Check: Ensures all required API keys are present.
+ * Logs warnings for missing optional keys and throws for critical ones.
+ */
+export function validateEnv() {
+    const required = [
+        { key: 'PINECONE_API_KEY', critical: true },
+        { key: 'REDIS_URL', critical: true },
+        { key: 'ADMIN_PASSWORD', critical: true },
+        { key: 'GEMINI_API_KEY', alt: 'GOOGLE_API_KEY', critical: true },
+    ];
+
+    const optional = [
+        { key: 'GROQ_API_KEY', label: 'Fast Inference (Groq)' },
+        { key: 'MISTRAL_API_KEY', label: 'Secondary LLM (Mistral)' },
+        { key: 'OPENAI_API_KEY', label: 'Vision/Primary LLM (OpenAI)' },
+    ];
+
+    console.log("🛡️ [HealthCheck] Validating Environment Variables...");
+    
+    for (const { key, alt, critical } of required) {
+        const val = process.env[key] || (alt ? process.env[alt] : undefined);
+        if (!val) {
+            const msg = `CRITICAL: Missing ${key}${alt ? ' or ' + alt : ''}. Application will fail.`;
+            if (process.env.NODE_ENV === 'production' && critical) {
+                console.error(`❌ ${msg}`);
+            } else {
+                console.warn(`⚠️ ${msg}`);
+            }
+        }
+    }
+
+    for (const { key, label } of optional) {
+        if (!process.env[key]) {
+            console.log(`ℹ️ [Optional] No ${key} found. ${label} will be bypassed.`);
+        }
+    }
+}
+
+// Run validation once on module load
+if (typeof window === 'undefined') {
+    validateEnv();
+}
 
 /**
  * Get configured Google Gemini Embeddings instance
@@ -59,6 +104,16 @@ export function getChatModel(maxRetries?: number) {
     }));
   }
 
+  // TIER 1.5: Gemini (Extremely robust and multi-modal)
+  if (geminiKey) {
+    models.push(new ChatGoogleGenerativeAI({
+      model: "gemini-1.5-flash",
+      temperature: 0.1,
+      apiKey: geminiKey,
+      maxRetries: 1,
+    }));
+  }
+
   // TIER 2: Mistral (Secondary)
   if (mistralKey) {
     models.push(new ChatMistralAI({
@@ -103,6 +158,38 @@ LANGUAGE:
 
 Remember: Use your tools before answering. If you greet the user, be brief and professional.`;
 
+
+/**
+ * Prompt for translating verified clinical content
+ */
+export const TRANSLATE_PROMPT = (content: string, targetLang: string) => `Translate the following medical guidance exactly into ${targetLang}. Keep any medical terms (like creatinine, GFR, PD) in English in brackets if needed for clarity. Output ONLY the translated text.\n\nContent: ${content}`;
+
+/**
+ * Standard disclaimer appended to responses
+ */
+export const MEDICAL_DISCLAIMER = "\n\n---\n**Disclaimer:** *This is for educational purposes only. Always follow your doctor's advice.*";
+
+/**
+ * The core RAG generation prompt
+ */
+export const RAG_PROMPT = (input: string, context: string, targetLang: string, sources: string[]) => `
+You are a Kidney Health Assistant. You must answer questions based strictly on the provided medical guidelines. 
+
+IMPORTANT:
+1. **CITATIONS**: Use subtle inline citations like *[Source: ${sources[0] || "Nirogyam Kidney Guide"}]* for every claim.
+   * AVAILABLE SOURCES: ${sources.join(", ")}
+   * CROSS-REFERENCE: Be extremely careful. Check the text snippet below. Every piece of advice MUST be attributed to its specific source.
+2. **LANGUAGE**: You MUST answer in **${targetLang}**. (Note: If ${targetLang} is Marathi, do NOT use Hindi. Use Marathi words like 'आहे', 'कसा', 'सांगा ही' etc.)
+3. **STRICT SOURCE**: Only attribute info to its actual source doc. Do NOT attribute info to "KDIGO" if it came from "Nirogyam Kidney Guide".
+4. **STRUCTURE**: Use clear headings or bullet points.
+
+GUIDELINES:
+${context}
+
+USER QUESTION: ${input}
+
+Response:
+`;
 
 
 /**

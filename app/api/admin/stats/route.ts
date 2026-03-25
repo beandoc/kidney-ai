@@ -37,12 +37,11 @@ export async function GET(request: Request) {
             }
         }
 
-        // 2. Count Redis nodes (Crucial for Vercel uploads)
         if (process.env.REDIS_URL) {
             try {
-                const { createClient } = await import('redis');
-                const client = await createClient({ url: process.env.REDIS_URL });
-                client.on("error", (err) => {
+                const Redis = (await import('ioredis')).default;
+                const client = new Redis(process.env.REDIS_URL);
+                client.on("error", (err: any) => {
                     // Silence connection errors to prevent unhandled process crashes
                     if (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT') {
                         // Silently fail, as the connection might be retried or handled upstream
@@ -50,7 +49,6 @@ export async function GET(request: Request) {
                         console.error("Redis Client Error:", err);
                     }
                 });
-                await client.connect();
                 const keys = await client.keys('pageindex:*');
 
                 for (const key of keys) {

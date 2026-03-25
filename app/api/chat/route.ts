@@ -8,13 +8,24 @@ export async function GET() {
     return NextResponse.json({ message: "Chat API is active" });
 }
 
-export async function OPTIONS() {
+export async function OPTIONS(request: NextRequest) {
+    const origin = request.headers.get("origin");
+    const allowedOrigins = [
+        "http://localhost:3000",
+        "https://kidney-ai.vercel.app" // Production placeholder
+    ];
+    
+    const responseOrigin = origin && (allowedOrigins.includes(origin) || (process.env.NODE_ENV === 'development' && origin.includes('localhost')))
+        ? origin 
+        : allowedOrigins[0];
+
     return new Response(null, {
         status: 204,
         headers: {
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": responseOrigin,
             "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Allow-Headers": "Content-Type, x-user-id",
+            "Access-Control-Max-Age": "86400",
         },
     });
 }

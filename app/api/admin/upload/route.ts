@@ -10,13 +10,24 @@ import { CHUNK_SIZE, CHUNK_OVERLAP } from "../../../../lib/langchain/config";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // Allow up to 5 minutes for large files
 
-export async function OPTIONS() {
+export async function OPTIONS(request: Request) {
+    const origin = request.headers.get("origin");
+    const allowedOrigins = [
+        "http://localhost:3000",
+        "https://kidney-ai.vercel.app"
+    ];
+    
+    const responseOrigin = origin && (allowedOrigins.includes(origin) || (process.env.NODE_ENV === 'development' && origin.includes('localhost')))
+        ? origin 
+        : allowedOrigins[0];
+
     return new Response(null, {
         status: 204,
         headers: {
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": responseOrigin,
             "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
             "Access-Control-Allow-Headers": "Content-Type, x-admin-password",
+            "Access-Control-Max-Age": "86400",
         },
     });
 }
@@ -83,6 +94,12 @@ export async function POST(request: Request) {
                     : path.join(process.cwd(), 'knowledge_base', 'pageindex');
                 if (!fs.existsSync(kbPath)) fs.mkdirSync(kbPath, { recursive: true });
 
+                const ALLOWED_EXTENSIONS = [".pdf", ".docx", ".txt", ".md", ".json"];
+                const ext = path.extname(label).toLowerCase();
+                if (!label.includes("manual_entry") && !ALLOWED_EXTENSIONS.includes(ext) && !label.endsWith('.json')) {
+                    throw new Error(`File type ${ext} is not supported. Please upload PDF, DOCX, TXT, MD, or JSON.`);
+                }
+
                 const outName = label.endsWith('.json') ? label : `${label}.json`;
 
                 // Use the SAME splitter as Pinecone for consistency
@@ -95,21 +112,30 @@ export async function POST(request: Request) {
 
                 const simpleResult = {
                     doc_name: label,
-                    structure: splitDocs.map((doc, idx) => ({
-                        title: `${label} - Part ${idx + 1}`,
-                        node_id: `chunk-${idx}`,
-                        start_index: 1,
-                        end_index: 1,
-                        summary: `Segment ${idx + 1} of ${label}`,
-                        text: doc.pageContent
-                    }))
+                    structure: splitDocs.map((doc, idx) => {
+                        // ROBUSTNESS: Better title extraction from the first line or sentence
+                        const firstLine = doc.pageContent.split('\n')[0].trim();
+                        let cleanTitle = firstLine.replace(/[#*\[\]]/g, '').slice(0, 60);
+                        if (cleanTitle.length < 5) {
+                            cleanTitle = doc.pageContent.slice(0, 60).replace(/\n/g, ' ').trim() + "...";
+                        }
+                        
+                        return {
+                            title: cleanTitle || `${label} - Part ${idx + 1}`,
+                            node_id: `chunk-${idx}`,
+                            start_index: 1,
+                            end_index: 1,
+                            summary: `Segment ${idx + 1} of ${label}`,
+                            text: doc.pageContent
+                        };
+                    })
                 };
 
                 // Store dynamically uploaded file
                 if (process.env.REDIS_URL) {
                     try {
-                        const { createClient } = await import('redis');
-                        const redis = await createClient({ url: process.env.REDIS_URL }).connect();
+                        const Redis = (await import('ioredis')).default;
+                        const redis = new Redis(process.env.REDIS_URL);
                         // Save the PageIndex chunk array
                         await redis.set(`pageindex:${outName}`, JSON.stringify(simpleResult));
                         await redis.quit();
@@ -126,7 +152,8 @@ export async function POST(request: Request) {
 
                 send({
                     type: 'done',
-                    message: `Successfully added ${label} to Agentic Brain (Split Chunk Mode).`
+                    message: `Successfully added ${label} to Agentic Brain (Split Chunk Mode).`,
+                    chunks: simpleResult.structure.length
                 });
             } catch (error) {
                 console.error("Worker process error:", error);

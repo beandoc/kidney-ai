@@ -1,8 +1,6 @@
-import Redis from "ioredis";
+import redis from "./redis-client";
 import { Pinecone } from "@pinecone-database/pinecone";
 import { getEmbeddings } from "./langchain/config";
-
-const redis = new Redis(process.env.REDIS_URL || "");
 
 const PINECONE_API_KEY = process.env.PINECONE_API_KEY;
 const PINECONE_INDEX_NAME = process.env.PINECONE_INDEX_NAME || "kidney-rag-chatbot";
@@ -15,6 +13,15 @@ function normalizeText(text: string): string {
         .split(/\s+/)
         .filter(Boolean)
         .join(" ");
+}
+
+let pineconeClient: Pinecone | null = null;
+
+function getPc(): Pinecone | null {
+    if (!pineconeClient && PINECONE_API_KEY) {
+        pineconeClient = new Pinecone({ apiKey: PINECONE_API_KEY });
+    }
+    return pineconeClient;
 }
 
 export async function getCachedResponse(question: string): Promise<string | null> {
@@ -38,7 +45,8 @@ export async function getCachedResponse(question: string): Promise<string | null
     // 2. SEMANTIC Cache Match (Pinecone) - SMART
     try {
         if (PINECONE_API_KEY && normQ.length > 5) {
-            const pc = new Pinecone({ apiKey: PINECONE_API_KEY });
+            const pc = getPc();
+            if (!pc) throw new Error("Pinecone failed to initialize");
             const index = pc.Index(PINECONE_INDEX_NAME).namespace(CACHE_NAMESPACE);
 
             const embeddings = getEmbeddings();
@@ -97,7 +105,8 @@ export async function setCachedResponse(question: string, response: string): Pro
     // 2. Save Semantic Match (Pinecone)
     try {
         if (PINECONE_API_KEY && normQ.length > 10) {
-            const pc = new Pinecone({ apiKey: PINECONE_API_KEY });
+            const pc = getPc();
+            if (!pc) throw new Error("Pinecone failed to initialize");
             const index = pc.Index(PINECONE_INDEX_NAME).namespace(CACHE_NAMESPACE);
 
             const embeddings = getEmbeddings();

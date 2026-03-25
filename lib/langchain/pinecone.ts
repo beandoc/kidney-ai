@@ -45,15 +45,52 @@ function flattenJsonToText(data: any, prefix = ""): string {
 }
 
 /**
+ * Process a JSON guideline that might be an array of section objects
+ */
+function processJsonGuideline(data: any, filename: string): Document[] {
+    const documents: Document[] = [];
+    
+    if (Array.isArray(data)) {
+        // Handle structured KDIGO guidelines that come as a list of sections
+        for (const [idx, item] of data.entries()) {
+            const section = item.section || item.title || `Section ${idx + 1}`;
+            const content = item.content || item.text || flattenJsonToText(item);
+            const page = item.page || undefined;
+            
+            documents.push(
+                new Document({
+                    pageContent: `[SECTION: ${section}]\n\n${content}`,
+                    metadata: { 
+                        source: filename, 
+                        type: "json", 
+                        section: section,
+                        page: page
+                    },
+                })
+            );
+        }
+    } else {
+        // Fallback for flat JSON
+        documents.push(
+            new Document({
+                pageContent: flattenJsonToText(data),
+                metadata: { source: filename, type: "json" },
+            })
+        );
+    }
+    return documents;
+}
+
+/**
  * Process a file buffer based on its extension
  */
 export async function processFileBuffer(buffer: Buffer, filename: string): Promise<Document[]> {
     const ext = path.extname(filename).toLowerCase();
-    const documents: Document[] = [];
+    const rawDocuments: Document[] = [];
 
     if ([".txt", ".md"].includes(ext)) {
         const content = buffer.toString("utf-8");
-        documents.push(
+        rawDocuments.push(
             new Document({
                 pageContent: content,
                 metadata: { source: filename, type: ext.replace(".", "") },
@@ -63,15 +100,9 @@ export async function processFileBuffer(buffer: Buffer, filename: string): Promi
         try {
             const raw = buffer.toString("utf-8");
             const jsonData = JSON.parse(raw);
-            // Flatten JSON into readable text
-            const text = flattenJsonToText(jsonData);
-            documents.push(
-                new Document({
-                    pageContent: text,
-                    metadata: { source: filename, type: "json" },
-                })
-            );
-            console.log(`Loaded JSON file: ${filename} (${text.length} chars)`);
+            const jsonDocs = processJsonGuideline(jsonData, filename);
+            rawDocuments.push(...jsonDocs);
+            console.log(`Loaded JSON file: ${filename} with ${jsonDocs.length} sections`);
         } catch (error) {
             console.error("JSON Parsing Error:", error);
             throw new Error(`Failed to parse JSON ${filename}: ${error instanceof Error ? error.message : String(error)}`);
@@ -81,7 +112,7 @@ export async function processFileBuffer(buffer: Buffer, filename: string): Promi
             const pdfModule = (await import("pdf-parse")) as any;
             const pdf = pdfModule.default || pdfModule;
             const result = await pdf(buffer);
-            documents.push(
+            rawDocuments.push(
                 new Document({
                     pageContent: result.text,
                     metadata: { source: filename, type: "pdf" },
@@ -93,7 +124,7 @@ export async function processFileBuffer(buffer: Buffer, filename: string): Promi
         }
     } else if (ext === ".docx") {
         const result = await mammoth.extractRawText({ buffer });
-        documents.push(
+        rawDocuments.push(
             new Document({
                 pageContent: result.value,
                 metadata: { source: filename, type: "docx" },
@@ -101,19 +132,23 @@ export async function processFileBuffer(buffer: Buffer, filename: string): Promi
         );
     }
 
-    if (documents.length === 0) return [];
+    if (rawDocuments.length === 0) return [];
 
+    // CHUNKING STRATEGY: 
+    // For large structured documents, we use RecursiveCharacterTextSplitter.
+    // We favor smaller chunks (1000 chars) for better precision in medical answers.
     const splitter = new RecursiveCharacterTextSplitter({
         chunkSize: CHUNK_SIZE,
         chunkOverlap: CHUNK_OVERLAP,
-        separators: ["\n\n", "\n", ". ", "? ", "! ", " ", ""],
+        // Added medical specific separators to keep guidelines intact
+        separators: ["\n[SECTION:", "\n\n", "\n", ". ", "? ", "! ", " ", ""],
     });
 
-    const splitDocs = await splitter.splitDocuments(documents);
+    const splitDocs = await splitter.splitDocuments(rawDocuments);
 
     // Filter out empty or whitespace-only chunks that cause 0-dimension embedding errors
     const validDocs = splitDocs.filter(doc => doc.pageContent.trim().length > 10);
-    console.log(`processFileBuffer: Split into ${splitDocs.length} chunks, ${validDocs.length} valid (filtered ${splitDocs.length - validDocs.length} empty/tiny chunks)`);
+    console.log(`processFileBuffer: Split ${filename} into ${splitDocs.length} chunks, ${validDocs.length} valid.`);
 
     return validDocs;
 }
@@ -151,7 +186,7 @@ export async function processRawText(text: string, sourceLabel: string): Promise
     const splitter = new RecursiveCharacterTextSplitter({
         chunkSize: 1000,
         chunkOverlap: 150,
-        separators: ["\n\n", "\n", ". ", "? ", "! ", " ", ""],
+        separators: ["\n[SECTION:", "\n\n", "\n", ". ", "? ", "! ", " ", ""],
     });
 
     const splitDocs = await splitter.splitDocuments([doc]);
@@ -203,9 +238,9 @@ export async function loadLocalDocuments(specificFile?: string): Promise<Documen
                     } else if (ext === ".json") {
                         const raw = buffer.toString("utf-8");
                         const jsonData = JSON.parse(raw);
-                        const text = flattenJsonToText(jsonData);
-                        documents.push(new Document({ pageContent: text, metadata: { source: file, type: "json" } }));
-                        console.log(`Loaded JSON file: ${file}`);
+                        const jsonDocs = processJsonGuideline(jsonData, file);
+                        documents.push(...jsonDocs);
+                        console.log(`Loaded JSON file: ${file} with ${jsonDocs.length} sections`);
                     } else {
                         documents.push(new Document({ pageContent: buffer.toString("utf-8"), metadata: { source: file, type: ext.replace(".", "") } }));
                         console.log(`Loaded text file: ${file}`);
@@ -248,7 +283,7 @@ export async function syncKnowledgeBase(
     const splitter = new RecursiveCharacterTextSplitter({
         chunkSize: 1000,
         chunkOverlap: 150,
-        separators: ["\n\n", "\n", ". ", "? ", "! ", " ", ""],
+        separators: ["\n[SECTION:", "\n\n", "\n", ". ", "? ", "! ", " ", ""],
     });
 
     const splitDocs = await splitter.splitDocuments(rawDocs);
@@ -305,14 +340,19 @@ export async function syncKnowledgeBase(
     };
 }
 
+let pineconeClient: Pinecone | null = null;
+
 // Helper to get Pinecone client (ensures process.env is ready)
 function getPineconeClient() {
     if (!process.env.PINECONE_API_KEY) {
         throw new Error("PINECONE_API_KEY is not defined in environment variables");
     }
-    return new Pinecone({
-        apiKey: process.env.PINECONE_API_KEY,
-    });
+    if (!pineconeClient) {
+        pineconeClient = new Pinecone({
+            apiKey: process.env.PINECONE_API_KEY,
+        });
+    }
+    return pineconeClient;
 }
 
 /**

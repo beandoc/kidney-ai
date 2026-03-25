@@ -3,9 +3,7 @@ import { getChatModel, QUERY_REFINER_PROMPT, RERANKER_PROMPT } from "./config";
 import { HumanMessage } from "@langchain/core/messages";
 
 import { getCachedResponse, setCachedResponse } from "../cache";
-import Redis from "ioredis";
-
-const redis = new Redis(process.env.REDIS_URL || "");
+import redis from "../redis-client";
 
 /**
  * Refine the user query to fix typos and normalize medical terms
@@ -62,7 +60,30 @@ export async function refineQuery(query: string): Promise<string> {
  * Optimized: Uses Memory Insights (Summaries) instead of raw text for SPEED.
  */
 export async function rerankDocuments(query: string, documents: Document[]): Promise<Document[]> {
-    if (documents.length === 0) return [];
+    if (documents.length <= 1) return documents;
+
+    // QUICK WIN 1: Skip reranking for very short, standard queries
+    const queryWords = query.trim().split(/\s+/).length;
+    if (queryWords <= 3) {
+        console.log(`[Reranker] Skipping for simple query: "${query}"`);
+        return documents;
+    }
+
+    // QUICK WIN 2: Redis Cache for Reranking
+    const docIds = documents.map(d => `${d.metadata.source}-${d.metadata.title}-${d.pageContent.slice(0, 30)}`).join('|');
+    const cacheKey = `cache:rerank:${query.toLowerCase().trim()}:${docIds.slice(0, 100)}`;
+
+    try {
+        const cachedRerank = await redis.get(cacheKey);
+        if (cachedRerank) {
+            console.log(`[Reranker] Cache HIT for: "${query}"`);
+            const rerankedIndices: number[] = JSON.parse(cachedRerank);
+            return rerankedIndices.map(idx => documents[idx]).filter(Boolean);
+        }
+    } catch (e) {
+        console.warn("[Reranker] Cache read failed:", e);
+    }
+
     console.log(`[Reranker] Starting rerank of ${documents.length} docs for: "${query}"`);
 
     try {
@@ -91,10 +112,16 @@ export async function rerankDocuments(query: string, documents: Document[]): Pro
         // Attach scores and sort
         const scoredDocs = documents.map((doc, idx) => {
             doc.metadata.rerankScore = scores[idx] || 0;
-            return doc;
+            return { doc, originalIdx: idx };
         });
 
-        return scoredDocs.sort((a, b) => (b.metadata.rerankScore || 0) - (a.metadata.rerankScore || 0));
+        const sorted = scoredDocs.sort((a, b) => (b.doc.metadata.rerankScore || 0) - (a.doc.metadata.rerankScore || 0));
+        
+        // Cache the result (save the order of original indices)
+        const resultIndices = sorted.map(item => item.originalIdx);
+        redis.set(cacheKey, JSON.stringify(resultIndices), "EX", 86400).catch(err => console.error("Rerank Cache Write Error:", err));
+
+        return sorted.map(item => item.doc);
     } catch (error) {
         console.error("Reranking failed, returning original order:", error);
         return documents;

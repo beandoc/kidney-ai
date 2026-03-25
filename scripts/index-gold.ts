@@ -1,14 +1,15 @@
 
-import { GOLD_ANSWERS } from '../lib/knowledge/index';
+import { getGoldAnswers } from '../lib/knowledge/index';
 import * as fs from 'fs';
 import * as path from 'path';
 
 async function main() {
     console.log("Indexing Gold Answers into PageIndex format...");
 
+    const goldAnswers = getGoldAnswers();
     const pageIndex = {
         doc_name: "Manual_Gold_Answers.json",
-        structure: Object.entries(GOLD_ANSWERS).map(([key, content], index) => {
+        structure: Object.entries(goldAnswers).map(([key, content], index) => {
             // Simple summary is first line or first 100 chars
             const summary = content.split('\n')[0].slice(0, 150);
 
@@ -30,7 +31,7 @@ async function main() {
     }
 
     fs.writeFileSync(outputPath, JSON.stringify(pageIndex, null, 2));
-    console.log(`Successfully indexed ${Object.keys(GOLD_ANSWERS).length} gold answers to ${outputPath}`);
+    console.log(`Successfully indexed ${Object.keys(goldAnswers).length} gold answers to ${outputPath}`);
 
     // Trigger the merge script
     console.log("Running merge script...");

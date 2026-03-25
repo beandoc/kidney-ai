@@ -47,18 +47,21 @@ export async function GET(request: Request) {
         // 2. Fetch runtime-uploaded documents (from Redis on Vercel or local)
         if (process.env.REDIS_URL) {
             try {
-                const { createClient } = await import('redis');
-                const redis = await createClient({ url: process.env.REDIS_URL }).connect();
+                const Redis = (await import('ioredis')).default;
+                const redis = new Redis(process.env.REDIS_URL);
                 const keys = await redis.keys('pageindex:*');
                 for (const key of keys) {
                     const fileName = key.replace('pageindex:', '');
                     const displayName = fileName.replace(/\.json$/, '');
                     if (!seenNames.has(displayName + '.json')) {
                         seenNames.add(displayName + '.json');
+                        // Get actual byte content length for accurate UI display
+                        const content = await redis.get(key);
+                        const size = content ? Buffer.byteLength(content) : 0;
                         files.push({
                             name: displayName,
                             originalName: fileName,
-                            size: 1024,
+                            size: size,
                             updatedAt: new Date(),
                             type: 'pageindex_tree',
                             isIndexed: true,
@@ -150,8 +153,8 @@ export async function DELETE(request: Request) {
         // Delete from Redis
         if (process.env.REDIS_URL) {
             try {
-                const { createClient } = await import('redis');
-                const redis = await createClient({ url: process.env.REDIS_URL }).connect();
+                const Redis = (await import('ioredis')).default;
+                const redis = new Redis(process.env.REDIS_URL);
                 const targets = [
                     `pageindex:${fileName}`,
                     `pageindex:${fileName}.json`,

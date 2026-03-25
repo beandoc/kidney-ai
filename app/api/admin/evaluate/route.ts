@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { runEvaluation } from "../../../../lib/evaluation";
+import { runFullEvaluation } from "../../../../lib/evaluation";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     }
 
     try {
-        const summary = await runEvaluation();
+        const summary = await runFullEvaluation();
         return NextResponse.json(summary);
     } catch (error) {
         console.error("Evaluation error:", error);
