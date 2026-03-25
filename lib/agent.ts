@@ -218,7 +218,7 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
    const clinicalKeywords = [
       "treatment", "management", "medicine", "medication", "dosage", "dose",
       "protocol", "therapy", "clinical", "research", "mechanism", "surgery", "procedure", "cure", "heal",
-      "guideline", "scientific", "pathology", "diagnosis", "managing"
+      "guideline", "scientific", "pathology", "diagnosis", "managing", "nephritis", "vasculitis", "immunosup"
    ];
 
    const clinicalWords = normalizedInput.split(/\s+/);
@@ -237,7 +237,8 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
    });
 
    const curatedTopics = [
-      "transplant", "biopsy", "anca", "creatinine", "proteinuria", "fistula", "catheter", "dialysis"
+      "transplant", "biopsy", "anca", "creatinine", "proteinuria", "fistula", "catheter", "dialysis", 
+      "lupus", "stones", "vaccin", "esrd", "aki", "hyponatremia", "hyperkalemia", "gfr"
    ];
    const isCuratedTopic = curatedTopics.some(t => normalizedInput.includes(t));
 
@@ -327,8 +328,21 @@ export async function* runAgent(input: string, chatHistory: BaseMessage[], image
    if (goldMatchKey && allGold[goldMatchKey]) {
       const content = allGold[goldMatchKey];
       
-      // "Fluff-Buster" logic: Skip short navigation lists in favor of Deep clinical RAG
-      const isGoldFluff = content.length < 200 && (content.includes("?") || content.includes("\n-"));
+      // 1. Basic Fluff-Buster: Short navigation lists
+      let isGoldFluff = content.length < 200 && (content.includes("?") || content.includes("\n-"));
+
+      // 2. High-Fidelity Entity Guard: If user query has a Core Topic NOT in the Gold answer, go to Deep RAG
+      if (!isGoldFluff && isClinicalDeepDive) {
+         const missingEntity = curatedTopics.find(t => {
+             // If topic is in query but NOT in matched content (even though it matched a trigger)
+             return normalizedInput.includes(t) && !content.toLowerCase().includes(t);
+         });
+
+         if (missingEntity) {
+            console.log(JSON.stringify({ event: "GoldMatchEntityMismatch", query: normalizedInput, missing: missingEntity, goldKey: goldMatchKey }));
+            isGoldFluff = true; // "Bust" this gold answer and fall through to RAG
+         }
+      }
 
       if (!isGoldFluff) {
          console.log(JSON.stringify({ event: "GoldMatch", key: goldMatchKey, translated: isTranslationRequested }));

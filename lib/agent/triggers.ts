@@ -117,34 +117,6 @@ export const KEYWORD_REGISTRY: TriggerRule[] = [
         ]
     },
     {
-        id: "what is anca vasculitis?",
-        all: ["what is", "vasculitis"]
-    },
-    {
-        id: "what is ckd?",
-        any: ["ckd", "chronic kidney disease", "what is kidney disease", "सीकेडी", "क्रोनिक"],
-        subRules: [
-            { id: "what are the symptoms of ckd?", any: ["symptom", "sign", "swelling", "tired", "लक्षण", "सूजन", "सूज"] },
-            { id: "what can i do on my own to protect my kidneys?", any: ["protect", "care", "prevent", "lifestyle", "nsaid", "बचाव", "काळजी"] },
-            { id: "how is ckd treated?", any: ["treat", "medicine", "pill", "ace", "arb", "इलाज", "उपचार"] },
-            { id: "why do i need a special diet if i have ckd?", any: ["why diet", "need diet", "reason for diet", "आहार"] },
-            { id: "chronic kidney disease: diet for non-dialysis patients", any: ["what can i eat", "eat ckd", "drink ckd", "serving", "क्या खाएं", "काय खावे"] }
-        ]
-    },
-    {
-        id: "common causes of ckd",
-        all: ["cause", "ckd"],
-        subRules: [
-            { id: "other causes of ckd", any: ["other", "else"] }
-        ]
-    },
-    { id: "monitoring kidney disease", any: ["monitor", "getting worse", "what test", "diagnose"] },
-    { id: "interpreting kidney tests", any: ["gfr", "albumin", "uacr"] },
-    { id: "how to manage kidney disease?", any: ["manage", "ways to help", "improve kidney", "sleep", "exercise", "activity", "smoking", "stress"] },
-    { id: "preparing for doctor visit", any: ["doctor", "visit", "appointment", "ask"] },
-    { id: "who is on my healthcare team?", any: ["team", "specialist", "dietitian", "nephrologist"] },
-    { id: "kidney medications guide", any: ["medicine", "medication", "drug", "pill", "-pril", "-sartan"] },
-    {
         id: "understanding peritoneal dialysis",
         any: ["peritoneal", " pd ", "पेरिटोनियल", "पीडी"],
         regex: [/\bpd\b/],
@@ -206,6 +178,30 @@ export const KEYWORD_REGISTRY: TriggerRule[] = [
         ]
     },
     { id: "dialysis catheter care", all: ["catheter"], any: ["care", "precaution", "infection"] },
+    {
+        id: "what is ckd?",
+        any: ["ckd", "chronic kidney disease", "what is kidney disease", "सीकेडी", "क्रोनिक"],
+        subRules: [
+            { id: "what are the symptoms of ckd?", any: ["symptom", "sign", "swelling", "tired", "लक्षण", "सूजन", "सूज"] },
+            { id: "what can i do on my own to protect my kidneys?", any: ["protect", "care", "prevent", "lifestyle", "nsaid", "बचाव", "काळजी"] },
+            { id: "how is ckd treated?", any: ["treat", "medicine", "pill", "ace", "arb", "इलाज", "उपचार"] },
+            { id: "why do i need a special diet if i have ckd?", any: ["why diet", "need diet", "reason for diet", "आहार"] },
+            { id: "chronic kidney disease: diet for non-dialysis patients", any: ["what can i eat", "eat ckd", "drink ckd", "serving", "क्या खाएं", "काय खावे"] }
+        ]
+    },
+    {
+        id: "common causes of ckd",
+        all: ["cause", "ckd"],
+        subRules: [
+            { id: "other causes of ckd", any: ["other", "else"] }
+        ]
+    },
+    { id: "interpreting kidney tests", any: ["gfr", "albumin", "uacr"] },
+    { id: "monitoring kidney disease", any: ["monitor", "getting worse", "what test", "diagnose"] },
+    { id: "how to manage kidney disease?", any: ["manage", "ways to help", "improve kidney", "sleep", "exercise", "activity", "smoking", "stress"] },
+    { id: "preparing for doctor visit", any: ["doctor", "visit", "appointment", "ask"] },
+    { id: "who is on my healthcare team?", any: ["team", "specialist", "dietitian", "nephrologist"] },
+    { id: "kidney medications guide", any: ["medicine", "medication", "drug", "pill", "-pril", "-sartan"] },
     {
         id: "what is frequent urination?",
         any: ["urina", "pee"],
@@ -453,15 +449,20 @@ export const KEYWORD_REGISTRY: TriggerRule[] = [
 ];
 
 export function findGoldMatch(input: string, rules: TriggerRule[] = KEYWORD_REGISTRY): string | null {
+    const isWordMatch = (txt: string, k: string) => {
+        if (k.length > 5) return txt.includes(k);
+        const regex = new RegExp(`\\b${k}\\b`, "i");
+        return regex.test(txt);
+    };
+
     for (const rule of rules) {
         const anyPass = !rule.any && !rule.regex ? true :
-            (rule.any?.some(k => input.includes(k)) || rule.regex?.some(r => r.test(input)));
+            (rule.any?.some(k => isWordMatch(input, k)) || rule.regex?.some(r => r.test(input)));
 
         const allPass = !rule.all ? true :
-            rule.all.every(k => input.includes(k));
+            rule.all.every(k => isWordMatch(input, k));
 
         if (anyPass && allPass && (rule.any || rule.all || rule.regex)) {
-            // Check sub-rules for specialization
             if (rule.subRules) {
                 const subMatch = findGoldMatch(input, rule.subRules);
                 if (subMatch) return subMatch;
